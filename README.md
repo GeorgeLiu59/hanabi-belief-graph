@@ -15,3 +15,7 @@ pip install numpy                   # game_example.py uses numpy
 python examples/rl_env_example.py   # Runs RL episodes
 python examples/game_example.py     # Plays a game using the lower level interface
 ```
+
+### New Contributions
+
+**GeminiAgent**: A new agent implementation that uses Google's Gemini 2.0 Flash Lite language model to play Hanabi without any help or hints. The agent converts game state observations into natural language prompts, sends them to the LLM for reasoning, and parses JSON responses to extract actions. This approach tests how well language models can perform strategic reasoning in cooperative games with imperfect information, providing insights into LLM capabilities for multi-agent coordination without explicit training.
