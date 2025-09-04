@@ -24,6 +24,10 @@ class RandomAgent(Agent):
     """Initialize the agent."""
     self.config = config
 
+  def reset(self, config):
+    """Reset the agent for a new game."""
+    self.config = config
+
   def act(self, observation):
     """Act based on an observation."""
     if observation['current_player_offset'] == 0:

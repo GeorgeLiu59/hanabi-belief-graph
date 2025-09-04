@@ -34,9 +34,31 @@ class GeminiAgent(Agent):
             config: dict, With parameters for the game.
         """
         self.config = config
+        
+        # Try to load .env file explicitly
+        load_dotenv()
+        
+        # Check for API key in multiple ways
         self.api_key = os.getenv('GEMINI_API_KEY')
         if not self.api_key:
-            raise ValueError("GEMINI_API_KEY not found in environment variables")
+            # Try to read from .env file directly
+            try:
+                env_path = os.path.join(os.getcwd(), '.env')
+                if os.path.exists(env_path):
+                    with open(env_path, 'r') as f:
+                        for line in f:
+                            if line.startswith('GEMINI_API_KEY='):
+                                self.api_key = line.split('=', 1)[1].strip().strip('"\'')
+                                break
+            except Exception as e:
+                print(f"Warning: Could not read .env file: {e}")
+        
+        if not self.api_key:
+            raise ValueError(
+                "GEMINI_API_KEY not found in environment variables or .env file. "
+                "Please set GEMINI_API_KEY environment variable or create a .env file "
+                "in the project root with: GEMINI_API_KEY=your_key_here"
+            )
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
@@ -59,26 +81,28 @@ class GeminiAgent(Agent):
             
         # Basic game state
         game_state = f"""
-Game State:
-- Information tokens: {observation['information_tokens']}
-- Life tokens: {observation['life_tokens']}
+## GAME OVERVIEW
+- Information tokens: {observation['information_tokens']}/8
+- Life tokens: {observation['life_tokens']}/3
 - Deck size: {observation['deck_size']}
 - Number of players: {observation['num_players']}
 
-Fireworks (cards played so far):
+## FIREWORKS PROGRESS (cards played so far)
 """
         
         for color, rank in observation['fireworks'].items():
-            game_state += f"- {color}: {rank}\n"
+            game_state += f"- {color}: {rank}/5 (need {rank+1} next)\n"
             
-        # Discard pile
+        # Discard pile analysis
         if observation['discard_pile']:
-            game_state += f"\nDiscard pile: {observation['discard_pile']}\n"
+            game_state += f"\n## DISCARD PILE (what's been lost)\n"
+            for card in observation['discard_pile']:
+                game_state += f"- {card['color']}{card['rank']}\n"
         else:
-            game_state += "\nDiscard pile: empty\n"
+            game_state += "\n## DISCARD PILE: empty (good - no cards lost yet)\n"
             
-        # Other players' hands (what you can see)
-        game_state += "\nOther players' hands:\n"
+        # Other players' hands with strategic analysis
+        game_state += "\n## OTHER PLAYERS' HANDS (what you can see)\n"
         for i, hand in enumerate(observation['observed_hands'][1:], 1):
             game_state += f"Player {i}: "
             for j, card in enumerate(hand):
@@ -88,8 +112,8 @@ Fireworks (cards played so far):
                     game_state += "? "
             game_state += "\n"
             
-        # Your hand (what you know about it)
-        game_state += "\nYour hand:\n"
+        # Your hand with knowledge analysis
+        game_state += "\n## YOUR HAND (what you know vs. what you need)\n"
         my_hand = observation['observed_hands'][0]
         my_knowledge = observation['card_knowledge'][0]
         
@@ -104,19 +128,50 @@ Fireworks (cards played so far):
                 game_state += f"Rank: {knowledge['rank']}"
             else:
                 game_state += "Rank: unknown"
+            
+            # Add strategic analysis
+            if knowledge['color'] is not None and knowledge['rank'] is not None:
+                current_firework = observation['fireworks'][knowledge['color']]
+                if knowledge['rank'] == current_firework:
+                    game_state += " ✅ PLAYABLE NOW!"
+                elif knowledge['rank'] < current_firework:
+                    game_state += " ❌ Too low - can't play yet"
+                else:
+                    game_state += f" ⏳ Need {current_firework} first"
+            
             game_state += "\n"
             
-        # Legal moves
-        game_state += "\nLegal moves:\n"
+        # Legal moves with strategic context
+        game_state += "\n## AVAILABLE ACTIONS\n"
         for i, move in enumerate(observation['legal_moves']):
             if move['action_type'] == 'PLAY':
                 game_state += f"{i}: Play card {move['card_index']}\n"
             elif move['action_type'] == 'DISCARD':
-                game_state += f"{i}: Discard card {move['card_index']}\n"
+                game_state += f"{i}: Discard card {move['card_index']} (+1 info token)\n"
             elif move['action_type'] == 'REVEAL_COLOR':
-                game_state += f"{i}: Hint color {move['color']} to player {move['target_offset']}\n"
+                game_state += f"{i}: Hint color {move['color']} to player {move['target_offset']} (-1 info token)\n"
             elif move['action_type'] == 'REVEAL_RANK':
-                game_state += f"{i}: Hint rank {move['rank']} to player {move['target_offset']}\n"
+                game_state += f"{i}: Hint rank {move['rank']} to player {move['target_offset']} (-1 info token)\n"
+                
+        # Strategic recommendations
+        game_state += "\n## STRATEGIC CONSIDERATIONS\n"
+        if observation['information_tokens'] == 0:
+            game_state += "- ⚠️ No info tokens left - must discard to get more\n"
+        elif observation['information_tokens'] == 8:
+            game_state += "- ⚠️ Max info tokens - should give hints or play cards\n"
+        
+        # Check for obvious plays
+        obvious_plays = []
+        for i, (card, knowledge) in enumerate(zip(my_hand, my_knowledge)):
+            if knowledge['color'] is not None and knowledge['rank'] is not None:
+                current_firework = observation['fireworks'][knowledge['color']]
+                if knowledge['rank'] == current_firework:
+                    obvious_plays.append(f"Card {i} ({knowledge['color']}{knowledge['rank']})")
+        
+        if obvious_plays:
+            game_state += f"- 🎯 Obvious plays available: {', '.join(obvious_plays)}\n"
+        else:
+            game_state += "- 🤔 No obvious plays - consider hinting or discarding\n"
                 
         return game_state
         
@@ -124,23 +179,52 @@ Fireworks (cards played so far):
         """Create the prompt for the LLM."""
         game_state = self._format_observation_for_llm(observation)
         
-        prompt = f"""You are playing Hanabi, a cooperative card game. You cannot see your own cards, but you can see other players' cards and receive hints about your cards.
+        prompt = f"""You are playing Hanabi, a cooperative card game where you must work with your teammates to build fireworks (card sequences) in ascending order (0, 1, 2, 3, 4) for each color.
 
-Game Rules:
-- The goal is to play cards in ascending order (0, 1, 2, 3, 4) for each color
-- You can play a card if it's the next card needed for that color's sequence
-- You can discard a card to gain an information token
-- You can give hints to other players about colors or ranks of their cards
-- You have limited information tokens (8 max) and life tokens (3 max)
-- If you play a wrong card, you lose a life token
-- The game ends when you run out of life tokens or successfully play all cards
+## GAME RULES
+- Goal: Play cards in ascending order (0→1→2→3→4) for each color
+- You cannot see your own cards, but can see other players' cards
+- You receive hints about your cards from teammates
+- You have 8 information tokens (for giving hints) and 3 life tokens
+- Playing a wrong card costs 1 life token
+- Game ends when you run out of life tokens or complete all fireworks
 
-{game_state}
+## STRATEGIC GUIDELINES
+1. **RISK ASSESSMENT**: Only play cards you're confident about
+2. **HINT STRATEGY**: Give hints that enable immediate plays or prevent discarding valuable cards
+3. **RESOURCE MANAGEMENT**: Balance information tokens with strategic needs
+4. **TEAM COORDINATION**: Work together to build sequences efficiently
 
-Based on the current game state, choose the best action. Respond with ONLY a JSON object in this exact format:
+## ACTION PRIORITY (in order):
+1. **PLAY** a card if you're confident it's the next needed card
+2. **HINT** if you can help a teammate play a card or save a valuable card
+3. **DISCARD** only when you need information tokens and have no better options
+
+## HINT STRATEGIES:
+- **Playable hints**: Tell someone about a card they can play immediately
+- **Save hints**: Prevent discarding cards needed for sequences
+- **Finesse hints**: Enable plays through indirect information
+
+## FORMAT REQUIREMENTS:
+Respond with ONLY a valid JSON object in this exact format:
 {{"action_type": "PLAY|DISCARD|REVEAL_COLOR|REVEAL_RANK", "card_index": 0-4, "color": "R|Y|G|W|B", "rank": 0-4, "target_offset": 1-3}}
 
-Choose the action that you think will help the team win. Be strategic about when to play, discard, or give hints."""
+**IMPORTANT**: 
+- For PLAY/DISCARD: use "card_index" (0-4), set color/rank/target_offset to null
+- For REVEAL_COLOR: use "color" and "target_offset", set card_index/rank to null  
+- For REVEAL_RANK: use "rank" and "target_offset", set card_index/color to null
+
+## CURRENT GAME STATE:
+{game_state}
+
+## YOUR TASK:
+Analyze the game state and choose the most strategic action. Consider:
+- What cards can be played safely?
+- What hints would help your teammates most?
+- How to manage information tokens efficiently?
+- What risks are worth taking?
+
+Choose the action that maximizes your team's chance of winning. Be strategic but don't be overly cautious - sometimes calculated risks are necessary!"""
         
         return prompt
         
@@ -153,10 +237,62 @@ Choose the action that you think will help the team win. Be strategic about when
             if start_idx != -1 and end_idx != 0:
                 json_str = response[start_idx:end_idx]
                 action = json.loads(json_str)
+                
+                # Clean up the action to fix common LLM format issues
+                action = self._clean_action_format(action)
+                
                 return action
-        except (json.JSONDecodeError, KeyError, ValueError):
+        except (json.JSONDecodeError, KeyError, ValueError) as e:
+            print(f"JSON parsing error: {e}")
             pass
         return None
+    
+    def _clean_action_format(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        """Clean up common LLM format issues in actions."""
+        cleaned = action.copy()
+        
+        # Fix card_index issues
+        if 'card_index' in cleaned:
+            if cleaned['card_index'] == -1 or cleaned['card_index'] is None:
+                # For hints, card_index should be None
+                if cleaned['action_type'] in ['REVEAL_COLOR', 'REVEAL_RANK']:
+                    cleaned['card_index'] = None
+                # For play/discard, card_index should be 0-4
+                elif cleaned['action_type'] in ['PLAY', 'DISCARD']:
+                    cleaned['card_index'] = 0  # Default to first card
+        
+        # Ensure required fields are present and correct
+        if cleaned['action_type'] == 'PLAY':
+            if 'card_index' not in cleaned or cleaned['card_index'] is None:
+                cleaned['card_index'] = 0
+            cleaned['color'] = None
+            cleaned['rank'] = None
+            cleaned['target_offset'] = None
+            
+        elif cleaned['action_type'] == 'DISCARD':
+            if 'card_index' not in cleaned or cleaned['card_index'] is None:
+                cleaned['card_index'] = 0
+            cleaned['color'] = None
+            cleaned['rank'] = None
+            cleaned['target_offset'] = None
+            
+        elif cleaned['action_type'] == 'REVEAL_COLOR':
+            if 'color' not in cleaned or cleaned['color'] is None:
+                cleaned['color'] = 'R'  # Default color
+            if 'target_offset' not in cleaned or cleaned['target_offset'] is None:
+                cleaned['target_offset'] = 1  # Default target
+            cleaned['card_index'] = None
+            cleaned['rank'] = None
+            
+        elif cleaned['action_type'] == 'REVEAL_RANK':
+            if 'rank' not in cleaned or cleaned['rank'] is None:
+                cleaned['rank'] = 0  # Default rank
+            if 'target_offset' not in cleaned or cleaned['target_offset'] is None:
+                cleaned['target_offset'] = 1  # Default target
+            cleaned['card_index'] = None
+            cleaned['color'] = None
+        
+        return cleaned
         
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act based on an observation using Gemini LLM."""

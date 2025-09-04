@@ -25,6 +25,10 @@ class SimpleAgent(Agent):
     # Extract max info tokens or set default to 8.
     self.max_information_tokens = config.get('information_tokens', 8)
 
+  def reset(self, config):
+    """Reset the agent for a new game."""
+    self.config = config
+
   @staticmethod
   def playable_card(card, fireworks):
     """A card is playable if it can be placed on the fireworks pile."""
