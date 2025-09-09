@@ -1,0 +1,4 @@
+model_checkpoint_path: "/user_data/georgeli/workspace/hanabi-belief-graph/hanabi_learning_environment/agents/rainbow/checkpoints/checkpoints/tf_ckpt-10000"
+all_model_checkpoint_paths: "/user_data/georgeli/workspace/hanabi-belief-graph/hanabi_learning_environment/agents/rainbow/checkpoints/checkpoints/tf_ckpt-9900"
+all_model_checkpoint_paths: "/user_data/georgeli/workspace/hanabi-belief-graph/hanabi_learning_environment/agents/rainbow/checkpoints/checkpoints/tf_ckpt-9950"
+all_model_checkpoint_paths: "/user_data/georgeli/workspace/hanabi-belief-graph/hanabi_learning_environment/agents/rainbow/checkpoints/checkpoints/tf_ckpt-10000"

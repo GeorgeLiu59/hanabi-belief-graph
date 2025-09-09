@@ -15,6 +15,19 @@ pip install numpy                   # game_example.py uses numpy
 python examples/rl_env_example.py   # Runs RL episodes
 python examples/game_example.py     # Plays a game using the lower level interface
 ```
+Run the trained rainbow agent weights:
+```
+cd hanabi_learning_environment/agents/rainbow
+
+python -um evaluate \
+  --checkpoint_dir=checkpoints/checkpoints \
+  --checkpoint_file_prefix=ckpt \
+  --checkpoint_iteration=10000 \
+  --gin_files='configs/hanabi_rainbow.gin' \
+  --num_evaluation_games=100
+```
+(You can chance which iteration you are running 1000,2000,...,10000)
+
 
 ### New Contributions
 

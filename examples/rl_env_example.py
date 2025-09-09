@@ -35,7 +35,7 @@ AGENT_CLASSES = {
 DEFAULT_CONFIG = {
     'players': 2,
     'num_episodes': 1,
-    'agent_class': 'SimpleAgent'
+    'agent_class': 'GeminiAgent'
 }
 
 
@@ -71,7 +71,7 @@ class HanabiRunner:
         """
         self.config = config
         self.agent_config = {'players': config['players']}
-        self.environment = rl_env.make('Hanabi-Full', num_players=config['players'])
+        self.environment = rl_env.make('Hanabi-Full-CardKnowledge', num_players=config['players'])
         self.agent_class = AGENT_CLASSES[config['agent_class']]
 
     def run_episode(self) -> float:

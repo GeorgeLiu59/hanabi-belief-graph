@@ -1,1 +1,5 @@
 *.pyc
+_skbuild/
+/examples/CMakeLists.txt
+hanabi_learning_environment.egg-info/
+train*
