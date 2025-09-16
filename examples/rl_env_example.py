@@ -95,12 +95,34 @@ class HanabiRunner:
             # Get actions from all agents
             for agent_id, agent in enumerate(agents):
                 observation = observations['player_observations'][agent_id]
+                
+                print(f"\n{'='*60}")
+                print(f"AGENT {agent_id} DECISION MAKING")
+                print(f"{'='*60}")
+                print(f"Current player: {observation['current_player']}")
+                print(f"Is this agent's turn: {observation['current_player'] == agent_id}")
+                print(f"Agent type: {type(agent).__name__}")
+                
+                if observation['current_player'] == agent_id:
+                    print(f"🎯 Agent {agent_id} is making a decision...")
+                    print(f"Available legal moves: {len(observation['legal_moves'])}")
+                    for i, move in enumerate(observation['legal_moves']):
+                        print(f"  {i}: {move}")
+                    
+                    print(f"Game state:")
+                    print(f"  Information tokens: {observation['information_tokens']}/8")
+                    print(f"  Life tokens: {observation['life_tokens']}/3")
+                    print(f"  Deck size: {observation['deck_size']}")
+                    print(f"  Fireworks: {observation['fireworks']}")
+                
                 action = agent.act(observation)
                 
                 if observation['current_player'] == agent_id:
+                    print(f"Agent {agent_id} decided: {action}")
                     assert action is not None, f"Agent {agent_id} must provide action on their turn"
                     current_player_action = action
                 else:
+                    print(f"Agent {agent_id} waiting (not their turn)")
                     assert action is None, f"Agent {agent_id} should not act on other's turn"
             
             # Execute the current player's action

@@ -1,0 +1,1130 @@
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 13
+  0: {'action_type': 'PLAY', 'card_index': 0}
+  1: {'action_type': 'PLAY', 'card_index': 1}
+  2: {'action_type': 'PLAY', 'card_index': 2}
+  3: {'action_type': 'PLAY', 'card_index': 3}
+  4: {'action_type': 'PLAY', 'card_index': 4}
+  5: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  6: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  7: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  8: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  9: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  10: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  11: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  12: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+Game state:
+  Information tokens: 8/8
+  Life tokens: 3/3
+  Deck size: 40
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 7/8
+  Life tokens: 3/3
+  Deck size: 40
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 18
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  14: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  17: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+Game state:
+  Information tokens: 6/8
+  Life tokens: 3/3
+  Deck size: 40
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 5/8
+  Life tokens: 3/3
+  Deck size: 40
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_COLOR', 'card_index': -1, 'color': 'G', 'rank': -1, 'target_offset': 1}
+✅ Agent 1 decided: {'action_type': 'DISCARD', 'card_index': 1}
+Agent: 1 action: {'action_type': 'DISCARD', 'card_index': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+Game state:
+  Information tokens: 6/8
+  Life tokens: 3/3
+  Deck size: 39
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 5/8
+  Life tokens: 3/3
+  Deck size: 39
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'G', 'rank': None, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'G', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+Game state:
+  Information tokens: 4/8
+  Life tokens: 3/3
+  Deck size: 39
+  Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'PLAY', 'card_index': 2}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'PLAY', 'card_index': 2}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 2}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 4/8
+  Life tokens: 3/3
+  Deck size: 38
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_COLOR', 'card_index': -1, 'color': 'G', 'rank': -1, 'target_offset': 1}
+✅ Agent 1 decided: {'action_type': 'DISCARD', 'card_index': 1}
+Agent: 1 action: {'action_type': 'DISCARD', 'card_index': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 18
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  17: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 5/8
+  Life tokens: 3/3
+  Deck size: 37
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 2}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 4/8
+  Life tokens: 3/3
+  Deck size: 37
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 18
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  17: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 3/8
+  Life tokens: 3/3
+  Deck size: 37
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 2}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 2/8
+  Life tokens: 3/3
+  Deck size: 37
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 18
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  17: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 3/3
+  Deck size: 37
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'R', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'R', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 3/3
+  Deck size: 37
+  Fireworks: {'R': 0, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'PLAY', 'card_index': 2}
+Agent: 1 action: {'action_type': 'PLAY', 'card_index': 2}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 3/3
+  Deck size: 36
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_RANK', 'card_index': 0, 'rank': 1, 'target_offset': 1}
+✅ Agent 0 decided: {'action_type': 'DISCARD', 'card_index': 4}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'DISCARD', 'card_index': 4}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'R'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 3/3
+  Deck size: 35
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_COLOR', 'card_index': -1, 'color': 'B', 'rank': -1, 'target_offset': 1}
+✅ Agent 1 decided: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Agent: 1 action: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 3/3
+  Deck size: 35
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_RANK', 'card_index': -1, 'color': None, 'rank': 4, 'target_offset': 1}
+✅ Agent 0 decided: {'action_type': 'PLAY', 'card_index': 4}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'PLAY', 'card_index': 4}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 2/3
+  Deck size: 34
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_COLOR', 'card_index': 1, 'color': 'G', 'rank': None}
+✅ Agent 1 decided: {'action_type': 'DISCARD', 'card_index': 2}
+Agent: 1 action: {'action_type': 'DISCARD', 'card_index': 2}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 2/3
+  Deck size: 33
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 2/3
+  Deck size: 33
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_COLOR', 'card_index': 1, 'color': 'B', 'target_offset': 1}
+✅ Agent 1 decided: {'action_type': 'DISCARD', 'card_index': 1}
+Agent: 1 action: {'action_type': 'DISCARD', 'card_index': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 15
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 2/3
+  Deck size: 32
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 2/3
+  Deck size: 32
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_COLOR', 'card_index': 0, 'color': 'B', 'rank': None, 'target_offset': 1}
+✅ Agent 1 decided: {'action_type': 'PLAY', 'card_index': 1}
+Agent: 1 action: {'action_type': 'PLAY', 'card_index': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 1/3
+  Deck size: 31
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_RANK', 'card_index': -1, 'color': None, 'rank': 4, 'target_offset': 1}
+✅ Agent 0 decided: {'action_type': 'DISCARD', 'card_index': 3}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'DISCARD', 'card_index': 3}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 1/3
+  Deck size: 30
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 1/3
+  Deck size: 30
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'DISCARD', 'card_index': 4}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'DISCARD', 'card_index': 4}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 18
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'Y'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 2}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  17: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 1/3
+  Deck size: 29
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 1/3
+  Deck size: 29
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 0 decided: {'action_type': 'DISCARD', 'card_index': 4}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'DISCARD', 'card_index': 4}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 0 waiting (not their turn)
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 1
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 1 is making a decision...
+Available legal moves: 17
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+  10: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'G'}
+  11: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'W'}
+  12: {'action_type': 'REVEAL_COLOR', 'target_offset': 1, 'color': 'B'}
+  13: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 0}
+  14: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 1}
+  15: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 3}
+  16: {'action_type': 'REVEAL_RANK', 'target_offset': 1, 'rank': 4}
+Game state:
+  Information tokens: 1/8
+  Life tokens: 1/3
+  Deck size: 28
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+✅ Agent 1 decided: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+Agent: 1 action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+
+============================================================
+AGENT 0 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: True
+Agent type: GeminiAgent
+🎯 Agent 0 is making a decision...
+Available legal moves: 10
+  0: {'action_type': 'DISCARD', 'card_index': 0}
+  1: {'action_type': 'DISCARD', 'card_index': 1}
+  2: {'action_type': 'DISCARD', 'card_index': 2}
+  3: {'action_type': 'DISCARD', 'card_index': 3}
+  4: {'action_type': 'DISCARD', 'card_index': 4}
+  5: {'action_type': 'PLAY', 'card_index': 0}
+  6: {'action_type': 'PLAY', 'card_index': 1}
+  7: {'action_type': 'PLAY', 'card_index': 2}
+  8: {'action_type': 'PLAY', 'card_index': 3}
+  9: {'action_type': 'PLAY', 'card_index': 4}
+Game state:
+  Information tokens: 0/8
+  Life tokens: 1/3
+  Deck size: 28
+  Fireworks: {'R': 1, 'Y': 0, 'G': 1, 'W': 0, 'B': 0}
+LLM action not legal: {'action_type': 'REVEAL_RANK', 'card_index': 0, 'rank': 0, 'target_offset': 1}
+✅ Agent 0 decided: {'action_type': 'PLAY', 'card_index': 2}
+
+============================================================
+AGENT 1 DECISION MAKING
+============================================================
+Current player: 0
+Is this agent's turn: False
+Agent type: GeminiAgent
+⏸️  Agent 1 waiting (not their turn)
+Agent: 0 action: {'action_type': 'PLAY', 'card_index': 2}
+Running episode: 0
+Max Reward: 0.000
