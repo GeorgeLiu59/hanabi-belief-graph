@@ -3,3 +3,29 @@ _skbuild/
 /examples/CMakeLists.txt
 hanabi_learning_environment.egg-info/
 train*
+venv
+switch_github.sh
+
+# Environment and config files
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+build/
+_cmake_test_compile/
+
+# Logs directory
+logs/
+*.log
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Documentation (optional - remove this line if you want to track CLAUDE.md)
+CLAUDE.md
+pre_prompt.txt

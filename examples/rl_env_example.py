@@ -74,9 +74,12 @@ class HanabiRunner:
         self.environment = rl_env.make('Hanabi-Full-CardKnowledge', num_players=config['players'])
         self.agent_class = AGENT_CLASSES[config['agent_class']]
 
-    def run_episode(self) -> float:
+    def run_episode(self, episode_num: int = 0) -> float:
         """Run a single episode.
         
+        Args:
+            episode_num: Episode number for logging
+            
         Returns:
             float: The total reward for this episode.
         """
@@ -85,6 +88,11 @@ class HanabiRunner:
             self.agent_class(self.agent_config) 
             for _ in range(self.config['players'])
         ]
+        
+        # Set episode number for all agents
+        for agent in agents:
+            if hasattr(agent, 'set_episode'):
+                agent.set_episode(episode_num)
         
         done = False
         episode_reward = 0
@@ -145,7 +153,7 @@ class HanabiRunner:
         
         try:
             for episode in range(self.config['num_episodes']):
-                episode_reward = self.run_episode()
+                episode_reward = self.run_episode(episode)
                 rewards.append(episode_reward)
                 
                 print(f'Running episode: {episode}')
