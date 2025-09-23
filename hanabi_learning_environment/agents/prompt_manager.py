@@ -286,7 +286,44 @@ Respond with ONLY a valid JSON object in this exact format:
             self.get_rules_and_mechanics_block(),
             "",
             self.get_strategy_and_priorities_block(),
-            "",
+            ""
+        ]
+        
+        # Add belief graph data if present
+        if 'belief_graph' in observation:
+            import json
+            belief_variant = observation.get('belief_variant', 'unknown')
+            
+            # Use natural language version if available, otherwise fall back to JSON
+            if 'belief_graph_natural_language' in observation:
+                prompt_sections.extend([
+                    observation['belief_graph_natural_language'],
+                    "",
+                    "Use this belief analysis to make more informed decisions about:",
+                    "- Which cards you can safely play based on your certainty",
+                    "- Which cards your teammates know about and can play",
+                    "- What hints would be most helpful to give",
+                    "- Which cards are safe to discard",
+                    ""
+                ])
+            else:
+                # Fallback to JSON representation
+                prompt_sections.extend([
+                    f"## BELIEF GRAPH ({belief_variant.upper()} VARIANT):",
+                    f"You have access to a structured belief graph that tracks what you and your teammates know about cards.",
+                    f"This {belief_variant} variant provides {'certainty-based' if belief_variant == 'certainty' else 'probabilistic' if belief_variant == 'probabilistic' else 'theory-of-mind enhanced'} information.",
+                    "",
+                    "### Your Belief State:",
+                    json.dumps(observation['belief_graph'], indent=2),
+                    "",
+                    "Use this belief graph to make more informed decisions about:",
+                    "- Which cards you can safely play (high confidence playable cards)",
+                    "- Which cards your teammates might need hints about",
+                    "- Which cards are safe to discard",
+                    ""
+                ])
+        
+        prompt_sections.extend([
             self.get_format_requirements_block(),
             "",
             "## CURRENT GAME STATE:",
@@ -298,7 +335,7 @@ Respond with ONLY a valid JSON object in this exact format:
             self.get_decision_framework_block(),
             "",
             "Choose the action that maximizes your team's chance of achieving a high score (aim for 20+ points). Be strategic and coordinate with your teammate!"
-        ]
+        ])
         
         return "\n".join(prompt_sections)
 

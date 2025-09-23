@@ -102,12 +102,6 @@ class AgentLogger:
         content += f"Final Decision: {json.dumps(final_action, indent=2)}"
         self._write_to_log("REASONING", content)
     
-    def log_fallback_action(self, reason: str, fallback_action: Dict[str, Any]):
-        """Log fallback action selection."""
-        content = f"FALLBACK_ACTION - Agent {self.agent_id}\n"
-        content += f"Reason: {reason}\n"
-        content += f"Fallback Action: {json.dumps(fallback_action, indent=2)}"
-        self._write_to_log("DECISION", content)
     
     def log_final_decision(self, action: Dict[str, Any], execution_time: float):
         """Log final decision made by agent."""
@@ -125,3 +119,21 @@ class AgentLogger:
         if context:
             content += f"Context: {context}"
         self._write_to_log("VALIDATION", content)
+    
+    def log_info(self, info_type: str, info_message: str, context: str = ""):
+        """Log informational messages."""
+        content = f"INFO - Agent {self.agent_id}\n"
+        content += f"Info Type: {info_type}\n"
+        content += f"Info Message: {info_message}\n"
+        if context:
+            content += f"Context: {context}"
+        self._write_to_log("INFO", content)
+    
+    def log_debug(self, debug_type: str, debug_message: str, context: str = ""):
+        """Log debug messages."""
+        content = f"DEBUG - Agent {self.agent_id}\n"
+        content += f"Debug Type: {debug_type}\n"
+        content += f"Debug Message: {debug_message}\n"
+        if context:
+            content += f"Context: {context}"
+        self._write_to_log("DEBUG", content)

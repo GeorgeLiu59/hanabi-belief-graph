@@ -107,26 +107,6 @@ class ActionValidator:
         
         return f"Action {action} does not match any legal move exactly."
     
-    def get_smart_fallback(self, legal_moves: List[Dict[str, Any]], observation: Dict[str, Any]) -> Dict[str, Any]:
-        """Choose a smart fallback action when all retries fail."""
-        # Priority 1: Look for safe discards when tokens low
-        if observation['information_tokens'] <= 2:
-            discard_moves = [m for m in legal_moves if m['action_type'] == 'DISCARD']
-            if discard_moves:
-                return random.choice(discard_moves)
-        
-        # Priority 2: Look for any play actions (risky but progress)
-        play_moves = [m for m in legal_moves if m['action_type'] == 'PLAY']
-        if play_moves and len(play_moves) <= 2:  # Only if few options
-            return random.choice(play_moves)
-            
-        # Priority 3: Look for hint actions
-        hint_moves = [m for m in legal_moves if m['action_type'] in ['REVEAL_COLOR', 'REVEAL_RANK']]
-        if hint_moves:
-            return random.choice(hint_moves)
-            
-        # Fallback: random legal action
-        return random.choice(legal_moves)
     
     def validate_action_completeness(self, action: Dict[str, Any]) -> Tuple[bool, str]:
         """Validate that an action has all required fields."""

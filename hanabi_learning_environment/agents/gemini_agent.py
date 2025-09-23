@@ -231,13 +231,10 @@ class GeminiAgent(Agent):
                 else:
                     break
         
-        # All retries failed - use smart fallback
-        fallback_action = self.action_validator.get_smart_fallback(observation['legal_moves'], observation)
-        self.logger.log_fallback_action("All retries failed", fallback_action)
-        
+        # All retries failed - system must work without fallback
         execution_time = time.time() - start_time
-        self.logger.log_final_decision(fallback_action, execution_time)
-        return fallback_action
+        self.logger.log_error("ALL_RETRIES_FAILED", f"Failed to get valid action after {self.max_retries} retries")
+        raise ValueError(f"Gemini agent failed to produce valid action after {self.max_retries} retries")
     
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act based on an observation using modular components."""
@@ -262,8 +259,5 @@ class GeminiAgent(Agent):
         except Exception as e:
             self.logger.log_error("ACT_ERROR", f"Critical error in act method: {e}")
             
-            # Emergency fallback
-            fallback_action = self.action_validator.get_smart_fallback(observation['legal_moves'], observation)
-            self.logger.log_fallback_action("Critical error fallback", fallback_action)
-            self._add_action_to_history(fallback_action)
-            return fallback_action
+            # No emergency fallback - let it fail
+            raise
