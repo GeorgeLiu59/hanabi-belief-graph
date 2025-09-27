@@ -431,6 +431,18 @@ class HanabiEnv(Environment):
         player_hints_as_dicts.append(hint_d)
       obs_dict["card_knowledge"].append(player_hints_as_dicts)
 
+    # Add last moves for belief graph tracking
+    obs_dict["last_moves"] = []
+    for history_item in observation.last_moves():
+        move_dict = {
+            'player': history_item.player(),
+            'move': history_item.move().to_dict(),
+            'scored': history_item.scored(),
+            'color': history_item.color(),
+            'rank': history_item.rank()
+        }
+        obs_dict["last_moves"].append(move_dict)
+    
     # ipdb.set_trace()
     obs_dict["vectorized"] = self.observation_encoder.encode(observation)
     obs_dict["pyhanabi"] = observation

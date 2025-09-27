@@ -238,6 +238,11 @@ class GeminiAgent(Agent):
     
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act based on an observation using modular components."""
+        # Always observe and learn, regardless of whose turn it is
+        # Add observation to history to learn from other players' actions
+        self._add_observation_to_history(observation)
+        
+        # If not our turn, just observe - don't take action but still learn
         if observation['current_player_offset'] != 0:
             return None
         
@@ -245,9 +250,6 @@ class GeminiAgent(Agent):
         self.logger.log_decision_start(observation)
         
         try:
-            # Add observation to history
-            self._add_observation_to_history(observation)
-            
             # Get legal action with retry logic
             action = self._get_legal_action_with_retry(observation)
             
