@@ -5,7 +5,7 @@ and pass them to the LLM for reasoning. No complex graph infrastructure needed.
 """
 
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from ..agents.gemini_agent import GeminiAgent
 from ..agents.agent_logger import AgentLogger
@@ -57,9 +57,12 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         if observation.get('last_moves'):
             self._update_beliefs_via_llm(observation)
         
-        # If not our turn, let parent handle observation learning
+        # Let parent handle observation learning
+        super().act(observation)
+        
+        # If not our turn, return None
         if observation['current_player_offset'] != 0:
-            return super().act(observation)  # Parent returns None
+            return None
         
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
@@ -90,16 +93,20 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
             ranks = beliefs['possible_ranks']
             
             if len(colors) == 1 and len(ranks) == 1:
-                nl_description += f"- Card {card_num}: KNOWN to be {colors[0].upper()} {ranks[0]}\n"
+                nl_description += f"- Card {card_num}: ✅ SAFE TO PLAY - {colors[0].upper()} {ranks[0]} (100% certain)\n"
             elif len(colors) == 1:
-                nl_description += f"- Card {card_num}: KNOWN color {colors[0].upper()}, could be rank {ranks}\n"
+                nl_description += f"- Card {card_num}: ❌ DO NOT PLAY - only know color {colors[0].upper()}, rank unknown {ranks}\n"
             elif len(ranks) == 1:
-                nl_description += f"- Card {card_num}: KNOWN rank {ranks[0]}, could be {colors}\n"
+                nl_description += f"- Card {card_num}: ❌ DO NOT PLAY - only know rank {ranks[0]}, color unknown {colors}\n"
             else:
-                nl_description += f"- Card {card_num}: UNKNOWN - could be {len(colors)} colors × {len(ranks)} ranks\n"
+                nl_description += f"- Card {card_num}: ❌ DO NOT PLAY - completely unknown ({len(colors)} colors × {len(ranks)} ranks)\n"
         
         # Teammate beliefs
-        nl_description += "\n**TEAMMATE KNOWLEDGE MODEL:**\n"
+        nl_description += "\n**🎯 ACTION GUIDANCE:**\n"
+        nl_description += "Look for cards marked with ✅ SAFE TO PLAY - these are the ONLY cards you should play.\n"
+        nl_description += "Cards marked with ❌ DO NOT PLAY should never be played - you don't have enough information.\n\n"
+        
+        nl_description += "**TEAMMATE KNOWLEDGE MODEL:**\n"
         for player_hand, hand_data in self.belief_graph['Teammate_Hand_Beliefs'].items():
             player_num = player_hand.split('P')[1].split('_')[0]
             nl_description += f"\nPlayer {player_num}'s cards (what I see vs what they know):\n"
@@ -195,14 +202,19 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         obs_for_logging = {k: v for k, v in observation.items() if k != 'pyhanabi'}
         self.logger.log_debug("OBSERVATION_IN", f"Observation: {json.dumps(obs_for_logging, indent=2)}")
         
-        # Detect what happened
-        event = self._detect_event(observation)
-        if not event:
+        # Detect all events that happened
+        events = self._detect_events(observation)
+        if not events:
             return
         
-        # (2) Log event coming out
-        self.logger.log_info("EVENT_OUT", f"Detected event: {json.dumps(event, indent=2)}")
-        
+        # Process each event one by one
+        for i, event in enumerate(events):
+            # (2) Log event coming out
+            self.logger.log_info("EVENT_OUT", f"Detected event {i+1}/{len(events)}: {json.dumps(event, indent=2)}")
+            self._process_single_event(event)
+    
+    def _process_single_event(self, event: Dict[str, Any]):
+        """Process a single event through the LLM."""
         # Get agent's actual player number (already determined)
         my_player_id = f"P{self.my_player_number + 1}"
         
@@ -407,79 +419,85 @@ Return the complete updated JSON graph."""
         # Return a copy of the current belief graph structure as the template
         return self.belief_graph
     
-    def _detect_event(self, curr_obs: Dict[str, Any]) -> Optional[Dict]:
-        """Detect game events from observation."""
+    def _detect_events(self, curr_obs: Dict[str, Any]) -> List[Dict]:
+        """Detect ALL game events from observation - returns a list of events."""
+        events = []
+        
         # Get the last move from history if available
         last_moves = curr_obs['last_moves']
         if not last_moves:
-            return None
+            return events
             
-        # Look at the most recent move
-        last_move = last_moves[-1]
-        move_data = last_move['move']
-        action_type = move_data.get('action_type')
-        
         # Get important info
         current_player = curr_obs['current_player']
         num_players = curr_obs['num_players']
         
-        # Convert observer-relative player index to absolute
-        acting_player_offset = last_move['player']
-        acting_player_absolute = (current_player + acting_player_offset) % num_players
+        # Process ALL moves in the history
+        for last_move in last_moves:
+            move_data = last_move['move']
+            action_type = move_data.get('action_type')
+            
+            # Skip non-action moves (like DEAL)
+            if last_move['player'] < 0:
+                continue
+                
+            # Convert observer-relative player index to absolute
+            acting_player_offset = last_move['player']
+            acting_player_absolute = (current_player + acting_player_offset) % num_players
+            
+            # Check for different action types
+            if action_type == 'REVEAL_COLOR':
+                target_offset = move_data['target_offset']
+                color = move_data['color']
+                
+                # Calculate absolute target player
+                target_player_absolute = (acting_player_absolute + target_offset) % num_players
+                
+                # Find which cards match (need observer-relative offset for observed_hands)
+                target_offset_from_observer = (target_player_absolute - current_player) % num_players
+                
+                events.append({
+                    'clue_giver': f"P{acting_player_absolute + 1}",
+                    'clue_recipient': f"P{target_player_absolute + 1}",
+                    'clue_type': 'color',
+                    'value': color,
+                    'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'color', color)
+                })
+                
+            elif action_type == 'REVEAL_RANK':
+                target_offset = move_data['target_offset']
+                rank = move_data['rank']
+                
+                # Calculate absolute target player
+                target_player_absolute = (acting_player_absolute + target_offset) % num_players
+                
+                # Find which cards match (need observer-relative offset for observed_hands)
+                target_offset_from_observer = (target_player_absolute - current_player) % num_players
+                
+                events.append({
+                    'clue_giver': f"P{acting_player_absolute + 1}",
+                    'clue_recipient': f"P{target_player_absolute + 1}",
+                    'clue_type': 'rank',
+                    'value': rank + 1,  # Convert 0-indexed to 1-indexed for belief graph
+                    'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'rank', rank)
+                })
+                
+            elif action_type == 'PLAY':
+                events.append({
+                    'type': 'play',
+                    'player': f"P{acting_player_absolute + 1}",
+                    'card_index': move_data.get('card_index', -1),
+                    'success': True  # We can check fireworks to confirm
+                })
+                
+            elif action_type == 'DISCARD':
+                events.append({
+                    'type': 'discard', 
+                    'player': f"P{acting_player_absolute + 1}",
+                    'card_index': last_move['move'].get('card_index', -1)
+                })
         
-        # Check for different action types
-        if action_type == 'REVEAL_COLOR':
-            target_offset = move_data['target_offset']
-            color = move_data['color']
-            
-            # Calculate absolute target player
-            target_player_absolute = (acting_player_absolute + target_offset) % num_players
-            
-            # Find which cards match (need observer-relative offset for observed_hands)
-            target_offset_from_observer = (target_player_absolute - current_player) % num_players
-            
-            return {
-                'clue_giver': f"P{acting_player_absolute + 1}",
-                'clue_recipient': f"P{target_player_absolute + 1}",
-                'clue_type': 'color',
-                'value': color,
-                'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'color', color)
-            }
-            
-        elif action_type == 'REVEAL_RANK':
-            target_offset = move_data['target_offset']
-            rank = move_data['rank']
-            
-            # Calculate absolute target player
-            target_player_absolute = (acting_player_absolute + target_offset) % num_players
-            
-            # Find which cards match (need observer-relative offset for observed_hands)
-            target_offset_from_observer = (target_player_absolute - current_player) % num_players
-            
-            return {
-                'clue_giver': f"P{acting_player_absolute + 1}",
-                'clue_recipient': f"P{target_player_absolute + 1}",
-                'clue_type': 'rank',
-                'value': rank + 1,  # Convert 0-indexed to 1-indexed for belief graph
-                'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'rank', rank)
-            }
-            
-        elif action_type == 'PLAY':
-            return {
-                'type': 'play',
-                'player': f"P{acting_player_absolute + 1}",
-                'card_index': move_data.get('card_index', -1),
-                'success': True  # We can check fireworks to confirm
-            }
-            
-        elif action_type == 'DISCARD':
-            return {
-                'type': 'discard', 
-                'player': f"P{acting_player_absolute + 1}",
-                'card_index': last_move['move'].get('card_index', -1)
-            }
-        
-        return None
+        return events
     
     def _find_matching_cards(self, observation: Dict[str, Any], target_offset: int, clue_type: str, value) -> list:
         """Find which card indices match the given clue.
@@ -498,11 +516,11 @@ Return the complete updated JSON graph."""
                 my_knowledge = observation['card_knowledge'][0]  # Index 0 is always us
                 for idx, card_knowledge in enumerate(my_knowledge):
                     if clue_type == 'color':
-                        # Check if this card's color was just revealed
+                        # Check if this card has this color
                         if card_knowledge.get('color') == value:
                             matching_indices.append(idx)
                     elif clue_type == 'rank':
-                        # Check if this card's rank was just revealed (ranks are 0-indexed)
+                        # Check if this card has this rank (both are 0-indexed)
                         if card_knowledge.get('rank') == value:
                             matching_indices.append(idx)
             else:
@@ -587,9 +605,12 @@ class BeliefGraphProbabilisticAgent(GeminiAgent):
         if observation.get('last_moves'):
             self._update_beliefs_via_llm(observation)
         
-        # If not our turn, let parent handle observation learning
+        # Let parent handle observation learning
+        super().act(observation)
+        
+        # If not our turn, return None
         if observation['current_player_offset'] != 0:
-            return super().act(observation)  # Parent returns None
+            return None
         
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
@@ -735,10 +756,18 @@ class BeliefGraphProbabilisticAgent(GeminiAgent):
     
     def _update_beliefs_via_llm(self, observation: Dict[str, Any]):
         """Update probabilistic beliefs via LLM."""
-        event = self._detect_event(observation)
-        if not event:
+        # Detect all events that happened
+        events = self._detect_events(observation)
+        if not events:
             return
         
+        # Process each event one by one
+        for i, event in enumerate(events):
+            self.logger.log_info("EVENT_OUT", f"Detected event {i+1}/{len(events)}: {json.dumps(event, indent=2)}")
+            self._process_single_event_probabilistic(event)
+    
+    def _process_single_event_probabilistic(self, event: Dict[str, Any]):
+        """Process a single event through the LLM for probabilistic beliefs."""
         # Get agent's actual player number (already determined)
         my_player_id = f"P{self.my_player_number + 1}"
         
@@ -846,121 +875,7 @@ CRITICAL RULES:
         except Exception as e:
             self.logger.log_error("UPDATE_ERROR", f"Failed to update probabilistic beliefs: {e}")
     
-    def _detect_event(self, curr_obs: Dict[str, Any]) -> Optional[Dict]:
-        """Detect game events by comparing observations."""
-        # Log what we're looking for
-        self.logger.log_debug("EVENT_DETECTION_CHECK", f"Checking for events. Keys in observation: {list(curr_obs.keys())}")
-        
-        # Get the last move from history if available
-        last_moves = curr_obs['last_moves']
-        if not last_moves:
-            self.logger.log_debug("EVENT_DETECTION", "No last_moves in observation")
-            return None
-            
-        # Look at the most recent move
-        last_move = last_moves[-1]
-        move_data = last_move['move']
-        action_type = move_data.get('action_type')
-        
-        self.logger.log_debug("EVENT_DETECTION_MOVE", f"Last move: {last_move}, action type: {action_type}")
-        
-        # Check for different action types
-        if action_type == 'REVEAL_COLOR':
-            target_offset = move_data['target_offset']
-            color = move_data['color']
-            
-            return {
-                'clue_giver': f"P{last_move['player'] + 1}",
-                'clue_recipient': f"P{target_offset + 1}",
-                'clue_type': 'color',
-                'value': color,
-                'card_indices': self._find_matching_cards(curr_obs, target_offset, 'color', color)
-            }
-            
-        elif action_type == 'REVEAL_RANK':
-            target_offset = move_data['target_offset']
-            rank = move_data['rank']
-            
-            return {
-                'clue_giver': f"P{last_move['player'] + 1}",
-                'clue_recipient': f"P{target_offset + 1}",
-                'clue_type': 'rank',
-                'value': rank + 1,  # Convert 0-indexed to 1-indexed for belief graph
-                'card_indices': self._find_matching_cards(curr_obs, target_offset, 'rank', rank)
-            }
-            
-        elif action_type == 'PLAY':
-            return {
-                'type': 'play',
-                'player': f"P{last_move.get('player', 0) + 1}",
-                'card_index': move_data.get('card_index', -1),
-                'success': True  # We can check fireworks to confirm
-            }
-            
-        elif action_type == 'DISCARD':
-            return {
-                'type': 'discard', 
-                'player': f"P{last_move.get('player', 0) + 1}",
-                'card_index': last_move['move'].get('card_index', -1)
-            }
-        
-        self.logger.log_debug("EVENT_DETECTION", "No event detected")
-        return None
-    
-    def _find_matching_cards(self, observation: Dict[str, Any], target_offset: int, clue_type: str, value) -> list:
-        """Find which card indices match the given clue.
-        
-        For clues to ourselves (offset=0), use card_knowledge since we can't see our own cards.
-        For clues to others, use observed_hands since we can see their cards.
-        """
-        matching_indices = []
-        
-        # Debug logging
-        self.logger.log_debug("CARD_MATCHING_DEBUG", f"Looking for {clue_type}={value}, target_offset={target_offset}")
-        
-        if target_offset == 0:
-            # Clue is for us - use card_knowledge
-            if 'card_knowledge' in observation:
-                my_knowledge = observation['card_knowledge'][0]  # Index 0 is always us
-                for idx, card_knowledge in enumerate(my_knowledge):
-                    if clue_type == 'color':
-                        # Check if this card's color was just revealed
-                        if card_knowledge.get('color') == value:
-                            matching_indices.append(idx)
-                    elif clue_type == 'rank':
-                        # Check if this card's rank was just revealed (ranks are 0-indexed)
-                        if card_knowledge.get('rank') == value:
-                            matching_indices.append(idx)
-            else:
-                self.logger.log_debug("CARD_MATCHING_DEBUG", "No card_knowledge in observation")
-        else:
-            # Clue is for someone else - use observed_hands
-            observed_hands = observation['observed_hands']
-            if target_offset < len(observed_hands):
-                hand = observed_hands[target_offset]
-                self.logger.log_debug("CARD_MATCHING_DEBUG", f"Target hand: {hand}")
-                
-                for idx, card in enumerate(hand):
-                    if clue_type == 'color':
-                        card_color = card.get('color')
-                        # Handle both string colors and numeric indices
-                        if isinstance(card_color, str):
-                            if card_color == value:
-                                matching_indices.append(idx)
-                        elif isinstance(card_color, int) and card_color >= 0:
-                            card_color_char = ['R', 'Y', 'G', 'W', 'B'][card_color]
-                            if card_color_char == value:
-                                matching_indices.append(idx)
-                    elif clue_type == 'rank':
-                        card_rank = card.get('rank')
-                        # Both card ranks and clue values are 0-indexed (0-4)
-                        if card_rank == value:
-                            matching_indices.append(idx)
-            else:
-                self.logger.log_debug("CARD_MATCHING_DEBUG", f"Target offset {target_offset} >= {len(observed_hands)}")
-        
-        self.logger.log_debug("CARD_MATCHING_DEBUG", f"Matching indices: {matching_indices}")
-        return matching_indices
+    # Use the base class _detect_events and _find_matching_cards methods
 
     def _generate_belief_diff(self, before: Dict, after: Dict) -> str:
         """Generate a human-readable diff of belief changes."""
@@ -1128,9 +1043,12 @@ class BeliefGraphToMAgent(GeminiAgent):
         if observation.get('last_moves'):
             self._update_beliefs_with_tom(observation)
         
-        # If not our turn, let parent handle observation learning
+        # Let parent handle observation learning
+        super().act(observation)
+        
+        # If not our turn, return None
         if observation['current_player_offset'] != 0:
-            return super().act(observation)  # Parent returns None
+            return None
         
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
@@ -1227,10 +1145,18 @@ class BeliefGraphToMAgent(GeminiAgent):
     
     def _update_beliefs_with_tom(self, observation: Dict[str, Any]):
         """Update with Theory of Mind reasoning."""
-        event = self._detect_event(observation)
-        if not event:
+        # Detect all events that happened
+        events = self._detect_events(observation)
+        if not events:
             return
         
+        # Process each event one by one
+        for i, event in enumerate(events):
+            self.logger.log_info("EVENT_OUT", f"Detected event {i+1}/{len(events)}: {json.dumps(event, indent=2)}")
+            self._process_single_event_tom(event)
+    
+    def _process_single_event_tom(self, event: Dict[str, Any]):
+        """Process a single event through the LLM with ToM reasoning."""
         # Get agent's actual player number (already determined)
         my_player_id = f"P{self.my_player_number + 1}"
         
@@ -1295,7 +1221,7 @@ Return the complete updated JSON graph."""
         except Exception as e:
             self.logger.log_error("TOM_ERROR", f"Failed to update ToM beliefs: {e}")
     
-    def _detect_event(self, curr_obs: Dict[str, Any]) -> Optional[Dict]:
+    def _detect_events(self, curr_obs: Dict[str, Any]) -> List[Dict]:
         """Detect game events by comparing observations."""
         # Get the last move from history if available
         last_moves = curr_obs['last_moves']

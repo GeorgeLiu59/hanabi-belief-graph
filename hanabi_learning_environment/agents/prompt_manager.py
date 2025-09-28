@@ -33,17 +33,17 @@ class PromptManager:
 6. **ENDGAME AWARENESS**: When deck is low, prioritize plays over hints
 
 **Action Priority (in order):**
-1. **PLAY** any 1 you know about - they're always safe and essential for progress
-2. **PLAY** a card you're certain is the next needed card (highest priority)
+1. **PLAY** any card where you know BOTH color AND rank, AND it matches the next needed card
+2. **NEVER PLAY** if you only know color OR rank - you must know BOTH to be certain
 3. **HINT** to enable a teammate's immediate play (especially 1s they can play)
 4. **HINT** to save critical cards from being discarded (especially 5s)
 5. **DISCARD** when you need info tokens and have no better options
 6. **DISCARD** obviously useless cards (duplicates, too-low ranks)
 
 **Critical Early Game Strategy:**
-- **ALWAYS PLAY 1s**: If you know a card is a 1, play it immediately - it's never wrong
-- **HINT ABOUT 1s**: If you see a teammate has a 1, hint about it immediately
-- **BUILD MOMENTUM**: Getting even one firework started opens up more opportunities
+- **PLAY 1s ONLY WHEN CERTAIN**: Only play a 1 if you know BOTH its color AND rank
+- **HINT ABOUT 1s**: Give both color and rank hints about 1s to enable safe plays
+- **BUILD MOMENTUM**: But never sacrifice safety - a wrong play costs precious life tokens
 
 **Hint Techniques:**
 - **Playable hints**: Tell someone about a card they can play RIGHT NOW (especially 1s)
@@ -67,14 +67,16 @@ Respond with ONLY a valid JSON object in this exact format:
         return """## DECISION FRAMEWORK:
 
 **Step-by-step process:**
-1. **Check your knowledge**: Based on hints you've received, do you know any cards you can safely play?
-2. **Assess teammate needs**: What cards do your teammates have that they could play with a hint?
-3. **Give helpful hints**: Can you tell teammates about playable cards or save critical cards?
-4. **Safe discarding**: If you must discard, choose cards that are least likely to be important
-5. **Token management**: Balance between giving hints and making plays
+1. **SAFETY CHECK FIRST**: Only play cards where you know BOTH color AND rank with 100% certainty
+2. **Check your knowledge**: Based on hints you've received, do you know any cards you can safely play?
+3. **Assess teammate needs**: What cards do your teammates have that they could play with a hint?
+4. **Give helpful hints**: Can you tell teammates about playable cards or save critical cards?
+5. **Safe discarding**: If you must discard, choose cards that are least likely to be important
+6. **Token management**: Balance between giving hints and making plays
 
 **Key considerations:**
-- You can only play cards you're certain about based on hints received
+- **CRITICAL**: You can only play cards where you know BOTH color AND rank with 100% certainty
+- **NEVER GUESS**: If you only know color OR rank (not both), DO NOT PLAY that card
 - Give hints to help teammates identify their playable cards
 - Look at teammates' hands - hint about cards they can play immediately
 - Save critical cards (especially 5s and cards needed for sequences) from being discarded
