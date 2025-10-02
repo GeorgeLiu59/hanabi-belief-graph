@@ -33,17 +33,20 @@ class PromptManager:
 6. **ENDGAME AWARENESS**: When deck is low, prioritize plays over hints
 
 **Action Priority (in order):**
-1. **PLAY** any card where you know BOTH color AND rank, AND it matches the next needed card
-2. **NEVER PLAY** if you only know color OR rank - you must know BOTH to be certain
-3. **HINT** to enable a teammate's immediate play (especially 1s they can play)
+1. **PLAY** cards marked ✅ CERTAIN - you know BOTH color AND rank with 100% certainty
+2. **PLAY** cards marked ⚠️ SAFE BET - special cases where risk is acceptable:
+   - Rank 1 + known color (1s are always playable if that color hasn't started)
+   - Known rank + highly probable color (only 1-2 color possibilities left)
+3. **HINT** to enable a teammate's immediate play (especially helping them identify 1s)
 4. **HINT** to save critical cards from being discarded (especially 5s)
 5. **DISCARD** when you need info tokens and have no better options
-6. **DISCARD** obviously useless cards (duplicates, too-low ranks)
+6. **AVOID** playing cards marked ❌ RISKY - too much uncertainty
 
 **Critical Early Game Strategy:**
-- **PLAY 1s ONLY WHEN CERTAIN**: Only play a 1 if you know BOTH its color AND rank
-- **HINT ABOUT 1s**: Give both color and rank hints about 1s to enable safe plays
-- **BUILD MOMENTUM**: But never sacrifice safety - a wrong play costs precious life tokens
+- **1s ARE SPECIAL**: If you know a card is rank 1 (even if color uncertain), it's often worth playing - 1s start all sequences
+- **HINT EFFICIENTLY**: One good hint can help identify multiple cards through negative inference
+- **BUILD MOMENTUM**: Early plays create more options - don't get stuck in hint loops
+- **ACCEPTABLE RISKS**: With 3 lives, taking a calculated risk on a likely 1 is often better than endless hinting
 
 **Hint Techniques:**
 - **Playable hints**: Tell someone about a card they can play RIGHT NOW (especially 1s)
@@ -55,7 +58,7 @@ class PromptManager:
         """JSON response format specification."""
         return """## FORMAT REQUIREMENTS:
 Respond with ONLY a valid JSON object in this exact format:
-{"action_type": "PLAY|DISCARD|REVEAL_COLOR|REVEAL_RANK", "card_index": 0-4, "color": "R|Y|G|W|B", "rank": 0-4, "target_offset": 1-3}
+{"action_type": "PLAY|DISCARD|REVEAL_COLOR|REVEAL_RANK", "card_index": 0-4, "color": "R|Y|G|W|B", "rank": 1-5, "target_offset": 1-3}
 
 **IMPORTANT**: 
 - For PLAY/DISCARD: use "card_index" (0-4), set color/rank/target_offset to null
@@ -67,16 +70,18 @@ Respond with ONLY a valid JSON object in this exact format:
         return """## DECISION FRAMEWORK:
 
 **Step-by-step process:**
-1. **SAFETY CHECK FIRST**: Only play cards where you know BOTH color AND rank with 100% certainty
-2. **Check your knowledge**: Based on hints you've received, do you know any cards you can safely play?
-3. **Assess teammate needs**: What cards do your teammates have that they could play with a hint?
-4. **Give helpful hints**: Can you tell teammates about playable cards or save critical cards?
-5. **Safe discarding**: If you must discard, choose cards that are least likely to be important
-6. **Token management**: Balance between giving hints and making plays
+1. **CHECK FOR CERTAIN PLAYS**: Do you have any ✅ CERTAIN cards? Play these immediately!
+2. **CHECK FOR SAFE BETS**: Do you have ⚠️ SAFE BET cards (especially rank 1s)? These are worth playing if tokens are low or progress is needed
+3. **ASSESS TEAMMATE NEEDS**: Can you give a hint that enables an immediate play?
+4. **STRATEGIC HINTS**: Save critical cards (5s) or help narrow down possibilities
+5. **DISCARD WISELY**: When stuck, discard the riskiest/least useful cards
+6. **BALANCE TOKENS**: Don't let info tokens max out (8/8) - that's wasteful
 
 **Key considerations:**
-- **CRITICAL**: You can only play cards where you know BOTH color AND rank with 100% certainty
-- **NEVER GUESS**: If you only know color OR rank (not both), DO NOT PLAY that card
+- **PRIORITIZE CERTAINTY**: ✅ CERTAIN cards should always be played
+- **CALCULATED RISKS**: ⚠️ SAFE BET cards (rank 1s with known color) are usually worth it
+- **VERIFY PLAYABILITY**: Before playing, check that the rank matches what fireworks need next
+- **DON'T WASTE HINTS**: If teammate already knows enough to play, don't redundantly hint
 - Give hints to help teammates identify their playable cards
 - Look at teammates' hands - hint about cards they can play immediately
 - Save critical cards (especially 5s and cards needed for sequences) from being discarded

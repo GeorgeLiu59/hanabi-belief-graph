@@ -24,6 +24,10 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         self.agent_id = f"BG_certainty_{self.agent_id}"
         self.logger = AgentLogger(self.agent_id)
         self.belief_graph = {}
+        # 使用已处理 move 的唯一哈希集合进行去重，避免因历史长度相同而漏检
+        self._seen_move_ids: set[str] = set()
+        # 追踪上一帧的 observed_hands 来检测新牌
+        self._previous_observed_hands = None
     
     def reset(self, config):
         """Reset and initialize belief graph."""
@@ -44,6 +48,11 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
             "My_Hand_Beliefs": {},
             "Teammate_Hand_Beliefs": {}
         }
+
+        # 清空已处理 move 集合
+        self._seen_move_ids.clear()
+        # 清空上一帧 observed_hands
+        self._previous_observed_hands = None
     
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act with belief graph augmentation."""
@@ -53,19 +62,22 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
             self._initialize_belief_graph_with_player_number(observation)
             self._initialized = True
         
+        # Always keep teammate actual cards up to date
+        self._refresh_visible_cards(observation)
+
         # Always update beliefs when observing, regardless of whose turn it is
         if observation.get('last_moves'):
             self._update_beliefs_via_llm(observation)
         
-        # Let parent handle observation learning
-        super().act(observation)
-        
-        # If not our turn, return None
+        # If not our turn, just record observation and return None
         if observation['current_player_offset'] != 0:
+            self._add_observation_to_history(observation)
             return None
         
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
+        # Update GameState with current fireworks for accurate playability checking
+        self.belief_graph['GameState']['fireworks'] = observation.get('fireworks', {})
         augmented_observation['belief_graph'] = self.belief_graph
         augmented_observation['belief_variant'] = 'certainty'
         augmented_observation['belief_graph_natural_language'] = self._format_belief_graph_natural_language()
@@ -77,6 +89,163 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         # Let parent handle all the action logic
         return super().act(augmented_observation)
     
+    # ------------------------------------------------------------------
+    # New helper: refresh teammate actual cards each observation to avoid
+    # stale duplicates when hands change after plays/discards
+    # ------------------------------------------------------------------
+    def _refresh_visible_cards(self, observation):
+        """Update actual_card_I_see fields for teammate hands every turn."""
+        num_players = observation['num_players']
+        self.logger.log_debug("CARD_REFRESH", "🔍 Starting card refresh check...")
+        
+        current_hands = observation.get('observed_hands', [])
+        
+        # Check for PLAY/DISCARD actions that cause hand shifts
+        # When I play/discard, all cards to the right shift left, so we need to reset beliefs
+        if 'last_moves' in observation:
+            for move_entry in observation['last_moves']:
+                player_offset = move_entry.get('player', -1)
+                if player_offset < 0:
+                    continue
+                
+                # Calculate absolute player number
+                current_player = observation['current_player']
+                acting_player_abs = (self.my_player_number + player_offset) % num_players
+                
+                move = move_entry.get('move', {})
+                action_type = move.get('action_type')
+                
+                # If I played or discarded a card, SHIFT beliefs left (like the game does)
+                if action_type in ['PLAY', 'DISCARD'] and acting_player_abs == self.my_player_number:
+                    card_idx = move.get('card_index', -1)
+                    if card_idx >= 0:
+                        my_player_id = self.my_player_number + 1
+                        self.logger.log_info("BELIEF_SHIFT", 
+                            f"🔀 Shifting MY hand beliefs left after {action_type} at index {card_idx}")
+                        
+                        # Save beliefs from cards that will shift
+                        beliefs_to_shift = []
+                        for idx in range(card_idx + 1, 5):
+                            old_key = f"P{my_player_id}_Card{idx + 1}"
+                            if old_key in self.belief_graph.get("My_Hand_Beliefs", {}):
+                                beliefs_to_shift.append(self.belief_graph["My_Hand_Beliefs"][old_key].copy())
+                        
+                        # Shift beliefs left: Card(i+1) → Card(i)
+                        for i, belief in enumerate(beliefs_to_shift):
+                            new_key = f"P{my_player_id}_Card{card_idx + i + 1}"
+                            if new_key in self.belief_graph["My_Hand_Beliefs"]:
+                                self.belief_graph["My_Hand_Beliefs"][new_key] = belief
+                                self.logger.log_debug("BELIEF_SHIFT", 
+                                    f"  Moved belief from Card{card_idx + i + 2} to Card{card_idx + i + 1}")
+                        
+                        # Reset ONLY the last card (new card drawn from deck)
+                        last_card_key = f"P{my_player_id}_Card5"
+                        if last_card_key in self.belief_graph["My_Hand_Beliefs"]:
+                            old_belief = self.belief_graph["My_Hand_Beliefs"][last_card_key].copy()
+                            self._reset_card_belief(
+                                self.belief_graph["My_Hand_Beliefs"][last_card_key],
+                                last_card_key,
+                                f"New card drawn after {action_type}"
+                            )
+                            self.logger.log_info("BELIEF_RESET_DETAIL", 
+                                f"  Before: colors={old_belief.get('possible_colors')}, ranks={old_belief.get('possible_ranks')}\n" +
+                                f"  After:  colors={self.belief_graph['My_Hand_Beliefs'][last_card_key].get('possible_colors')}, " +
+                                f"ranks={self.belief_graph['My_Hand_Beliefs'][last_card_key].get('possible_ranks')}")
+        
+        # Handle TEAMMATE hands - we CAN see these change
+        for offset, hand in enumerate(current_hands):
+            if offset == 0:
+                continue  # skip my own hand
+
+            actual_player_num = (self.my_player_number + offset) % num_players
+            player_id = f"P{actual_player_num + 1}"
+
+            hand_key = f"{player_id}_Hand"
+            if hand_key not in self.belief_graph.get("Teammate_Hand_Beliefs", {}):
+                continue
+
+            # Ensure correct number of card entries exists
+            for card_idx, card in enumerate(hand):
+                card_key = f"{player_id}_Card{card_idx + 1}"
+
+                if card.get('color') is not None and card.get('rank') is not None:
+                    color = card['color']
+                    rank = card['rank'] + 1 if card['rank'] >= 0 else '?'
+                    new_actual = f"{color} {rank}"
+                    # Just update the actual card - don't reset belief here
+                    # Belief shifting is handled by PLAY/DISCARD action detection
+                    self.belief_graph["Teammate_Hand_Beliefs"][hand_key][card_key]["actual_card_I_see"] = new_actual
+                else:
+                    # Unknown card (face down after draw) → mark Unknown
+                    self.belief_graph["Teammate_Hand_Beliefs"][hand_key][card_key]["actual_card_I_see"] = "Unknown"
+        
+        # Also check for teammate PLAY/DISCARD actions and reset their beliefs accordingly
+        if 'last_moves' in observation:
+            for move_entry in observation['last_moves']:
+                player_offset = move_entry.get('player', -1)
+                if player_offset < 0:
+                    continue
+                
+                acting_player_abs = (self.my_player_number + player_offset) % num_players
+                move = move_entry.get('move', {})
+                action_type = move.get('action_type')
+                
+                # If teammate played/discarded, SHIFT their beliefs left (like the game does)
+                if action_type in ['PLAY', 'DISCARD'] and acting_player_abs != self.my_player_number:
+                    card_idx = move.get('card_index', -1)
+                    if card_idx >= 0:
+                        player_id = f"P{acting_player_abs + 1}"
+                        hand_key = f"{player_id}_Hand"
+                        
+                        if hand_key in self.belief_graph.get("Teammate_Hand_Beliefs", {}):
+                            self.logger.log_info("BELIEF_SHIFT", 
+                                f"🔀 Shifting TEAMMATE {player_id} beliefs left after {action_type} at index {card_idx}")
+                            
+                            belief_field = f"p{acting_player_abs + 1}_belief"
+                            
+                            # Save beliefs from cards that will shift
+                            beliefs_to_shift = []
+                            for idx in range(card_idx + 1, 5):
+                                old_card_key = f"{player_id}_Card{idx + 1}"
+                                if old_card_key in self.belief_graph["Teammate_Hand_Beliefs"][hand_key]:
+                                    if belief_field in self.belief_graph["Teammate_Hand_Beliefs"][hand_key][old_card_key]:
+                                        beliefs_to_shift.append(
+                                            self.belief_graph["Teammate_Hand_Beliefs"][hand_key][old_card_key][belief_field].copy()
+                                        )
+                            
+                            # Shift beliefs left: Card(i+1) → Card(i)
+                            for i, belief in enumerate(beliefs_to_shift):
+                                new_card_key = f"{player_id}_Card{card_idx + i + 1}"
+                                if new_card_key in self.belief_graph["Teammate_Hand_Beliefs"][hand_key]:
+                                    if belief_field in self.belief_graph["Teammate_Hand_Beliefs"][hand_key][new_card_key]:
+                                        self.belief_graph["Teammate_Hand_Beliefs"][hand_key][new_card_key][belief_field] = belief
+                                        self.logger.log_debug("BELIEF_SHIFT", 
+                                            f"  Moved {player_id} belief from Card{card_idx + i + 2} to Card{card_idx + i + 1}")
+                            
+                            # Reset ONLY the last card (new card drawn from deck)
+                            last_card_key = f"{player_id}_Card5"
+                            if last_card_key in self.belief_graph["Teammate_Hand_Beliefs"][hand_key]:
+                                if belief_field in self.belief_graph["Teammate_Hand_Beliefs"][hand_key][last_card_key]:
+                                    old_belief = self.belief_graph["Teammate_Hand_Beliefs"][hand_key][last_card_key][belief_field].copy()
+                                    self._reset_card_belief(
+                                        self.belief_graph["Teammate_Hand_Beliefs"][hand_key][last_card_key][belief_field],
+                                        last_card_key,
+                                        f"Teammate's new card drawn after {action_type}"
+                                    )
+                                    new_belief = self.belief_graph["Teammate_Hand_Beliefs"][hand_key][last_card_key][belief_field]
+                                    self.logger.log_info("BELIEF_RESET_DETAIL", 
+                                        f"  Before: colors={old_belief.get('possible_colors')}, ranks={old_belief.get('possible_ranks')}\n" +
+                                        f"  After:  colors={new_belief.get('possible_colors')}, ranks={new_belief.get('possible_ranks')}")
+        
+        # Store current hands for next comparison
+        self._previous_observed_hands = [hand.copy() if isinstance(hand, list) else hand for hand in current_hands] if current_hands else None
+
+    def _reset_card_belief(self, belief_entry: Dict, card_key: str = "Unknown", reason: str = ""):
+        """Reset a certainty belief entry back to full uncertainty (5 colors × 5 ranks)."""
+        self.logger.log_info("BELIEF_RESET", f"🔄 Resetting {card_key} belief to full uncertainty. Reason: {reason}")
+        belief_entry["possible_colors"] = ["red", "blue", "green", "white", "yellow"]
+        belief_entry["possible_ranks"] = [1, 2, 3, 4, 5]
+    
     def _format_belief_graph_natural_language(self) -> str:
         """Convert belief graph to natural language for easier LLM understanding."""
         nl_description = "## BELIEF GRAPH ANALYSIS (CERTAINTY VARIANT)\n\n"
@@ -87,24 +256,65 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         
         # My hand beliefs
         nl_description += "**MY HAND BELIEFS:**\n"
+        nl_description += "⚠️ CRITICAL: Use 'card_index' in your action! Card 1 below = card_index 0, Card 2 = card_index 1, etc.\n\n"
+        
+        # Get current fireworks state to verify playability
+        game_state = self.belief_graph.get('GameState', {})
+        fireworks = game_state.get('fireworks', {})
+        if not fireworks:
+            # Fallback: try to get from observation if available
+            fireworks = {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+        
         for card_id, beliefs in self.belief_graph['My_Hand_Beliefs'].items():
             card_num = card_id.split('Card')[1]
+            card_idx = int(card_num) - 1  # Convert to 0-indexed
             colors = beliefs['possible_colors']
             ranks = beliefs['possible_ranks']
             
             if len(colors) == 1 and len(ranks) == 1:
-                nl_description += f"- Card {card_num}: ✅ SAFE TO PLAY - {colors[0].upper()} {ranks[0]} (100% certain)\n"
+                # 100% certain - check if actually playable
+                color = colors[0]
+                rank = ranks[0]
+                color_key = color[0].upper() if len(color) > 0 else color.upper()
+                current_firework = fireworks.get(color_key, 0)
+                
+                if rank == current_firework + 1:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): ✅ PLAYABLE NOW - {color.upper()} {rank} matches next needed ({color_key} firework at {current_firework}) → USE card_index {card_idx}!\n"
+                elif rank <= current_firework:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): ❌ ALREADY PLAYED - {color.upper()} {rank} (firework already at {current_firework})\n"
+                else:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): ⏳ NOT YET - {color.upper()} {rank} (need {current_firework + 1} first)\n"
+            elif len(ranks) == 1 and ranks[0] == 1:
+                # Rank 1 with ANY color uncertainty - check if any unstarted color
+                possible_plays = []
+                for c in colors:
+                    c_key = c[0].upper() if len(c) > 0 else c.upper()
+                    if fireworks.get(c_key, 0) == 0:
+                        possible_plays.append(c.upper())
+                
+                if possible_plays:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): ⚠️ PLAYABLE NOW - Rank 1, can start {'/'.join(possible_plays)} (unstarted colors)\n"
+                    nl_description += f"  → PLAY using card_index {card_idx} - 1s always work at game start!\n"
+                else:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): ❌ ALREADY STARTED - Rank 1 but all possible colors {'/'.join(colors).upper()} already started\n"
+            elif len(colors) == 1 and len(ranks) <= 2:
+                # Known color with 1-2 rank possibilities - can be strategic
+                color = colors[0]
+                nl_description += f"- Card {card_num} (card_index {card_idx}): ⚠️ MAYBE PLAYABLE - {color.upper()} {'/'.join(map(str,ranks))}\n"
+                nl_description += f"  → Check fireworks; if playable, use card_index {card_idx}\n"
             elif len(colors) == 1:
-                nl_description += f"- Card {card_num}: ❌ DO NOT PLAY - only know color {colors[0].upper()}, rank unknown {ranks}\n"
+                nl_description += f"- Card {card_num} (card_index {card_idx}): ❌ RISKY - only know color {colors[0].upper()}\n"
             elif len(ranks) == 1:
-                nl_description += f"- Card {card_num}: ❌ DO NOT PLAY - only know rank {ranks[0]}, color unknown {colors}\n"
+                nl_description += f"- Card {card_num} (card_index {card_idx}): ❌ RISKY - only know rank {ranks[0]}\n"
             else:
-                nl_description += f"- Card {card_num}: ❌ DO NOT PLAY - completely unknown ({len(colors)} colors × {len(ranks)} ranks)\n"
+                nl_description += f"- Card {card_num} (card_index {card_idx}): ❌ TOO RISKY - too uncertain\n"
         
         # Teammate beliefs
         nl_description += "\n**🎯 ACTION GUIDANCE:**\n"
-        nl_description += "Look for cards marked with ✅ SAFE TO PLAY - these are the ONLY cards you should play.\n"
-        nl_description += "Cards marked with ❌ DO NOT PLAY should never be played - you don't have enough information.\n\n"
+        nl_description += "✅ CERTAIN cards: Play immediately with confidence!\n"
+        nl_description += "⚠️ SAFE BET cards: Calculated risks worth taking (especially rank 1s)\n"
+        nl_description += "⚠️ MAYBE PLAYABLE: Verify against fireworks before playing\n"
+        nl_description += "❌ RISKY/TOO RISKY: Don't play - give hints or discard instead\n\n"
         
         nl_description += "**TEAMMATE KNOWLEDGE MODEL:**\n"
         for player_hand, hand_data in self.belief_graph['Teammate_Hand_Beliefs'].items():
@@ -198,8 +408,8 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
     
     def _update_beliefs_via_llm(self, observation: Dict[str, Any]):
         """Update beliefs using LLM as specified."""
-        # (1) Log observation going in (skip non-serializable pyhanabi object)
-        obs_for_logging = {k: v for k, v in observation.items() if k != 'pyhanabi'}
+        # (1) Log observation going in (skip non-serializable pyhanabi object and verbose vectorized field)
+        obs_for_logging = {k: v for k, v in observation.items() if k not in ['pyhanabi', 'vectorized']}
         self.logger.log_debug("OBSERVATION_IN", f"Observation: {json.dumps(obs_for_logging, indent=2)}")
         
         # Detect all events that happened
@@ -229,6 +439,10 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         # Check if this is about our own hand or teammate's
         if event['clue_recipient'] == my_player_id:
             # Update our own beliefs
+            clue_type = event.get('clue_type')
+            clued_value = event.get('value')
+            clued_indices = event.get('card_indices', [])
+            
             prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
 {json.dumps(self.belief_graph, indent=2)}
 
@@ -236,15 +450,32 @@ You just observed this event: {json.dumps(event)}
 
 Your task is to update your model of your own hand beliefs (My_Hand_Beliefs) based on this clue event.
 
-Key principle: Use negative inference CAREFULLY
-- Cards at the indices in 'card_indices' DEFINITELY have the clued property
-- Cards NOT in 'card_indices' do NOT have the clued property
-- IMPORTANT: If a card already KNOWS its exact color/rank (only 1 possibility left), do NOT change it
-- Multiple cards CAN have the same color or rank in Hanabi!
+🔴 CRITICAL: NEGATIVE INFERENCE IS MANDATORY 🔴
+
+Step-by-step process you MUST follow:
+1. Clued cards (indices {clued_indices}): Set possible_{clue_type}s to ONLY [{clued_value}]
+2. Un-clued cards (all others): REMOVE {clued_value} from possible_{clue_type}s, keep others
+3. EXCEPTION: If a card already has only 1 possibility, don't change it
+
+CONCRETE EXAMPLE for this event:
+Clue: {clue_type} = {clued_value}, targeting indices {clued_indices}
+
+For each card (0-4):
+- If index in {clued_indices}: possible_{clue_type}s = ["{clued_value}"]
+- If index NOT in {clued_indices}: remove "{clued_value}" from possible_{clue_type}s
+
+VERIFICATION CHECKLIST (check before returning):
+✓ Clued cards ({clued_indices}) have ONLY [{clued_value}] in possible_{clue_type}s?
+✓ Un-clued cards have {clued_value} REMOVED from possible_{clue_type}s?
+✓ All other attributes preserved?
 
 Return the complete updated JSON graph."""
         else:
             # Update teammate beliefs
+            clue_type = event.get('clue_type')
+            clued_value = event.get('value')
+            clued_indices = event.get('card_indices', [])
+            
             prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
 {json.dumps(self.belief_graph, indent=2)}
 
@@ -252,10 +483,29 @@ You just observed this event: {json.dumps(event)}
 
 Your task is to update your model of {event['clue_recipient']}'s beliefs in Teammate_Hand_Beliefs.
 
-Key principle: Use negative inference
-- Cards at the indices in 'card_indices' HAVE the clued property
-- Cards NOT in 'card_indices' do NOT have the clued property
-- Preserve the "actual_card_I_see" field - only update belief fields
+🔴 CRITICAL: NEGATIVE INFERENCE IS MANDATORY 🔴
+
+Step-by-step process you MUST follow:
+1. Identify which cards were clued: {event.get('card_indices', [])}
+2. For CLUED cards (indices {event.get('card_indices', [])}):
+   - Set possible_{clue_type}s to ONLY [{event.get('value')}]
+3. For UN-CLUED cards (all other indices):
+   - REMOVE {event.get('value')} from possible_{event.get('clue_type')}s
+   - Keep all other values unchanged
+
+CONCRETE EXAMPLE:
+If clue is "color: blue" targeting cards [1, 3]:
+- Card 0: Remove "blue" from possible_colors → ["red", "green", "white", "yellow"]
+- Card 1: Set possible_colors to ["blue"] ONLY
+- Card 2: Remove "blue" from possible_colors → ["red", "green", "white", "yellow"]  
+- Card 3: Set possible_colors to ["blue"] ONLY
+- Card 4: Remove "blue" from possible_colors → ["red", "green", "white", "yellow"]
+
+VERIFICATION CHECKLIST (check before returning):
+✓ Did I set clued cards to have ONLY the clued value?
+✓ Did I remove the clued value from ALL un-clued cards?
+✓ Did I preserve "actual_card_I_see" fields unchanged?
+✓ Did I keep all OTHER possible values for un-clued cards?
 
 Return the complete updated JSON graph."""
         
@@ -421,18 +671,32 @@ Return the complete updated JSON graph."""
     
     def _detect_events(self, curr_obs: Dict[str, Any]) -> List[Dict]:
         """Detect ALL game events from observation - returns a list of events."""
-        events = []
-        
-        # Get the last move from history if available
-        last_moves = curr_obs['last_moves']
+        events: List[Dict] = []
+
+        last_moves = curr_obs.get('last_moves', [])
+
         if not last_moves:
             return events
-            
+
+        new_move_count = 0
+
+        # 逐条检查历史；仅处理未出现过的 move
+        for last_move in last_moves:
+            move_id = json.dumps(last_move, sort_keys=True)
+            if move_id in self._seen_move_ids:
+                continue
+            self._seen_move_ids.add(move_id)
+            new_move_count += 1
+
+        self.logger.log_debug("EVENT_DETECT", f"New moves processed this step: {new_move_count}")
+
+        # 无需再追踪长度，集合已记录
+        
         # Get important info
         current_player = curr_obs['current_player']
         num_players = curr_obs['num_players']
         
-        # Process ALL moves in the history
+        # Process ONLY new moves
         for last_move in last_moves:
             move_data = last_move['move']
             action_type = move_data.get('action_type')
@@ -442,8 +706,13 @@ Return the complete updated JSON graph."""
                 continue
                 
             # Convert observer-relative player index to absolute
-            acting_player_offset = last_move['player']
-            acting_player_absolute = (current_player + acting_player_offset) % num_players
+            acting_player_offset = last_move['player']  # relative to observer (me)
+            # Correct absolute index of acting player from observer perspective
+            acting_player_absolute = (self.my_player_number + acting_player_offset) % num_players
+            self.logger.log_debug(
+                "EVENT_DETECT", 
+                f"Compute acting player: my_player={self.my_player_number}, offset={acting_player_offset} => abs={acting_player_absolute} (original curr_player field={current_player})"
+            )
             
             # Check for different action types
             if action_type == 'REVEAL_COLOR':
@@ -452,9 +721,13 @@ Return the complete updated JSON graph."""
                 
                 # Calculate absolute target player
                 target_player_absolute = (acting_player_absolute + target_offset) % num_players
+                target_offset_from_observer = (target_player_absolute - self.my_player_number) % num_players
+                self.logger.log_debug(
+                    "EVENT_DETECT", 
+                    f"Compute target player: acting_abs={acting_player_absolute}, target_offset={target_offset} => abs={target_player_absolute}"
+                )
                 
                 # Find which cards match (need observer-relative offset for observed_hands)
-                target_offset_from_observer = (target_player_absolute - current_player) % num_players
                 
                 events.append({
                     'clue_giver': f"P{acting_player_absolute + 1}",
@@ -470,16 +743,20 @@ Return the complete updated JSON graph."""
                 
                 # Calculate absolute target player
                 target_player_absolute = (acting_player_absolute + target_offset) % num_players
+                target_offset_from_observer = (target_player_absolute - self.my_player_number) % num_players
+                self.logger.log_debug(
+                    "EVENT_DETECT", 
+                    f"Compute target player: acting_abs={acting_player_absolute}, target_offset={target_offset} => abs={target_player_absolute}"
+                )
                 
                 # Find which cards match (need observer-relative offset for observed_hands)
-                target_offset_from_observer = (target_player_absolute - current_player) % num_players
                 
                 events.append({
                     'clue_giver': f"P{acting_player_absolute + 1}",
                     'clue_recipient': f"P{target_player_absolute + 1}",
                     'clue_type': 'rank',
-                    'value': rank + 1,  # Convert 0-indexed to 1-indexed for belief graph
-                    'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'rank', rank)
+                    'value': rank,  # rank is already 1-indexed from LLM/game, keep it for belief graph
+                    'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'rank', rank)  # rank is 1-indexed
                 })
                 
             elif action_type == 'PLAY':
@@ -545,8 +822,9 @@ Return the complete updated JSON graph."""
                                 matching_indices.append(idx)
                     elif clue_type == 'rank':
                         card_rank = card.get('rank')
-                        # Both card ranks and clue values are 0-indexed (0-4)
-                        if card_rank == value:
+                        # value is 1-indexed (1-5) from LLM, card_rank is 0-indexed (0-4) from game
+                        # Need to convert value to 0-indexed for comparison
+                        if card_rank == value - 1:
                             matching_indices.append(idx)
             else:
                 self.logger.log_debug("CARD_MATCHING_DEBUG", f"Target offset {target_offset} >= {len(observed_hands)}")
@@ -605,11 +883,9 @@ class BeliefGraphProbabilisticAgent(GeminiAgent):
         if observation.get('last_moves'):
             self._update_beliefs_via_llm(observation)
         
-        # Let parent handle observation learning
-        super().act(observation)
-        
-        # If not our turn, return None
+        # If not our turn, just record observation and return None
         if observation['current_player_offset'] != 0:
+            self._add_observation_to_history(observation)
             return None
         
         # Our turn - augment observation with belief graph
@@ -1043,11 +1319,9 @@ class BeliefGraphToMAgent(GeminiAgent):
         if observation.get('last_moves'):
             self._update_beliefs_with_tom(observation)
         
-        # Let parent handle observation learning
-        super().act(observation)
-        
-        # If not our turn, return None
+        # If not our turn, just record observation and return None
         if observation['current_player_offset'] != 0:
+            self._add_observation_to_history(observation)
             return None
         
         # Our turn - augment observation with belief graph
@@ -1179,9 +1453,10 @@ Please reason step by step:
 2. What might this reveal about team strategy?
 3. How should both belief distributions AND ToM_Layer be updated?
 
-Key principle: Use negative inference
-- Cards at the indices in 'card_indices' HAVE the clued property
-- Cards NOT in 'card_indices' do NOT have the clued property
+Key principle: Use negative inference CORRECTLY
+- Cards at the indices in 'card_indices' HAVE the clued property (update to only that value)
+- Cards NOT in 'card_indices' do NOT have the clued property (remove ONLY the clued value, keep all other possibilities)
+- Example: If clue is "rank 1" targeting [1,4], then card 0 should remove rank 1 but keep ranks [2,3,4,5]
 - Preserve the "actual_card_I_see" field - only update belief fields
 
 Return the complete updated JSON graph."""
@@ -1254,7 +1529,7 @@ Return the complete updated JSON graph."""
                 'clue_giver': f"P{last_move['player'] + 1}",
                 'clue_recipient': f"P{target_offset + 1}",
                 'clue_type': 'rank',
-                'value': rank + 1,  # Convert 0-indexed to 1-indexed for belief graph
+                'value': rank,  # rank is already 1-indexed from LLM/game, keep it for belief graph
                 'card_indices': self._find_matching_cards(curr_obs, target_offset, 'rank', rank)
             }
         
