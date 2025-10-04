@@ -452,21 +452,29 @@ Your task is to update your model of your own hand beliefs (My_Hand_Beliefs) bas
 
 🔴 CRITICAL: NEGATIVE INFERENCE IS MANDATORY 🔴
 
+⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
+   - Index 0 = P2_Card1 (first card)
+   - Index 1 = P2_Card2 (second card)
+   - Index 2 = P2_Card3 (third card)
+   - Index 3 = P2_Card4 (fourth card)
+   - Index 4 = P2_Card5 (fifth card)
+
 Step-by-step process you MUST follow:
-1. Clued cards (indices {clued_indices}): Set possible_{clue_type}s to ONLY [{clued_value}]
-2. Un-clued cards (all others): REMOVE {clued_value} from possible_{clue_type}s, keep others
+1. Clued cards (0-indexed: {clued_indices}): Set possible_{clue_type}s to ONLY [{clued_value}]
+2. Un-clued cards (indices 0-4 NOT in {clued_indices}): REMOVE {clued_value} from possible_{clue_type}s, keep others
 3. EXCEPTION: If a card already has only 1 possibility, don't change it
 
 CONCRETE EXAMPLE for this event:
-Clue: {clue_type} = {clued_value}, targeting indices {clued_indices}
+Clue: {clue_type} = {clued_value}, targeting card_indices {clued_indices} (0-indexed)
 
-For each card (0-4):
+For each card index (0-4):
 - If index in {clued_indices}: possible_{clue_type}s = ["{clued_value}"]
 - If index NOT in {clued_indices}: remove "{clued_value}" from possible_{clue_type}s
 
 VERIFICATION CHECKLIST (check before returning):
-✓ Clued cards ({clued_indices}) have ONLY [{clued_value}] in possible_{clue_type}s?
-✓ Un-clued cards have {clued_value} REMOVED from possible_{clue_type}s?
+✓ Did I correctly map card_indices to P2_Card# keys? (index 0 → P2_Card1, index 1 → P2_Card2, etc.)
+✓ Clued cards (indices {clued_indices}) have ONLY [{clued_value}] in possible_{clue_type}s?
+✓ Un-clued cards (indices 0-4 NOT in {clued_indices}) have {clued_value} REMOVED from possible_{clue_type}s?
 ✓ All other attributes preserved?
 
 Return the complete updated JSON graph."""
@@ -475,35 +483,50 @@ Return the complete updated JSON graph."""
             clue_type = event.get('clue_type')
             clued_value = event.get('value')
             clued_indices = event.get('card_indices', [])
-            
+            recipient_id = event['clue_recipient']
+
             prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
 {json.dumps(self.belief_graph, indent=2)}
 
 You just observed this event: {json.dumps(event)}
 
-Your task is to update your model of {event['clue_recipient']}'s beliefs in Teammate_Hand_Beliefs.
+Your task is to update your model of {recipient_id}'s beliefs in Teammate_Hand_Beliefs.
+
+🔴 CRITICAL: YOU MUST UPDATE THE BELIEF GRAPH 🔴
+
+This clue was given to {recipient_id}. You need to update what {recipient_id} now believes about their own hand.
+Navigate to: Teammate_Hand_Beliefs → {recipient_id}_Hand → {recipient_id}_Card# → {recipient_id.lower()}_belief
 
 🔴 CRITICAL: NEGATIVE INFERENCE IS MANDATORY 🔴
 
+⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
+   - Index 0 = {recipient_id}_Card1 (first card)
+   - Index 1 = {recipient_id}_Card2 (second card)
+   - Index 2 = {recipient_id}_Card3 (third card)
+   - Index 3 = {recipient_id}_Card4 (fourth card)
+   - Index 4 = {recipient_id}_Card5 (fifth card)
+
 Step-by-step process you MUST follow:
-1. Identify which cards were clued: {event.get('card_indices', [])}
-2. For CLUED cards (indices {event.get('card_indices', [])}):
-   - Set possible_{clue_type}s to ONLY [{event.get('value')}]
-3. For UN-CLUED cards (all other indices):
-   - REMOVE {event.get('value')} from possible_{event.get('clue_type')}s
+1. Identify which cards were clued (0-indexed): {event.get('card_indices', [])}
+2. For CLUED cards at indices {event.get('card_indices', [])}:
+   - Update {recipient_id}_Card#.{recipient_id.lower()}_belief.possible_{clue_type}s to ONLY [{clued_value}]
+3. For UN-CLUED cards (all other indices 0-4):
+   - Update {recipient_id}_Card#.{recipient_id.lower()}_belief: REMOVE {clued_value} from possible_{clue_type}s
    - Keep all other values unchanged
 
-CONCRETE EXAMPLE:
-If clue is "color: blue" targeting cards [1, 3]:
-- Card 0: Remove "blue" from possible_colors → ["red", "green", "white", "yellow"]
-- Card 1: Set possible_colors to ["blue"] ONLY
-- Card 2: Remove "blue" from possible_colors → ["red", "green", "white", "yellow"]  
-- Card 3: Set possible_colors to ["blue"] ONLY
-- Card 4: Remove "blue" from possible_colors → ["red", "green", "white", "yellow"]
+CONCRETE EXAMPLE FOR THIS EVENT:
+Clue: {clue_type} = {clued_value}, targeting card_indices {clued_indices} (0-indexed)
+Updating beliefs in: Teammate_Hand_Beliefs.{recipient_id}_Hand.{recipient_id}_Card#.{recipient_id.lower()}_belief
+
+For each card index (0-4):
+- If index in {clued_indices}: set {recipient_id.lower()}_belief.possible_{clue_type}s = ["{clued_value}"]
+- If index NOT in {clued_indices}: remove "{clued_value}" from {recipient_id.lower()}_belief.possible_{clue_type}s
 
 VERIFICATION CHECKLIST (check before returning):
-✓ Did I set clued cards to have ONLY the clued value?
-✓ Did I remove the clued value from ALL un-clued cards?
+✓ Did I correctly map card_indices to {recipient_id}_Card# keys? (index 0 → {recipient_id}_Card1, index 1 → {recipient_id}_Card2, etc.)
+✓ Did I update the {recipient_id.lower()}_belief field (NOT the top level)?
+✓ Did I set clued cards' {recipient_id.lower()}_belief.possible_{clue_type}s to ONLY ["{clued_value}"]?
+✓ Did I remove "{clued_value}" from ALL un-clued cards' {recipient_id.lower()}_belief.possible_{clue_type}s?
 ✓ Did I preserve "actual_card_I_see" fields unchanged?
 ✓ Did I keep all OTHER possible values for un-clued cards?
 
@@ -775,6 +798,7 @@ Return the complete updated JSON graph."""
                 })
         
         return events
+    
     
     def _find_matching_cards(self, observation: Dict[str, Any], target_offset: int, clue_type: str, value) -> list:
         """Find which card indices match the given clue.
@@ -1062,15 +1086,26 @@ Your task is to update your probabilistic model of beliefs.
 For the hinted card, collapse its distribution to 100% for the hinted value.
 For un-hinted cards, perform negative inference: set probability to 0 and re-normalize.
 
+⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
+   - Index 0 = P1_Card1 (first card)
+   - Index 1 = P1_Card2 (second card)
+   - Index 2 = P1_Card3 (third card)
+   - Index 3 = P1_Card4 (fourth card)
+   - Index 4 = P1_Card5 (fifth card)
+
 Please reason step by step:
 1. What does this event tell us?
-2. How should probability distributions be updated?
-3. What negative inferences can we make?
+2. Which cards were clued (map card_indices to P#_Card# keys using 0-based indexing)?
+3. How should probability distributions be updated?
+4. What negative inferences can we make for un-clued cards?
 
 After your reasoning, provide the updated belief state in this JSON format:
 {json.dumps(self._get_belief_template(), indent=2)}
 
 CRITICAL RULES:
+- MAPPING: card_indices are 0-indexed (index 0 → P1_Card1, index 1 → P1_Card2, etc.)
+- CLUED cards (at indices in card_indices): Set probability to 1.0 for clued value, 0.0 for others
+- UN-CLUED cards (indices 0-4 NOT in card_indices): Set probability to 0.0 for clued value, renormalize others
 - Only update what is actually learned from THIS clue
 - Apply negative inference correctly
 - Preserve all fields including "actual_card_I_see" - only update belief distributions"""
@@ -1454,9 +1489,22 @@ Please reason step by step:
 3. How should both belief distributions AND ToM_Layer be updated?
 
 Key principle: Use negative inference CORRECTLY
+
+⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
+   - Index 0 = P1_Card1 (first card)
+   - Index 1 = P1_Card2 (second card)
+   - Index 2 = P1_Card3 (third card)
+   - Index 3 = P1_Card4 (fourth card)
+   - Index 4 = P1_Card5 (fifth card)
+
 - Cards at the indices in 'card_indices' HAVE the clued property (update to only that value)
-- Cards NOT in 'card_indices' do NOT have the clued property (remove ONLY the clued value, keep all other possibilities)
-- Example: If clue is "rank 1" targeting [1,4], then card 0 should remove rank 1 but keep ranks [2,3,4,5]
+- Cards NOT in 'card_indices' (other indices 0-4) do NOT have the clued property (remove ONLY the clued value, keep all other possibilities)
+- Example: If clue is "rank 1" targeting card_indices [1,4] (0-indexed):
+  * P1_Card1 (index 0): remove rank 1, keep ranks [2,3,4,5]
+  * P1_Card2 (index 1): set to rank 1 ONLY ← clued
+  * P1_Card3 (index 2): remove rank 1, keep ranks [2,3,4,5]
+  * P1_Card4 (index 3): remove rank 1, keep ranks [2,3,4,5]
+  * P1_Card5 (index 4): set to rank 1 ONLY ← clued
 - Preserve the "actual_card_I_see" field - only update belief fields
 
 Return the complete updated JSON graph."""
