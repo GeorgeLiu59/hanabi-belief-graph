@@ -15,9 +15,9 @@ switch_github.sh
 build/
 _cmake_test_compile/
 
-# Logs directory
-logs/
-*.log
+# # Logs directory
+# logs/
+# *.log
 
 # IDE and editor files
 .vscode/
@@ -50,7 +50,7 @@ test_*
 # Demo files
 *demo*
 
-# Log files and directories
-*.log
-logs/
-**/logs/
+# # Log files and directories
+# *.log
+# logs/
+# **/logs/
