@@ -9,6 +9,7 @@ from typing import Dict, Any, Optional, List
 
 from ..agents.gemini_agent import GeminiAgent
 from ..agents.agent_logger import AgentLogger
+from ..agents.game_state_tracker import get_game_state_tracker
 
 
 class BeliefGraphCertaintyAgent(GeminiAgent):
@@ -32,12 +33,12 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
     def reset(self, config):
         """Reset and initialize belief graph."""
         super().reset(config)
-        
+
         # We need to determine our player number first
         self.my_player_number = None  # Will be set on first observation
-        
+
         # Initialize belief graph with just the game state
-        # My_Hand_Beliefs and Teammate_Hand_Beliefs will be initialized 
+        # My_Hand_Beliefs and Teammate_Hand_Beliefs will be initialized
         # once we know which player we are
         self.belief_graph = {
             "GameState": {
@@ -53,6 +54,11 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         self._seen_move_ids.clear()
         # 清空上一帧 observed_hands
         self._previous_observed_hands = None
+
+        # Initialize game state tracker
+        tracker = get_game_state_tracker()
+        num_players = config.get('players', 2)
+        tracker.reset(num_players)
     
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act with belief graph augmentation."""
@@ -76,8 +82,9 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
-        # Update GameState with current fireworks for accurate playability checking
-        self.belief_graph['GameState']['fireworks'] = observation.get('fireworks', {})
+        # Update GameState with current fireworks from tracker
+        tracker = get_game_state_tracker()
+        self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
         augmented_observation['belief_graph'] = self.belief_graph
         augmented_observation['belief_variant'] = 'certainty'
         augmented_observation['belief_graph_natural_language'] = self._format_belief_graph_natural_language()
@@ -94,10 +101,11 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
     # stale duplicates when hands change after plays/discards
     # ------------------------------------------------------------------
     def _refresh_visible_cards(self, observation):
-        """Update actual_card_I_see fields for teammate hands every turn."""
-        num_players = observation['num_players']
-        self.logger.log_debug("CARD_REFRESH", "🔍 Starting card refresh check...")
-        
+        """Update actual_card_I_see fields for teammate hands using tracker."""
+        tracker = get_game_state_tracker()
+        num_players = tracker.num_players
+        self.logger.log_debug("CARD_REFRESH", "Starting card refresh check...")
+
         current_hands = observation.get('observed_hands', [])
         
         # Check for PLAY/DISCARD actions that cause hand shifts
@@ -107,9 +115,8 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
                 player_offset = move_entry.get('player', -1)
                 if player_offset < 0:
                     continue
-                
+
                 # Calculate absolute player number
-                current_player = observation['current_player']
                 acting_player_abs = (self.my_player_number + player_offset) % num_players
                 
                 move = move_entry.get('move', {})
@@ -152,31 +159,33 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
                                 f"  After:  colors={self.belief_graph['My_Hand_Beliefs'][last_card_key].get('possible_colors')}, " +
                                 f"ranks={self.belief_graph['My_Hand_Beliefs'][last_card_key].get('possible_ranks')}")
         
-        # Handle TEAMMATE hands - we CAN see these change
-        for offset, hand in enumerate(current_hands):
-            if offset == 0:
-                continue  # skip my own hand
+        # Handle TEAMMATE hands using tracker data
+        for player_num in range(num_players):
+            if player_num == self.my_player_number:
+                continue
 
-            actual_player_num = (self.my_player_number + offset) % num_players
-            player_id = f"P{actual_player_num + 1}"
-
+            player_id = f"P{player_num + 1}"
             hand_key = f"{player_id}_Hand"
+
             if hand_key not in self.belief_graph.get("Teammate_Hand_Beliefs", {}):
                 continue
 
-            # Ensure correct number of card entries exists
-            for card_idx, card in enumerate(hand):
+            tracker_hand = tracker.get_player_hand(player_num)
+
+            for card_idx, card in enumerate(tracker_hand):
                 card_key = f"{player_id}_Card{card_idx + 1}"
 
-                if card.get('color') is not None and card.get('rank') is not None:
-                    color = card['color']
-                    rank = card['rank'] + 1 if card['rank'] >= 0 else '?'
-                    new_actual = f"{color} {rank}"
-                    # Just update the actual card - don't reset belief here
-                    # Belief shifting is handled by PLAY/DISCARD action detection
+                if card_key not in self.belief_graph["Teammate_Hand_Beliefs"][hand_key]:
+                    continue
+
+                color = card.get('color')
+                rank = card.get('rank')
+
+                if color is not None and rank is not None:
+                    rank_display = rank + 1 if rank >= 0 else '?'
+                    new_actual = f"{color} {rank_display}"
                     self.belief_graph["Teammate_Hand_Beliefs"][hand_key][card_key]["actual_card_I_see"] = new_actual
                 else:
-                    # Unknown card (face down after draw) → mark Unknown
                     self.belief_graph["Teammate_Hand_Beliefs"][hand_key][card_key]["actual_card_I_see"] = "Unknown"
         
         # Also check for teammate PLAY/DISCARD actions and reset their beliefs accordingly
@@ -387,24 +396,30 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         self._initialize_visible_cards(observation)
     
     def _initialize_visible_cards(self, observation: Dict[str, Any]):
-        """Update belief graph with visible cards."""
-        # Update teammate cards I can see
-        num_players = observation['num_players']
-        for offset, hand in enumerate(observation['observed_hands']):
-            if offset == 0:
-                continue  # Skip my own hand
-            
-            # Calculate actual player number from offset
-            actual_player_num = (self.my_player_number + offset) % num_players
-            player_id = f"P{actual_player_num + 1}"
-            
-            if f"{player_id}_Hand" in self.belief_graph["Teammate_Hand_Beliefs"]:
-                for card_idx, card in enumerate(hand):
-                    if card.get('color') and card.get('rank') is not None:
-                        card_key = f"{player_id}_Card{card_idx + 1}"
-                        color = card['color']
-                        rank = card['rank'] + 1 if card['rank'] >= 0 else '?'
-                        self.belief_graph["Teammate_Hand_Beliefs"][f"{player_id}_Hand"][card_key]["actual_card_I_see"] = f"{color} {rank}"
+        """Update belief graph with visible cards from tracker."""
+        tracker = get_game_state_tracker()
+        num_players = tracker.num_players
+
+        for player_num in range(num_players):
+            if player_num == self.my_player_number:
+                continue
+
+            player_id = f"P{player_num + 1}"
+            hand_key = f"{player_id}_Hand"
+
+            if hand_key not in self.belief_graph["Teammate_Hand_Beliefs"]:
+                continue
+
+            tracker_hand = tracker.get_player_hand(player_num)
+
+            for card_idx, card in enumerate(tracker_hand):
+                card_key = f"{player_id}_Card{card_idx + 1}"
+                color = card.get('color')
+                rank = card.get('rank')
+
+                if color and rank is not None:
+                    rank_display = rank + 1 if rank >= 0 else '?'
+                    self.belief_graph["Teammate_Hand_Beliefs"][hand_key][card_key]["actual_card_I_see"] = f"{color} {rank_display}"
     
     def _update_beliefs_via_llm(self, observation: Dict[str, Any]):
         """Update beliefs using LLM as specified."""
@@ -583,10 +598,7 @@ Return the complete updated JSON graph."""
                     raise ValueError("No valid JSON found in LLM response")
             
             self.logger.log_debug("BELIEF_UPDATE_JSON_EXTRACTED", json_text)
-            
-            # Store previous belief state for comparison
-            previous_belief = json.dumps(self.belief_graph, indent=2)
-            
+
             # Update with new belief state
             new_belief_graph = json.loads(json_text)
             
@@ -624,8 +636,7 @@ Return the complete updated JSON graph."""
                         if before_colors != after_colors or before_ranks != after_ranks:
                             removed_colors = before_colors - after_colors
                             removed_ranks = before_ranks - after_ranks
-                            card_num = card_id.split('Card')[1]
-                            
+
                             if removed_colors or removed_ranks:
                                 diff_summary += f"  {card_id}: "
                                 if removed_colors:
@@ -660,9 +671,8 @@ Return the complete updated JSON graph."""
                                 elif after_rank_dist[rank] == 0.0 and before_rank_dist[rank] > 0.0:
                                     changes.append(f"rank {rank} → 0%")
                                 changed = True
-                        
+
                         if changed:
-                            card_num = card_id.split('Card')[1]
                             diff_summary += f"  {card_id}: {', '.join(changes)}\n"
         
         # Check Teammate beliefs
@@ -693,167 +703,194 @@ Return the complete updated JSON graph."""
         return self.belief_graph
     
     def _detect_events(self, curr_obs: Dict[str, Any]) -> List[Dict]:
-        """Detect ALL game events from observation - returns a list of events."""
-        events: List[Dict] = []
+        """Detect ALL game events using the game state tracker."""
+        tracker = get_game_state_tracker()
+        events = []
 
         last_moves = curr_obs.get('last_moves', [])
-
         if not last_moves:
             return events
 
-        new_move_count = 0
+        # Update tracker with ALL observable state
+        tracker.update_visible_cards(
+            self.my_player_number,
+            curr_obs.get('observed_hands', [])
+        )
 
-        # 逐条检查历史；仅处理未出现过的 move
+        if 'card_knowledge' in curr_obs and len(curr_obs['card_knowledge']) > 0:
+            tracker.update_card_knowledge(
+                self.my_player_number,
+                curr_obs['card_knowledge'][0]
+            )
+
+        tracker.update_game_state(
+            curr_obs.get('fireworks', {}),
+            curr_obs.get('life_tokens', 3),
+            curr_obs.get('information_tokens', 8),
+            curr_obs.get('deck_size', 50)
+        )
+
+        num_players = curr_obs['num_players']
+
+        self.logger.log_debug("EVENT_DETECT_TRACKER", f"Tracker state: {tracker.get_state_summary()}")
+
+        # Process moves and register with tracker
         for last_move in last_moves:
             move_id = json.dumps(last_move, sort_keys=True)
             if move_id in self._seen_move_ids:
                 continue
             self._seen_move_ids.add(move_id)
-            new_move_count += 1
 
-        self.logger.log_debug("EVENT_DETECT", f"New moves processed this step: {new_move_count}")
-
-        # 无需再追踪长度，集合已记录
-        
-        # Get important info
-        current_player = curr_obs['current_player']
-        num_players = curr_obs['num_players']
-        
-        # Process ONLY new moves
-        for last_move in last_moves:
             move_data = last_move['move']
             action_type = move_data.get('action_type')
-            
-            # Skip non-action moves (like DEAL)
+
             if last_move['player'] < 0:
                 continue
-                
-            # Convert observer-relative player index to absolute
-            acting_player_offset = last_move['player']  # relative to observer (me)
-            # Correct absolute index of acting player from observer perspective
+
+            acting_player_offset = last_move['player']
             acting_player_absolute = (self.my_player_number + acting_player_offset) % num_players
+
             self.logger.log_debug(
-                "EVENT_DETECT", 
-                f"Compute acting player: my_player={self.my_player_number}, offset={acting_player_offset} => abs={acting_player_absolute} (original curr_player field={current_player})"
+                "EVENT_DETECT_TRACKER",
+                f"Processing {action_type}: my_player={self.my_player_number}, "
+                f"acting_offset={acting_player_offset}, acting_abs={acting_player_absolute}"
             )
-            
-            # Check for different action types
+
             if action_type == 'REVEAL_COLOR':
                 target_offset = move_data['target_offset']
                 color = move_data['color']
-                
-                # Calculate absolute target player
+
                 target_player_absolute = (acting_player_absolute + target_offset) % num_players
-                target_offset_from_observer = (target_player_absolute - self.my_player_number) % num_players
+
                 self.logger.log_debug(
-                    "EVENT_DETECT", 
-                    f"Compute target player: acting_abs={acting_player_absolute}, target_offset={target_offset} => abs={target_player_absolute}"
+                    "EVENT_DETECT_TRACKER",
+                    f"REVEAL_COLOR: giver_abs={acting_player_absolute} (P{acting_player_absolute+1}), "
+                    f"recipient_abs={target_player_absolute} (P{target_player_absolute+1}), color={color}"
                 )
-                
-                # Find which cards match (need observer-relative offset for observed_hands)
-                
+
+                card_indices = tracker.find_matching_cards_for_hint(
+                    target_player_absolute, 'color', color
+                )
+
+                self.logger.log_debug(
+                    "EVENT_DETECT_TRACKER",
+                    f"Tracker found matching cards: {card_indices} in P{target_player_absolute+1}'s hand"
+                )
+
+                tracker.register_hint(
+                    acting_player_absolute,
+                    target_player_absolute,
+                    'color',
+                    color,
+                    card_indices,
+                    move_id
+                )
+
                 events.append({
                     'clue_giver': f"P{acting_player_absolute + 1}",
                     'clue_recipient': f"P{target_player_absolute + 1}",
                     'clue_type': 'color',
                     'value': color,
-                    'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'color', color)
+                    'card_indices': card_indices
                 })
-                
+
             elif action_type == 'REVEAL_RANK':
                 target_offset = move_data['target_offset']
                 rank = move_data['rank']
-                
-                # Calculate absolute target player
+
                 target_player_absolute = (acting_player_absolute + target_offset) % num_players
-                target_offset_from_observer = (target_player_absolute - self.my_player_number) % num_players
+
                 self.logger.log_debug(
-                    "EVENT_DETECT", 
-                    f"Compute target player: acting_abs={acting_player_absolute}, target_offset={target_offset} => abs={target_player_absolute}"
+                    "EVENT_DETECT_TRACKER",
+                    f"REVEAL_RANK: giver_abs={acting_player_absolute} (P{acting_player_absolute+1}), "
+                    f"recipient_abs={target_player_absolute} (P{target_player_absolute+1}), rank={rank}"
                 )
-                
-                # Find which cards match (need observer-relative offset for observed_hands)
-                
+
+                card_indices = tracker.find_matching_cards_for_hint(
+                    target_player_absolute, 'rank', rank
+                )
+
+                self.logger.log_debug(
+                    "EVENT_DETECT_TRACKER",
+                    f"Tracker found matching cards: {card_indices} in P{target_player_absolute+1}'s hand"
+                )
+
+                tracker.register_hint(
+                    acting_player_absolute,
+                    target_player_absolute,
+                    'rank',
+                    rank,
+                    card_indices,
+                    move_id
+                )
+
                 events.append({
                     'clue_giver': f"P{acting_player_absolute + 1}",
                     'clue_recipient': f"P{target_player_absolute + 1}",
                     'clue_type': 'rank',
-                    'value': rank,  # rank is already 1-indexed from LLM/game, keep it for belief graph
-                    'card_indices': self._find_matching_cards(curr_obs, target_offset_from_observer, 'rank', rank)  # rank is 1-indexed
+                    'value': rank,
+                    'card_indices': card_indices
                 })
-                
+
             elif action_type == 'PLAY':
+                tracker.register_action(
+                    acting_player_absolute,
+                    'PLAY',
+                    move_data.get('card_index', -1),
+                    move_id
+                )
+
                 events.append({
                     'type': 'play',
                     'player': f"P{acting_player_absolute + 1}",
                     'card_index': move_data.get('card_index', -1),
-                    'success': True  # We can check fireworks to confirm
+                    'success': True
                 })
-                
+
             elif action_type == 'DISCARD':
+                tracker.register_action(
+                    acting_player_absolute,
+                    'DISCARD',
+                    move_data.get('card_index', -1),
+                    move_id
+                )
+
                 events.append({
-                    'type': 'discard', 
+                    'type': 'discard',
                     'player': f"P{acting_player_absolute + 1}",
-                    'card_index': last_move['move'].get('card_index', -1)
+                    'card_index': move_data.get('card_index', -1)
                 })
-        
+
+        self.logger.log_debug("EVENT_DETECT_TRACKER", f"Detected {len(events)} events this step")
         return events
     
     
     def _find_matching_cards(self, observation: Dict[str, Any], target_offset: int, clue_type: str, value) -> list:
-        """Find which card indices match the given clue.
-        
-        For clues to ourselves (offset=0), use card_knowledge since we can't see our own cards.
-        For clues to others, use observed_hands since we can see their cards.
+        """Find which card indices match the given clue using the game state tracker.
+
+        DEPRECATED: This method is kept for compatibility but now delegates to the tracker.
+        Use tracker.find_matching_cards_for_hint() directly instead.
         """
-        matching_indices = []
-        
-        # Debug logging
-        self.logger.log_debug("CARD_MATCHING_DEBUG", f"Looking for {clue_type}={value}, target_offset={target_offset}")
-        
-        if target_offset == 0:
-            # Clue is for us - use card_knowledge
-            if 'card_knowledge' in observation:
-                my_knowledge = observation['card_knowledge'][0]  # Index 0 is always us
-                for idx, card_knowledge in enumerate(my_knowledge):
-                    if clue_type == 'color':
-                        # Check if this card has this color
-                        if card_knowledge.get('color') == value:
-                            matching_indices.append(idx)
-                    elif clue_type == 'rank':
-                        # Check if this card has this rank (both are 0-indexed)
-                        if card_knowledge.get('rank') == value:
-                            matching_indices.append(idx)
-            else:
-                self.logger.log_debug("CARD_MATCHING_DEBUG", "No card_knowledge in observation")
-        else:
-            # Clue is for someone else - use observed_hands
-            observed_hands = observation['observed_hands']
-            if target_offset < len(observed_hands):
-                hand = observed_hands[target_offset]
-                self.logger.log_debug("CARD_MATCHING_DEBUG", f"Target hand: {hand}")
-                
-                for idx, card in enumerate(hand):
-                    if clue_type == 'color':
-                        card_color = card.get('color')
-                        # Handle both string colors and numeric indices
-                        if isinstance(card_color, str):
-                            if card_color == value:
-                                matching_indices.append(idx)
-                        elif isinstance(card_color, int) and card_color >= 0:
-                            card_color_char = ['R', 'Y', 'G', 'W', 'B'][card_color]
-                            if card_color_char == value:
-                                matching_indices.append(idx)
-                    elif clue_type == 'rank':
-                        card_rank = card.get('rank')
-                        # value is 1-indexed (1-5) from LLM, card_rank is 0-indexed (0-4) from game
-                        # Need to convert value to 0-indexed for comparison
-                        if card_rank == value - 1:
-                            matching_indices.append(idx)
-            else:
-                self.logger.log_debug("CARD_MATCHING_DEBUG", f"Target offset {target_offset} >= {len(observed_hands)}")
-        
-        self.logger.log_debug("CARD_MATCHING_DEBUG", f"Matching indices: {matching_indices}")
+        tracker = get_game_state_tracker()
+        num_players = observation['num_players']
+
+        target_player_absolute = (self.my_player_number + target_offset) % num_players
+
+        self.logger.log_debug(
+            "CARD_MATCHING_TRACKER",
+            f"Finding cards for {clue_type}={value}, target_offset={target_offset}, "
+            f"target_abs={target_player_absolute}"
+        )
+
+        matching_indices = tracker.find_matching_cards_for_hint(
+            target_player_absolute, clue_type, value
+        )
+
+        self.logger.log_debug(
+            "CARD_MATCHING_TRACKER",
+            f"Tracker returned matching indices: {matching_indices}"
+        )
+
         return matching_indices
 
 
@@ -1209,8 +1246,7 @@ CRITICAL RULES:
                         if before_colors != after_colors or before_ranks != after_ranks:
                             removed_colors = before_colors - after_colors
                             removed_ranks = before_ranks - after_ranks
-                            card_num = card_id.split('Card')[1]
-                            
+
                             if removed_colors or removed_ranks:
                                 diff_summary += f"  {card_id}: "
                                 if removed_colors:
@@ -1245,9 +1281,8 @@ CRITICAL RULES:
                                 elif after_rank_dist[rank] == 0.0 and before_rank_dist[rank] > 0.0:
                                     changes.append(f"rank {rank} → 0%")
                                 changed = True
-                        
+
                         if changed:
-                            card_num = card_id.split('Card')[1]
                             diff_summary += f"  {card_id}: {', '.join(changes)}\n"
         
         # Check Teammate beliefs
@@ -1604,8 +1639,7 @@ Return the complete updated JSON graph."""
                         if before_colors != after_colors or before_ranks != after_ranks:
                             removed_colors = before_colors - after_colors
                             removed_ranks = before_ranks - after_ranks
-                            card_num = card_id.split('Card')[1]
-                            
+
                             if removed_colors or removed_ranks:
                                 diff_summary += f"  {card_id}: "
                                 if removed_colors:
@@ -1640,9 +1674,8 @@ Return the complete updated JSON graph."""
                                 elif after_rank_dist[rank] == 0.0 and before_rank_dist[rank] > 0.0:
                                     changes.append(f"rank {rank} → 0%")
                                 changed = True
-                        
+
                         if changed:
-                            card_num = card_id.split('Card')[1]
                             diff_summary += f"  {card_id}: {', '.join(changes)}\n"
         
         # Check Teammate beliefs
