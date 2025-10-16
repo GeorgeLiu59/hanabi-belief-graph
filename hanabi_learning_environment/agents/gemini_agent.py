@@ -43,13 +43,13 @@ class GeminiAgent(Agent):
         # Configure Gemini
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
-        
+
         # Game state tracking
         self.current_game_id = None
         self.observation_history = []
         self.action_history = []
         self.history_size = 4
-        
+
         # Rate limiting
         self.request_times = []
         self.max_requests_per_minute = 30
@@ -233,8 +233,8 @@ class GeminiAgent(Agent):
         
         # All retries failed - system must work without fallback
         execution_time = time.time() - start_time
-        self.logger.log_error("ALL_RETRIES_FAILED", f"Failed to get valid action after {self.max_retries} retries")
-        raise ValueError(f"Gemini agent failed to produce valid action after {self.max_retries} retries")
+        self.logger.log_error("ALL_RETRIES_FAILED", f"Failed to get valid action after {max_retries} retries")
+        raise ValueError(f"Gemini agent failed to produce valid action after {max_retries} retries")
     
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act based on an observation using modular components."""

@@ -220,7 +220,7 @@ class GameStateTracker:
                         matching_indices.append(idx)
             elif clue_type == 'rank':
                 card_rank = card.get('rank')
-                if card_rank == value - 1:
+                if card_rank == value:
                     matching_indices.append(idx)
 
         return matching_indices
