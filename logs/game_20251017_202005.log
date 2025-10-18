@@ -1,0 +1,800 @@
+Starting 1 episodes with 2 players
+Agent configuration:
+  Player 1: BeliefGraphAgent (certainty)
+  Player 2: BeliefGraphAgent (certainty)
+Created Player 1: BeliefGraphAgent (certainty)
+Created Player 2: BeliefGraphAgent (certainty)
+
+============================================================
+EPISODE 1 START
+============================================================
+
+--- Turn 1: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 8/8
+Life tokens: 3/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: []
+  After:  [('W', 1), ('B', 2), ('B', 0), ('G', 3), ('W', 0)]
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Deck: 50 → 40
+[GAME_STATE_TRACKER] 📈 Current state: 0 fireworks built, 3 lives, 8 clues, 40 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P1 hand:
+  Before: []
+  After:  [('Y', 4), ('Y', 0), ('Y', 0), ('W', 1), ('W', 2)]
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 8 → 7
+[GAME_STATE_TRACKER] 📈 Current state: 0 fireworks built, 3 lives, 7 clues, 40 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 2: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 7/8
+Life tokens: 3/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 3: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 7/8
+Life tokens: 3/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('B', 0), ('G', 3), ('W', 0)]
+  After:  [('W', 1), ('B', 2), ('G', 3), ('W', 0), ('R', 2)]
+    Card 2: B 1 → G 4
+    Card 3: G 4 → W 1
+    Card 4: W 1 → R 3
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Firework B: 0 → 1
+  📊 Deck: 40 → 39
+[GAME_STATE_TRACKER] 📈 Current state: 1 fireworks built, 3 lives, 7 clues, 39 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'W', 'rank': None, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 7 → 6
+[GAME_STATE_TRACKER] 📈 Current state: 1 fireworks built, 3 lives, 6 clues, 39 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 4: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 6/8
+Life tokens: 3/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 5: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 6/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('G', 3), ('W', 0), ('R', 2)]
+  After:  [('W', 1), ('B', 2), ('W', 0), ('R', 2), ('G', 0)]
+    Card 2: G 4 → W 1
+    Card 3: W 1 → R 3
+    Card 4: R 3 → G 1
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Lives: 3 → 2
+  📊 Deck: 39 → 38
+[GAME_STATE_TRACKER] 📈 Current state: 1 fireworks built, 2 lives, 6 clues, 38 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 6 → 5
+[GAME_STATE_TRACKER] 📈 Current state: 1 fireworks built, 2 lives, 5 clues, 38 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 6: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 5/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 7: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 5/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('W', 0), ('R', 2), ('G', 0)]
+  After:  [('W', 1), ('B', 2), ('R', 2), ('G', 0), ('B', 4)]
+    Card 2: W 1 → R 3
+    Card 3: R 3 → G 1
+    Card 4: G 1 → B 5
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Firework W: 0 → 1
+  📊 Deck: 38 → 37
+[GAME_STATE_TRACKER] 📈 Current state: 2 fireworks built, 2 lives, 5 clues, 37 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 5 → 4
+[GAME_STATE_TRACKER] 📈 Current state: 2 fireworks built, 2 lives, 4 clues, 37 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 8: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 4/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+--- Turn 9: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 3/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 0, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 4 → 3
+[GAME_STATE_TRACKER] 📈 Current state: 2 fireworks built, 2 lives, 3 clues, 37 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 1, 'color': None, 'rank': None, 'target_offset': None}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Firework Y: 0 → 1
+  📊 Deck: 37 → 36
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 3 clues, 36 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 10: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 3/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P1 hand:
+  Before: [('Y', 4), ('Y', 0), ('Y', 0), ('W', 1), ('W', 2)]
+  After:  [('Y', 4), ('Y', 0), ('W', 1), ('W', 2), ('R', 4)]
+    Card 2: Y 1 → W 2
+    Card 3: W 2 → W 3
+    Card 4: W 3 → R 5
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 1, 'target_offset': 1}
+
+--- Turn 11: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 2/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 3 → 2
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 2 clues, 36 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 2 → 1
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 1 clues, 36 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 12: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 13: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 2/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('R', 2), ('G', 0), ('B', 4)]
+  After:  [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('Y', 2)]
+    Card 2: R 3 → G 1
+    Card 3: G 1 → B 5
+    Card 4: B 5 → Y 3
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 2
+  📊 Deck: 36 → 35
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 2 clues, 35 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 1, 'color': None, 'rank': None, 'target_offset': None}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 2 → 3
+  📊 Deck: 35 → 34
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 3 clues, 34 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 14: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 3/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P1 hand:
+  Before: [('Y', 4), ('Y', 0), ('W', 1), ('W', 2), ('R', 4)]
+  After:  [('Y', 4), ('W', 1), ('W', 2), ('R', 4), ('G', 2)]
+    Card 1: Y 1 → W 2
+    Card 2: W 2 → W 3
+    Card 3: W 3 → R 5
+    Card 4: R 5 → G 3
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 4, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 15: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 4/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('Y', 2)]
+  After:  [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('W', 4)]
+    Card 4: Y 3 → W 5
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 3 → 4
+  📊 Deck: 34 → 33
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 4 clues, 33 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 4 → 3
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 3 clues, 33 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 16: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 3/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 4, 'target_offset': 1}
+
+--- Turn 17: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 2/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 3 → 2
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 2 clues, 33 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 2 → 1
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 1 clues, 33 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 18: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 4, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 19: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 2/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('W', 4)]
+  After:  [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('W', 3)]
+    Card 4: W 5 → W 4
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 2
+  📊 Deck: 33 → 32
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 2 clues, 32 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 2 → 1
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 1 clues, 32 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 20: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 4, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 21: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 2/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('W', 3)]
+  After:  [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('B', 0)]
+    Card 4: W 4 → B 1
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 2
+  📊 Deck: 32 → 31
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 2 clues, 31 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 2 → 1
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 1 clues, 31 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 22: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'W', 'rank': None, 'target_offset': 1}
+
+--- Turn 23: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 2/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 0
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 2 lives, 0 clues, 31 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Lives: 2 → 1
+  📊 Deck: 31 → 30
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 0 clues, 30 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 24: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P1 hand:
+  Before: [('Y', 4), ('W', 1), ('W', 2), ('R', 4), ('G', 2)]
+  After:  [('Y', 4), ('W', 1), ('R', 4), ('G', 2), ('B', 3)]
+    Card 2: W 3 → R 5
+    Card 3: R 5 → G 3
+    Card 4: G 3 → B 4
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 0, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 25: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('W', 1), ('B', 2), ('G', 0), ('B', 4), ('B', 0)]
+  After:  [('B', 2), ('G', 0), ('B', 4), ('B', 0), ('B', 1)]
+    Card 0: W 2 → B 3
+    Card 1: B 3 → G 1
+    Card 2: G 1 → B 5
+    Card 3: B 5 → B 1
+    Card 4: B 1 → B 2
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 0 → 1
+  📊 Deck: 30 → 29
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 1 clues, 29 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 0
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 0 clues, 29 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 26: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 0, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 27: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('B', 2), ('G', 0), ('B', 4), ('B', 0), ('B', 1)]
+  After:  [('G', 0), ('B', 4), ('B', 0), ('B', 1), ('R', 1)]
+    Card 0: B 3 → G 1
+    Card 1: G 1 → B 5
+    Card 2: B 5 → B 1
+    Card 3: B 1 → B 2
+    Card 4: B 2 → R 2
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 0 → 1
+  📊 Deck: 29 → 28
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 1 clues, 28 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 0
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 0 clues, 28 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 28: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 0, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 29: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('G', 0), ('B', 4), ('B', 0), ('B', 1), ('R', 1)]
+  After:  [('B', 4), ('B', 0), ('B', 1), ('R', 1), ('R', 0)]
+    Card 0: G 1 → B 5
+    Card 1: B 5 → B 1
+    Card 2: B 1 → B 2
+    Card 3: B 2 → R 2
+    Card 4: R 2 → R 1
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 0 → 1
+  📊 Deck: 28 → 27
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 1 clues, 27 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_COLOR', 'card_index': None, 'color': 'B', 'rank': None, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 0
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 0 clues, 27 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 30: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 4, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 31: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('B', 4), ('B', 0), ('B', 1), ('R', 1), ('R', 0)]
+  After:  [('B', 4), ('B', 0), ('B', 1), ('R', 1), ('R', 2)]
+    Card 4: R 1 → R 3
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 0 → 1
+  📊 Deck: 27 → 26
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 1 clues, 26 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 1, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 0
+[GAME_STATE_TRACKER] 📈 Current state: 3 fireworks built, 1 lives, 0 clues, 26 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 32: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 33: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 2}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('B', 4), ('B', 0), ('B', 1), ('R', 1), ('R', 2)]
+  After:  [('B', 4), ('B', 0), ('R', 1), ('R', 2), ('G', 4)]
+    Card 2: B 2 → R 2
+    Card 3: R 2 → R 3
+    Card 4: R 3 → G 5
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Firework B: 1 → 2
+  📊 Deck: 26 → 25
+[GAME_STATE_TRACKER] 📈 Current state: 4 fireworks built, 1 lives, 0 clues, 25 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 1, 'color': None, 'rank': None, 'target_offset': None}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 0 → 1
+  📊 Deck: 25 → 24
+[GAME_STATE_TRACKER] 📈 Current state: 4 fireworks built, 1 lives, 1 clues, 24 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 34: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 2}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P1 hand:
+  Before: [('Y', 4), ('W', 1), ('R', 4), ('G', 2), ('B', 3)]
+  After:  [('Y', 4), ('R', 4), ('G', 2), ('B', 3), ('G', 0)]
+    Card 1: W 2 → R 5
+    Card 2: R 5 → G 3
+    Card 3: G 3 → B 4
+    Card 4: B 4 → G 1
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 0, 'target_offset': 1}
+
+--- Turn 35: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 0/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 2}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 0
+[GAME_STATE_TRACKER] 📈 Current state: 4 fireworks built, 1 lives, 0 clues, 24 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 4, 'color': None, 'rank': None, 'target_offset': None}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 0 → 1
+  📊 Deck: 24 → 23
+[GAME_STATE_TRACKER] 📈 Current state: 4 fireworks built, 1 lives, 1 clues, 23 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 36: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 2}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P1 hand:
+  Before: [('Y', 4), ('R', 4), ('G', 2), ('B', 3), ('G', 0)]
+  After:  [('Y', 4), ('R', 4), ('G', 2), ('B', 3), ('W', 0)]
+    Card 4: G 1 → W 1
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'DISCARD', 'card_index': 2, 'color': None, 'rank': None, 'target_offset': None}
+
+--- Turn 37: Player 1 (BeliefGraphCertaintyAgent) ---
+Information tokens: 2/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 2}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🃏 Updated P2 hand:
+  Before: [('B', 4), ('B', 0), ('R', 1), ('R', 2), ('G', 4)]
+  After:  [('B', 4), ('B', 0), ('R', 2), ('G', 4), ('Y', 3)]
+    Card 2: R 2 → R 3
+    Card 3: R 3 → G 5
+    Card 4: G 5 → Y 4
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 1 → 2
+  📊 Deck: 23 → 22
+[GAME_STATE_TRACKER] 📈 Current state: 4 fireworks built, 1 lives, 2 clues, 22 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'REVEAL_RANK', 'card_index': None, 'color': None, 'rank': 4, 'target_offset': 1}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🎮 Game state updated:
+  📊 Clues: 2 → 1
+[GAME_STATE_TRACKER] 📈 Current state: 4 fireworks built, 1 lives, 1 clues, 22 cards in deck
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P1
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+
+--- Turn 38: Player 2 (BeliefGraphCertaintyAgent) ---
+Information tokens: 1/8
+Life tokens: 1/3
+Fireworks: {'R': 0, 'Y': 1, 'G': 0, 'W': 1, 'B': 2}
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P2
+[GAME_STATE_TRACKER] 👀 Observed hands: 2 players
+Action: {'action_type': 'PLAY', 'card_index': 1, 'color': None, 'rank': None, 'target_offset': None}
+
+Episode 1 completed with reward: 0
+Episode 1/1 completed - Reward: 0
+Best so far: 0 | Average: 0.0
+
+============================================================
+FINAL RESULTS
+============================================================
+Episodes played: 1
+Total reward: 0
+Average reward: 0.00
+Best reward: 0
+Episode rewards: [0]
+[Mixed Agents] Episodes: 0 | Avg: 0 out of 25

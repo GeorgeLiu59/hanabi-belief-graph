@@ -60,11 +60,15 @@ class GameStateTracker:
             observer_player_id: Absolute player ID (0-indexed) of the observer
             observed_hands: List of hands visible to this observer (offset-indexed)
         """
+        print(f"[GAME_STATE_TRACKER] 🔄 Updating visible cards for observer P{observer_player_id + 1}")
+        print(f"[GAME_STATE_TRACKER] 👀 Observed hands: {len(observed_hands)} players")
+
         for offset, hand in enumerate(observed_hands):
             if offset == 0:
                 continue
 
             target_player_id = (observer_player_id + offset) % self.num_players
+            old_hand = self.player_hands.get(target_player_id, [])
             self.player_hands[target_player_id] = [
                 {
                     'color': card.get('color'),
@@ -72,6 +76,19 @@ class GameStateTracker:
                 }
                 for card in hand
             ]
+
+            # Log changes with detailed comparison
+            if old_hand != self.player_hands[target_player_id]:
+                print(f"[GAME_STATE_TRACKER] 🃏 Updated P{target_player_id + 1} hand:")
+                print(f"  Before: {[(c.get('color', '?'), c.get('rank', '?')) for c in old_hand]}")
+                print(f"  After:  {[(c.get('color', '?'), c.get('rank', '?')) for c in self.player_hands[target_player_id]]}")
+
+                # Log each card change
+                for idx, (old_card, new_card) in enumerate(zip(old_hand, self.player_hands[target_player_id])):
+                    if old_card != new_card:
+                        old_display = f"{old_card.get('color', '?')} {old_card.get('rank', '?')+1 if old_card.get('rank') is not None else '?'}"
+                        new_display = f"{new_card.get('color', '?')} {new_card.get('rank', '?')+1 if new_card.get('rank') is not None else '?'}"
+                        print(f"    Card {idx}: {old_display} → {new_display}")
 
     def update_card_knowledge(self, player_id: int, card_knowledge: List[Dict]):
         """Update what a player knows about their own cards (from card_knowledge).
@@ -97,10 +114,40 @@ class GameStateTracker:
             clues: Remaining clues
             deck_size: Cards left in deck
         """
+        old_fireworks = self.fireworks.copy()
+        old_lives = self.lives
+        old_clues = self.clues
+        old_deck_size = self.deck_size
+
         self.fireworks = fireworks.copy()
         self.lives = lives
         self.clues = clues
         self.deck_size = deck_size
+
+        # Log detailed changes
+        changes = []
+        if old_fireworks != self.fireworks:
+            for color in ['R', 'Y', 'G', 'W', 'B']:
+                if old_fireworks.get(color, 0) != self.fireworks.get(color, 0):
+                    changes.append(f"Firework {color}: {old_fireworks.get(color, 0)} → {self.fireworks.get(color, 0)}")
+
+        if old_lives != self.lives:
+            changes.append(f"Lives: {old_lives} → {self.lives}")
+
+        if old_clues != self.clues:
+            changes.append(f"Clues: {old_clues} → {self.clues}")
+
+        if old_deck_size != self.deck_size:
+            changes.append(f"Deck: {old_deck_size} → {self.deck_size}")
+
+        if changes:
+            print(f"[GAME_STATE_TRACKER] 🎮 Game state updated:")
+            for change in changes:
+                print(f"  📊 {change}")
+
+            # Summary state
+            fireworks_total = sum(self.fireworks.values())
+            print(f"[GAME_STATE_TRACKER] 📈 Current state: {fireworks_total} fireworks built, {self.lives} lives, {self.clues} clues, {self.deck_size} cards in deck")
 
     def register_hint(
         self,
@@ -136,6 +183,29 @@ class GameStateTracker:
 
         self.hint_history.append(hint_event)
 
+        # Log hint registration with full context
+        print(f"[GAME_STATE_TRACKER] 💡 Hint registered:")
+        print(f"  Giver: P{giver_player_id + 1} → Recipient: P{recipient_player_id + 1}")
+        print(f"  Type: {clue_type.upper()}, Value: {value}")
+        print(f"  Card indices: {card_indices}")
+
+        # Show recipient hand at time of hint
+        recipient_hand = self.get_player_hand(recipient_player_id)
+        hand_display = [(c.get('color', '?'), c.get('rank', '?')+1 if c.get('rank') is not None else '?') for c in recipient_hand]
+        print(f"  Recipient hand: {hand_display}")
+
+        # Show which cards actually match
+        if recipient_hand and card_indices:
+            print(f"  Matching cards:")
+            for idx in card_indices:
+                if idx < len(recipient_hand):
+                    card = recipient_hand[idx]
+                    color = card.get('color', '?')
+                    rank = card.get('rank', '?')
+                    if rank is not None:
+                        rank += 1
+                    print(f"    Card {idx}: {color} {rank}")
+
     def register_action(
         self,
         player_id: int,
@@ -163,6 +233,24 @@ class GameStateTracker:
         }
 
         self.action_history.append(action_event)
+
+        # Log action registration with player hand context
+        print(f"[GAME_STATE_TRACKER] 🎯 Action registered:")
+        print(f"  Player: P{player_id + 1}, Action: {action_type.upper()}, Card index: {card_index}")
+
+        # Show player hand before action if available
+        player_hand = self.get_player_hand(player_id)
+        if player_hand:
+            hand_display = [(c.get('color', '?'), c.get('rank', '?')+1 if c.get('rank') is not None else '?') for c in player_hand]
+            print(f"  Player hand: {hand_display}")
+
+            if 0 <= card_index < len(player_hand):
+                card = player_hand[card_index]
+                color = card.get('color', '?')
+                rank = card.get('rank', '?')
+                if rank is not None:
+                    rank += 1
+                print(f"  Card acted upon: {color} {rank}")
 
     def get_recent_events(self, last_n: int = 10) -> List[Dict]:
         """Get recent hint events."""
@@ -220,7 +308,7 @@ class GameStateTracker:
                         matching_indices.append(idx)
             elif clue_type == 'rank':
                 card_rank = card.get('rank')
-                if card_rank == value - 1:
+                if card_rank == value:
                     matching_indices.append(idx)
 
         return matching_indices

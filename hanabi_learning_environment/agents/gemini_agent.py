@@ -42,7 +42,7 @@ class GeminiAgent(Agent):
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        self.model = genai.GenerativeModel('gemini-2.5-pro')
 
         # Game state tracking
         self.current_game_id = None
@@ -197,6 +197,12 @@ class GeminiAgent(Agent):
                         break
                 
                 # Validate action legality
+                if action.get('action_type') == 'REVEAL_RANK' and action.get('rank') is not None:
+                    try:
+                        rank_val = int(action['rank'])
+                        action['rank'] = rank_val - 1
+                    except (ValueError, TypeError):
+                        pass
                 is_legal = self.action_validator.is_action_legal(action, observation['legal_moves'])
                 
                 if is_legal:

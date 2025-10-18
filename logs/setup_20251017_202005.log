@@ -1,8 +1,8 @@
-[2025-10-16 19:45:12] SETUP: Starting Interactive Hanabi Launch (Players: 2, Episodes: 1, Config: BeliefGraphAgent:certainty,BeliefGraphAgent:certainty)
-[2025-10-16 19:45:12] SETUP: Activating virtual environment...
-[2025-10-16 19:45:12] SETUP: Upgrading pip...
+[2025-10-17 20:20:06] SETUP: Starting Interactive Hanabi Launch (Players: 2, Episodes: 1, Config: BeliefGraphAgent:certainty,BeliefGraphAgent:certainty)
+[2025-10-17 20:20:06] SETUP: Activating virtual environment...
+[2025-10-17 20:20:06] SETUP: Upgrading pip...
 Requirement already satisfied: pip in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (25.2)
-[2025-10-16 19:45:14] SETUP: Installing build dependencies...
+[2025-10-17 20:20:08] SETUP: Installing build dependencies...
 Requirement already satisfied: setuptools in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (75.1.0)
 Requirement already satisfied: wheel in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (0.45.1)
 Requirement already satisfied: scikit-build in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (0.18.1)
@@ -11,8 +11,8 @@ Requirement already satisfied: ninja in /Library/Frameworks/Python.framework/Ver
 Requirement already satisfied: distro in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (from scikit-build) (1.9.0)
 Requirement already satisfied: packaging in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (from scikit-build) (25.0)
 Requirement already satisfied: tomli in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (from scikit-build) (2.2.1)
-[2025-10-16 19:45:14] SETUP: Cleaning previous builds...
-[2025-10-16 19:45:14] SETUP: Installing hanabi_learning_environment package...
+[2025-10-17 20:20:08] SETUP: Cleaning previous builds...
+[2025-10-17 20:20:08] SETUP: Installing hanabi_learning_environment package...
 Processing /Users/tianqinmeng/Desktop/项目/hanabi-belief-graph
   Installing build dependencies: started
   Installing build dependencies: finished with status 'done'
@@ -25,7 +25,7 @@ Requirement already satisfied: pycparser in /Library/Frameworks/Python.framework
 Building wheels for collected packages: hanabi_learning_environment
   Building wheel for hanabi_learning_environment (pyproject.toml): started
   Building wheel for hanabi_learning_environment (pyproject.toml): finished with status 'done'
-  Created wheel for hanabi_learning_environment: filename=hanabi_learning_environment-0.0.1-cp39-cp39-macosx_15_0_arm64.whl size=104942 sha256=930ed9a0680563fa4afd796aa60bb6c31987a5285c960080d8b007fbdff1cf92
+  Created wheel for hanabi_learning_environment: filename=hanabi_learning_environment-0.0.1-cp39-cp39-macosx_15_0_arm64.whl size=109583 sha256=a3dfaf1c0ac0145bc2f1d1335c8f7360ef628aa7f905bd833b14841f05df5a9e
   Stored in directory: /Users/tianqinmeng/Library/Caches/pip/wheels/1e/9e/f6/539accc0d693a62d63ad2efb3f24c0ae0e8acec56e79502a51
 Successfully built hanabi_learning_environment
 Installing collected packages: hanabi_learning_environment
@@ -34,8 +34,8 @@ Installing collected packages: hanabi_learning_environment
     Uninstalling hanabi_learning_environment-0.0.1:
       Successfully uninstalled hanabi_learning_environment-0.0.1
 Successfully installed hanabi_learning_environment-0.0.1
-[2025-10-16 19:45:22] SETUP: Installing runtime dependencies...
+[2025-10-17 20:20:18] SETUP: Installing runtime dependencies...
 Requirement already satisfied: numpy in /Library/Frameworks/Python.framework/Versions/3.9/lib/python3.9/site-packages (1.26.4)
-[2025-10-16 19:45:23] SETUP: Dependencies installed successfully
-[2025-10-16 19:45:23] SETUP: Running mixed agents game (Players: 2, Episodes: 1, Config: BeliefGraphAgent:certainty,BeliefGraphAgent:certainty)
-[2025-10-16 19:48:49] SETUP: Game completed successfully
+[2025-10-17 20:20:19] SETUP: Dependencies installed successfully
+[2025-10-17 20:20:19] SETUP: Running mixed agents game (Players: 2, Episodes: 1, Config: BeliefGraphAgent:certainty,BeliefGraphAgent:certainty)
+[2025-10-17 20:44:11] SETUP: Game completed successfully

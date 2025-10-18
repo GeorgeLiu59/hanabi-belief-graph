@@ -10,6 +10,7 @@ from typing import Dict, Any, Optional, List
 from ..agents.gemini_agent import GeminiAgent
 from ..agents.agent_logger import AgentLogger
 from ..agents.game_state_tracker import get_game_state_tracker
+from ..agents.prompt_manager import PromptManager
 
 
 class BeliefGraphCertaintyAgent(GeminiAgent):
@@ -24,6 +25,7 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         self.variant = 'certainty'
         self.agent_id = f"BG_certainty_{self.agent_id}"
         self.logger = AgentLogger(self.agent_id)
+        self.prompt_manager = PromptManager()
         self.belief_graph = {}
         # 使用已处理 move 的唯一哈希集合进行去重，避免因历史长度相同而漏检
         self._seen_move_ids: set[str] = set()
@@ -67,35 +69,89 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
             self._determine_player_number(observation)
             self._initialize_belief_graph_with_player_number(observation)
             self._initialized = True
-        
+
+        # CRITICAL: Update game state tracker IMMEDIATELY at the start of every act call
+        # This ensures the tracker has the latest possible information before any processing
+        self._update_game_state_tracker_early(observation)
+
+        # Process belief updates IMMEDIATELY after any hints
+        if observation.get('last_moves'):
+            self._process_immediate_updates(observation)
+
         # Always keep teammate actual cards up to date
         self._refresh_visible_cards(observation)
 
-        # Always update beliefs when observing, regardless of whose turn it is
-        if observation.get('last_moves'):
-            self._update_beliefs_via_llm(observation)
-        
         # If not our turn, just record observation and return None
         if observation['current_player_offset'] != 0:
             self._add_observation_to_history(observation)
             return None
-        
+
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
         # Update GameState with current fireworks from tracker
         tracker = get_game_state_tracker()
         self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
+        self.belief_graph['GameState']['clues'] = tracker.clues
+        self.belief_graph['GameState']['life'] = tracker.lives
+        self.belief_graph['GameState']['deck_size'] = tracker.deck_size
         augmented_observation['belief_graph'] = self.belief_graph
         augmented_observation['belief_variant'] = 'certainty'
         augmented_observation['belief_graph_natural_language'] = self._format_belief_graph_natural_language()
-        
+
         # Log current belief state
         self.logger.log_info("BELIEF_STATE", f"Certainty graph size: {len(json.dumps(self.belief_graph))} chars")
         self.logger.log_debug("BELIEF_GRAPH_DETAIL", json.dumps(self.belief_graph, indent=2))
-        
+
         # Let parent handle all the action logic
         return super().act(augmented_observation)
     
+    # ------------------------------------------------------------------
+    # New helper: Update game state tracker at the earliest possible point
+    # ------------------------------------------------------------------
+    def _update_game_state_tracker_early(self, observation: Dict[str, Any]):
+        """Update game state tracker with the latest observation IMMEDIATELY.
+
+        This is called at the very start of every act() call to ensure the tracker
+        has the most current game state before any belief updates or processing.
+        """
+        tracker = get_game_state_tracker()
+
+        self.logger.log_info("EARLY_UPDATE", "🔄 Updating game state tracker with latest observation")
+
+        # Update visible cards immediately
+        tracker.update_visible_cards(
+            self.my_player_number,
+            observation.get('observed_hands', [])
+        )
+
+        # Update card knowledge immediately
+        if 'card_knowledge' in observation and len(observation['card_knowledge']) > 0:
+            tracker.update_card_knowledge(
+                self.my_player_number,
+                observation['card_knowledge'][0]
+            )
+
+        # Update game state immediately
+        tracker.update_game_state(
+            observation.get('fireworks', {}),
+            observation.get('life_tokens', 3),
+            observation.get('information_tokens', 8),
+            observation.get('deck_size', 50)
+        )
+
+        # Log the updated tracker state
+        tracker_state = tracker.get_state_summary()
+        self.logger.log_info("EARLY_UPDATE_COMPLETE",
+                           f"✅ Game state tracker updated: {tracker_state}")
+
+        # Update belief graph immediately with fresh tracker data
+        self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
+        self.belief_graph['GameState']['clues'] = tracker.clues
+        self.belief_graph['GameState']['life'] = tracker.lives
+        self.belief_graph['GameState']['deck_size'] = tracker.deck_size
+
+        self.logger.log_info("BELIEF_SYNC", f"🔄 Belief graph synced: clues={tracker.clues}, lives={tracker.lives}, deck={tracker.deck_size}")
+
     # ------------------------------------------------------------------
     # New helper: refresh teammate actual cards each observation to avoid
     # stale duplicates when hands change after plays/discards
@@ -105,6 +161,12 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         tracker = get_game_state_tracker()
         num_players = tracker.num_players
         self.logger.log_debug("CARD_REFRESH", "Starting card refresh check...")
+
+        # CRITICAL: Update tracker with current observation BEFORE reading from it
+        tracker.update_visible_cards(
+            self.my_player_number,
+            observation.get('observed_hands', [])
+        )
 
         current_hands = observation.get('observed_hands', [])
         
@@ -249,6 +311,70 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         # Store current hands for next comparison
         self._previous_observed_hands = [hand.copy() if isinstance(hand, list) else hand for hand in current_hands] if current_hands else None
 
+    def _process_immediate_updates(self, observation: Dict[str, Any]):
+        """Process IMMEDIATE belief updates after any game actions."""
+        tracker = get_game_state_tracker()
+        num_players = observation['num_players']
+
+        # The tracker is ALREADY updated in _update_game_state_tracker_early()
+        # No need to update it again here - use the current state
+
+        # NOW process hint events with updated tracker data
+        last_moves = observation.get('last_moves', [])
+        for last_move in last_moves:
+            move_id = json.dumps(last_move, sort_keys=True)
+            if move_id in self._seen_move_ids:
+                continue
+
+            move_data = last_move.get('move', {})
+            action_type = move_data.get('action_type')
+
+            if last_move.get('player', -1) < 0:
+                continue
+
+            # Process hint events immediately
+            if action_type in ['REVEAL_COLOR', 'REVEAL_RANK']:
+                acting_player_offset = last_move['player']
+                acting_player_absolute = (self.my_player_number + acting_player_offset) % num_players
+
+                target_offset = move_data['target_offset']
+                target_player_absolute = (acting_player_absolute + target_offset) % num_players
+
+                if action_type == 'REVEAL_COLOR':
+                    color = move_data['color']
+                    # Tracker has correct data to find matching cards
+                    card_indices = tracker.find_matching_cards_for_hint(
+                        target_player_absolute, 'color', color
+                    )
+
+                    event = {
+                        'clue_giver': f"P{acting_player_absolute + 1}",
+                        'clue_recipient': f"P{target_player_absolute + 1}",
+                        'clue_type': 'color',
+                        'value': color,
+                        'card_indices': card_indices
+                    }
+
+                elif action_type == 'REVEAL_RANK':
+                    rank = move_data['rank']
+                    # Tracker has correct data to find matching cards
+                    card_indices = tracker.find_matching_cards_for_hint(
+                        target_player_absolute, 'rank', rank
+                    )
+
+                    event = {
+                        'clue_giver': f"P{acting_player_absolute + 1}",
+                        'clue_recipient': f"P{target_player_absolute + 1}",
+                        'clue_type': 'rank',
+                        'value': rank,
+                        'card_indices': card_indices
+                    }
+
+                # Process the hint event IMMEDIATELY
+                self.logger.log_info("IMMEDIATE_UPDATE", f"Processing immediate belief update: {json.dumps(event, indent=2)}")
+                self._process_single_event(event)
+                self._seen_move_ids.add(move_id)
+
     def _reset_card_belief(self, belief_entry: Dict, card_key: str = "Unknown", reason: str = ""):
         """Reset a certainty belief entry back to full uncertainty (5 colors × 5 ranks)."""
         self.logger.log_info("BELIEF_RESET", f"🔄 Resetting {card_key} belief to full uncertainty. Reason: {reason}")
@@ -328,6 +454,7 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
         nl_description += "**TEAMMATE KNOWLEDGE MODEL:**\n"
         for player_hand, hand_data in self.belief_graph['Teammate_Hand_Beliefs'].items():
             player_num = player_hand.split('P')[1].split('_')[0]
+            # Show from MY perspective (Player 1 sees Player 2's cards)
             nl_description += f"\nPlayer {player_num}'s cards (what I see vs what they know):\n"
             
             for card_id, card_data in hand_data.items():
@@ -440,178 +567,48 @@ class BeliefGraphCertaintyAgent(GeminiAgent):
     
     def _process_single_event(self, event: Dict[str, Any]):
         """Process a single event through the LLM."""
-        # Get agent's actual player number (already determined)
-        my_player_id = f"P{self.my_player_number + 1}"
-        
         # Only update beliefs for clue events
         if 'clue_recipient' not in event:
             self.logger.log_debug("BELIEF_UPDATE", "No belief update needed for non-clue events")
             return
-            
+
         # (3) Log belief graph before LLM update
         self.logger.log_info("BELIEF_BEFORE_UPDATE", f"Current belief graph: {json.dumps(self.belief_graph, indent=2)}")
-            
-        # Check if this is about our own hand or teammate's
-        if event['clue_recipient'] == my_player_id:
-            # Update our own beliefs
-            clue_type = event.get('clue_type')
-            clued_value = event.get('value')
-            clued_indices = event.get('card_indices', [])
-            
-            prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
-{json.dumps(self.belief_graph, indent=2)}
 
-You just observed this event: {json.dumps(event)}
+        # Use intelligent game rules prompt
+        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'certainty')
 
-Your task is to update your model of your own hand beliefs (My_Hand_Beliefs) based on this clue event.
-
-🔴 CRITICAL: NEGATIVE INFERENCE IS MANDATORY 🔴
-
-⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
-   - Index 0 = P2_Card1 (first card)
-   - Index 1 = P2_Card2 (second card)
-   - Index 2 = P2_Card3 (third card)
-   - Index 3 = P2_Card4 (fourth card)
-   - Index 4 = P2_Card5 (fifth card)
-
-Step-by-step process you MUST follow:
-1. Clued cards (0-indexed: {clued_indices}): Set possible_{clue_type}s to ONLY [{clued_value}]
-2. Un-clued cards (indices 0-4 NOT in {clued_indices}): REMOVE {clued_value} from possible_{clue_type}s, keep others
-3. EXCEPTION: If a card already has only 1 possibility, don't change it
-
-CONCRETE EXAMPLE for this event:
-Clue: {clue_type} = {clued_value}, targeting card_indices {clued_indices} (0-indexed)
-
-For each card index (0-4):
-- If index in {clued_indices}: possible_{clue_type}s = ["{clued_value}"]
-- If index NOT in {clued_indices}: remove "{clued_value}" from possible_{clue_type}s
-
-VERIFICATION CHECKLIST (check before returning):
-✓ Did I correctly map card_indices to P2_Card# keys? (index 0 → P2_Card1, index 1 → P2_Card2, etc.)
-✓ Clued cards (indices {clued_indices}) have ONLY [{clued_value}] in possible_{clue_type}s?
-✓ Un-clued cards (indices 0-4 NOT in {clued_indices}) have {clued_value} REMOVED from possible_{clue_type}s?
-✓ All other attributes preserved?
-
-Return the complete updated JSON graph."""
-        else:
-            # Update teammate beliefs
-            clue_type = event.get('clue_type')
-            clued_value = event.get('value')
-            clued_indices = event.get('card_indices', [])
-            recipient_id = event['clue_recipient']
-
-            prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
-{json.dumps(self.belief_graph, indent=2)}
-
-You just observed this event: {json.dumps(event)}
-
-Your task is to update your model of {recipient_id}'s beliefs in Teammate_Hand_Beliefs.
-
-🔴 CRITICAL: YOU MUST UPDATE THE BELIEF GRAPH 🔴
-
-This clue was given to {recipient_id}. You need to update what {recipient_id} now believes about their own hand.
-Navigate to: Teammate_Hand_Beliefs → {recipient_id}_Hand → {recipient_id}_Card# → {recipient_id.lower()}_belief
-
-🔴 CRITICAL: NEGATIVE INFERENCE IS MANDATORY 🔴
-
-⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
-   - Index 0 = {recipient_id}_Card1 (first card)
-   - Index 1 = {recipient_id}_Card2 (second card)
-   - Index 2 = {recipient_id}_Card3 (third card)
-   - Index 3 = {recipient_id}_Card4 (fourth card)
-   - Index 4 = {recipient_id}_Card5 (fifth card)
-
-Step-by-step process you MUST follow:
-1. Identify which cards were clued (0-indexed): {event.get('card_indices', [])}
-2. For CLUED cards at indices {event.get('card_indices', [])}:
-   - Update {recipient_id}_Card#.{recipient_id.lower()}_belief.possible_{clue_type}s to ONLY [{clued_value}]
-3. For UN-CLUED cards (all other indices 0-4):
-   - Update {recipient_id}_Card#.{recipient_id.lower()}_belief: REMOVE {clued_value} from possible_{clue_type}s
-   - Keep all other values unchanged
-
-CONCRETE EXAMPLE FOR THIS EVENT:
-Clue: {clue_type} = {clued_value}, targeting card_indices {clued_indices} (0-indexed)
-Updating beliefs in: Teammate_Hand_Beliefs.{recipient_id}_Hand.{recipient_id}_Card#.{recipient_id.lower()}_belief
-
-For each card index (0-4):
-- If index in {clued_indices}: set {recipient_id.lower()}_belief.possible_{clue_type}s = ["{clued_value}"]
-- If index NOT in {clued_indices}: remove "{clued_value}" from {recipient_id.lower()}_belief.possible_{clue_type}s
-
-VERIFICATION CHECKLIST (check before returning):
-✓ Did I correctly map card_indices to {recipient_id}_Card# keys? (index 0 → {recipient_id}_Card1, index 1 → {recipient_id}_Card2, etc.)
-✓ Did I update the {recipient_id.lower()}_belief field (NOT the top level)?
-✓ Did I set clued cards' {recipient_id.lower()}_belief.possible_{clue_type}s to ONLY ["{clued_value}"]?
-✓ Did I remove "{clued_value}" from ALL un-clued cards' {recipient_id.lower()}_belief.possible_{clue_type}s?
-✓ Did I preserve "actual_card_I_see" fields unchanged?
-✓ Did I keep all OTHER possible values for un-clued cards?
-
-Return the complete updated JSON graph."""
-        
         # (4) Log prompt into LLM
         self.logger.log_info("PROMPT_TO_LLM", f"Prompt ({len(prompt)} chars):\n{prompt}")
-        
+
         try:
             # Get the full reasoning response
             reasoning_response = self.model.generate_content(
                 prompt,
-                generation_config={'temperature': 0.7}
+                generation_config={'temperature': 0.2}
             )
-            
+
             # (5) Log LLM's output
             self.logger.log_info("LLM_OUTPUT", f"LLM Response:\n{reasoning_response.text}")
-            
-            # Extract JSON from response - look for the main JSON block
+
             response_text = reasoning_response.text
-            
-            # Find ```json markers or look for the main JSON block
-            if '```json' in response_text:
-                json_start = response_text.find('```json') + 7
-                json_end = response_text.find('```', json_start)
-                if json_end == -1:
-                    json_end = len(response_text)
-                json_text = response_text[json_start:json_end].strip()
-            else:
-                # Find the largest JSON object by looking for complete braces
-                brace_count = 0
-                json_start = -1
-                json_end = -1
-                
-                for i, char in enumerate(response_text):
-                    if char == '{':
-                        if brace_count == 0:
-                            json_start = i
-                        brace_count += 1
-                    elif char == '}':
-                        brace_count -= 1
-                        if brace_count == 0 and json_start != -1:
-                            json_end = i + 1
-                            # Check if this looks like a complete JSON by trying to parse
-                            try:
-                                potential_json = response_text[json_start:json_end]
-                                json.loads(potential_json)
-                                json_text = potential_json
-                                break
-                            except:
-                                continue
-                
-                if json_start == -1 or json_end == -1:
-                    raise ValueError("No valid JSON found in LLM response")
-            
+            json_text = self._extract_json_from_response(response_text)
+
             self.logger.log_debug("BELIEF_UPDATE_JSON_EXTRACTED", json_text)
 
             # Update with new belief state
             new_belief_graph = json.loads(json_text)
-            
+
             # Generate and log diff BEFORE updating
             diff_summary = self._generate_belief_diff(self.belief_graph, new_belief_graph)
             self.logger.log_info("BELIEF_UPDATE_DIFF", diff_summary)
-            
+
             # Now update the belief graph
             self.belief_graph = new_belief_graph
-            
+
             # (6) Log belief graph after update
             self.logger.log_info("BELIEF_AFTER_UPDATE", f"Updated belief graph:\n{json.dumps(self.belief_graph, indent=2)}")
-            
+
         except Exception as e:
             self.logger.log_error("UPDATE_ERROR", f"Failed to update beliefs: {e}")
     
@@ -696,6 +693,49 @@ Return the complete updated JSON graph."""
             diff_summary += "  No significant changes detected\n"
         
         return diff_summary
+    
+    def _extract_json_from_response(self, response_text: str) -> str:
+        """Robustly extract the JSON block returned by the LLM."""
+        candidate = response_text
+        
+        if '```json' in response_text:
+            start = response_text.find('```json') + len('```json')
+            remainder = response_text[start:]
+            end_marker = remainder.find('```')
+            if end_marker != -1:
+                candidate = remainder[:end_marker]
+            else:
+                candidate = remainder
+        elif '```' in response_text:
+            # Generic code fence without language hint
+            start = response_text.find('```') + 3
+            remainder = response_text[start:]
+            end_marker = remainder.find('```')
+            if end_marker != -1:
+                candidate = remainder[:end_marker]
+            else:
+                candidate = remainder
+
+        candidate = candidate.strip()
+
+        brace_count = 0
+        json_start = -1
+        for idx, char in enumerate(candidate):
+            if char == '{':
+                if brace_count == 0:
+                    json_start = idx
+                brace_count += 1
+            elif char == '}':
+                brace_count -= 1
+                if brace_count == 0 and json_start != -1:
+                    snippet = candidate[json_start:idx + 1]
+                    try:
+                        json.loads(snippet)
+                        return snippet
+                    except json.JSONDecodeError:
+                        continue
+
+        raise ValueError("No valid JSON found in LLM response")
     
     def _get_belief_template(self) -> Dict:
         """Get a template for the belief graph structure that matches the current format."""
@@ -905,33 +945,95 @@ class BeliefGraphProbabilisticAgent(GeminiAgent):
         self.variant = 'probabilistic'
         self.agent_id = f"BG_probabilistic_{self.agent_id}"
         self.logger = AgentLogger(self.agent_id)
+        self.prompt_manager = PromptManager()
         self.belief_graph = {}
+        # 使用已处理 move 的唯一哈希集合进行去重，避免因历史长度相同而漏检
+        self._seen_move_ids: set[str] = set()
+        # 追踪上一帧的 observed_hands 来检测新牌
+        self._previous_observed_hands = None
     
     def reset(self, config):
         """Reset and initialize probabilistic belief graph."""
         super().reset(config)
-        
+
         # We need to determine our player number first
         self.my_player_number = None  # Will be set on first observation
-        
+
         # Initialize with uniform distributions
         uniform_color = {"red": 0.2, "blue": 0.2, "green": 0.2, "white": 0.2, "yellow": 0.2}
         uniform_rank = {"1": 0.2, "2": 0.2, "3": 0.2, "4": 0.2, "5": 0.2}
-        
+
         self.belief_graph = {
             "GameState": {
                 "clues": 8,
-                "life": 3, 
+                "life": 3,
                 "deck_size": 50
             },
             "My_Hand_Beliefs": {},
             "Teammate_Hand_Beliefs": {}
         }
-        
+
         # Store uniform distributions for later use
         self.uniform_color = uniform_color
         self.uniform_rank = uniform_rank
-    
+
+        # 清空已处理 move 集合
+        self._seen_move_ids.clear()
+        # 清空上一帧 observed_hands
+        self._previous_observed_hands = None
+
+        # Initialize game state tracker
+        tracker = get_game_state_tracker()
+        num_players = config.get('players', 2)
+        tracker.reset(num_players)
+
+    # ------------------------------------------------------------------
+    # New helper: Update game state tracker at the earliest possible point
+    # ------------------------------------------------------------------
+    def _update_game_state_tracker_early(self, observation: Dict[str, Any]):
+        """Update game state tracker with the latest observation IMMEDIATELY.
+
+        This is called at the very start of every act() call to ensure the tracker
+        has the most current game state before any belief updates or processing.
+        """
+        tracker = get_game_state_tracker()
+
+        self.logger.log_info("EARLY_UPDATE", "🔄 Updating game state tracker with latest observation")
+
+        # Update visible cards immediately
+        tracker.update_visible_cards(
+            self.my_player_number,
+            observation.get('observed_hands', [])
+        )
+
+        # Update card knowledge immediately
+        if 'card_knowledge' in observation and len(observation['card_knowledge']) > 0:
+            tracker.update_card_knowledge(
+                self.my_player_number,
+                observation['card_knowledge'][0]
+            )
+
+        # Update game state immediately
+        tracker.update_game_state(
+            observation.get('fireworks', {}),
+            observation.get('life_tokens', 3),
+            observation.get('information_tokens', 8),
+            observation.get('deck_size', 50)
+        )
+
+        # Log the updated tracker state
+        tracker_state = tracker.get_state_summary()
+        self.logger.log_info("EARLY_UPDATE_COMPLETE",
+                           f"✅ Game state tracker updated: {tracker_state}")
+
+        # Update belief graph immediately with fresh tracker data
+        self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
+        self.belief_graph['GameState']['clues'] = tracker.clues
+        self.belief_graph['GameState']['life'] = tracker.lives
+        self.belief_graph['GameState']['deck_size'] = tracker.deck_size
+
+        self.logger.log_info("BELIEF_SYNC", f"🔄 Belief graph synced: clues={tracker.clues}, lives={tracker.lives}, deck={tracker.deck_size}")
+
     def act(self, observation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Act with probabilistic belief graph."""
         # Determine our player number on first observation
@@ -939,25 +1041,36 @@ class BeliefGraphProbabilisticAgent(GeminiAgent):
             self._determine_player_number(observation)
             self._initialize_belief_graph_with_player_number(observation)
             self._initialized = True
-        
-        # Always update beliefs when observing, regardless of whose turn it is
+
+        # CRITICAL: Update game state tracker IMMEDIATELY at the start of every act call
+        # This ensures the tracker has the latest possible information before any processing
+        self._update_game_state_tracker_early(observation)
+
+        # CRITICAL: Process belief updates IMMEDIATELY after any hints
         if observation.get('last_moves'):
-            self._update_beliefs_via_llm(observation)
-        
+            # Update tracker and process hints IMMEDIATELY
+            self._process_immediate_updates(observation)
+
         # If not our turn, just record observation and return None
         if observation['current_player_offset'] != 0:
             self._add_observation_to_history(observation)
             return None
-        
+
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
+        # Update GameState with current fireworks from tracker
+        tracker = get_game_state_tracker()
+        self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
+        self.belief_graph['GameState']['clues'] = tracker.clues
+        self.belief_graph['GameState']['life'] = tracker.lives
+        self.belief_graph['GameState']['deck_size'] = tracker.deck_size
         augmented_observation['belief_graph'] = self.belief_graph
         augmented_observation['belief_variant'] = 'probabilistic'
         augmented_observation['belief_graph_natural_language'] = self._format_belief_graph_natural_language()
-        
+
         self.logger.log_info("BELIEF_STATE", f"Probabilistic graph size: {len(json.dumps(self.belief_graph))} chars")
         self.logger.log_debug("BELIEF_GRAPH_DETAIL", json.dumps(self.belief_graph, indent=2))
-        
+
         # Let parent handle all the action logic
         return super().act(augmented_observation)
     
@@ -1105,66 +1218,32 @@ class BeliefGraphProbabilisticAgent(GeminiAgent):
     
     def _process_single_event_probabilistic(self, event: Dict[str, Any]):
         """Process a single event through the LLM for probabilistic beliefs."""
-        # Get agent's actual player number (already determined)
-        my_player_id = f"P{self.my_player_number + 1}"
-        
         # Only update beliefs for clue events
         if 'clue_recipient' not in event:
             self.logger.log_debug("BELIEF_UPDATE", "No belief update needed for non-clue events")
             return
-        
-        prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
-{json.dumps(self.belief_graph, indent=2)}
 
-This event just occurred:
-{json.dumps(event)}
+        # Use intelligent probabilistic prompt
+        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'probabilistic')
 
-Your task is to update your probabilistic model of beliefs.
-For the hinted card, collapse its distribution to 100% for the hinted value.
-For un-hinted cards, perform negative inference: set probability to 0 and re-normalize.
-
-⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
-   - Index 0 = P1_Card1 (first card)
-   - Index 1 = P1_Card2 (second card)
-   - Index 2 = P1_Card3 (third card)
-   - Index 3 = P1_Card4 (fourth card)
-   - Index 4 = P1_Card5 (fifth card)
-
-Please reason step by step:
-1. What does this event tell us?
-2. Which cards were clued (map card_indices to P#_Card# keys using 0-based indexing)?
-3. How should probability distributions be updated?
-4. What negative inferences can we make for un-clued cards?
-
-After your reasoning, provide the updated belief state in this JSON format:
-{json.dumps(self._get_belief_template(), indent=2)}
-
-CRITICAL RULES:
-- MAPPING: card_indices are 0-indexed (index 0 → P1_Card1, index 1 → P1_Card2, etc.)
-- CLUED cards (at indices in card_indices): Set probability to 1.0 for clued value, 0.0 for others
-- UN-CLUED cards (indices 0-4 NOT in card_indices): Set probability to 0.0 for clued value, renormalize others
-- Only update what is actually learned from THIS clue
-- Apply negative inference correctly
-- Preserve all fields including "actual_card_I_see" - only update belief distributions"""
-        
         # Log the update prompt
         self.logger.log_info("BELIEF_UPDATE_PROMPT", f"Sending probabilistic update to LLM: {len(prompt)} chars")
         self.logger.log_debug("BELIEF_UPDATE_PROMPT_DETAIL", prompt)
-        
+
         try:
             # First get the full reasoning response
             reasoning_response = self.model.generate_content(
                 prompt,
-                generation_config={'temperature': 0.7}
+                generation_config={'temperature': 0.2}
             )
-            
+
             # Log the full reasoning
             self.logger.log_info("BELIEF_UPDATE_RESPONSE", f"LLM reasoning response: {len(reasoning_response.text)} chars")
             self.logger.log_debug("BELIEF_UPDATE_COT_REASONING", reasoning_response.text)
-            
+
             # Extract JSON from response - look for the main JSON block
             response_text = reasoning_response.text
-            
+
             # Find ```json markers or look for the main JSON block
             if '```json' in response_text:
                 json_start = response_text.find('```json') + 7
@@ -1177,7 +1256,7 @@ CRITICAL RULES:
                 brace_count = 0
                 json_start = -1
                 json_end = -1
-                
+
                 for i, char in enumerate(response_text):
                     if char == '{':
                         if brace_count == 0:
@@ -1195,35 +1274,99 @@ CRITICAL RULES:
                                 break
                             except:
                                 continue
-                
+
                 if json_start == -1 or json_end == -1:
                     raise ValueError("No valid JSON found in LLM response")
-            
+
             self.logger.log_debug("BELIEF_UPDATE_JSON_EXTRACTED", json_text)
-            
+
             # Store previous belief state for comparison
             previous_belief = json.dumps(self.belief_graph, indent=2)
             self.logger.log_debug("BELIEF_UPDATE_BEFORE", previous_belief)
-            
+
             # Update with new belief state
             new_belief_graph = json.loads(json_text)
-            
+
             # Generate and log diff BEFORE updating
             diff_summary = self._generate_belief_diff(self.belief_graph, new_belief_graph)
             self.logger.log_info("BELIEF_UPDATE_DIFF", diff_summary)
-            
+
             # Now update the belief graph
             self.belief_graph = new_belief_graph
-            
+
             # Log the updated belief state
             updated_belief = json.dumps(self.belief_graph, indent=2)
             self.logger.log_debug("BELIEF_UPDATE_AFTER", updated_belief)
             self.logger.log_info("LLM_UPDATE", "Probabilistic belief graph updated via LLM")
-            
+
         except Exception as e:
             self.logger.log_error("UPDATE_ERROR", f"Failed to update probabilistic beliefs: {e}")
     
     # Use the base class _detect_events and _find_matching_cards methods
+
+    def _process_immediate_updates(self, observation: Dict[str, Any]):
+        """Process IMMEDIATE belief updates after any game actions."""
+        tracker = get_game_state_tracker()
+        num_players = observation['num_players']
+
+        # The tracker is ALREADY updated in _update_game_state_tracker_early()
+        # No need to update it again here - use the current state
+
+        # NOW process hint events with updated tracker data
+        last_moves = observation.get('last_moves', [])
+        for last_move in last_moves:
+            move_id = json.dumps(last_move, sort_keys=True)
+            if move_id in self._seen_move_ids:
+                continue
+
+            move_data = last_move.get('move', {})
+            action_type = move_data.get('action_type')
+
+            if last_move.get('player', -1) < 0:
+                continue
+
+            # Process hint events immediately
+            if action_type in ['REVEAL_COLOR', 'REVEAL_RANK']:
+                acting_player_offset = last_move['player']
+                acting_player_absolute = (self.my_player_number + acting_player_offset) % num_players
+
+                target_offset = move_data['target_offset']
+                target_player_absolute = (acting_player_absolute + target_offset) % num_players
+
+                if action_type == 'REVEAL_COLOR':
+                    color = move_data['color']
+                    # Tracker has correct data to find matching cards
+                    card_indices = tracker.find_matching_cards_for_hint(
+                        target_player_absolute, 'color', color
+                    )
+
+                    event = {
+                        'clue_giver': f"P{acting_player_absolute + 1}",
+                        'clue_recipient': f"P{target_player_absolute + 1}",
+                        'clue_type': 'color',
+                        'value': color,
+                        'card_indices': card_indices
+                    }
+
+                elif action_type == 'REVEAL_RANK':
+                    rank = move_data['rank']
+                    # Tracker has correct data to find matching cards
+                    card_indices = tracker.find_matching_cards_for_hint(
+                        target_player_absolute, 'rank', rank
+                    )
+
+                    event = {
+                        'clue_giver': f"P{acting_player_absolute + 1}",
+                        'clue_recipient': f"P{target_player_absolute + 1}",
+                        'clue_type': 'rank',
+                        'value': rank,
+                        'card_indices': card_indices
+                    }
+
+                # Process the hint event IMMEDIATELY
+                self.logger.log_info("IMMEDIATE_UPDATE", f"Processing immediate probabilistic belief update: {json.dumps(event, indent=2)}")
+                self._process_single_event_probabilistic(event)
+                self._seen_move_ids.add(move_id)
 
     def _generate_belief_diff(self, before: Dict, after: Dict) -> str:
         """Generate a human-readable diff of belief changes."""
@@ -1325,18 +1468,23 @@ class BeliefGraphToMAgent(GeminiAgent):
         self.variant = 'theory_of_mind'
         self.agent_id = f"BG_tom_{self.agent_id}"
         self.logger = AgentLogger(self.agent_id)
+        self.prompt_manager = PromptManager()
         self.belief_graph = {}
+        # 使用已处理 move 的唯一哈希集合进行去重，避免因历史长度相同而漏检
+        self._seen_move_ids: set[str] = set()
+        # 追踪上一帧的 observed_hands 来检测新牌
+        self._previous_observed_hands = None
     
     def reset(self, config):
         """Reset with ToM layer."""
         super().reset(config)
-        
+
         # We need to determine our player number first
         self.my_player_number = None  # Will be set on first observation
-        
+
         uniform_color = {"red": 0.2, "blue": 0.2, "green": 0.2, "white": 0.2, "yellow": 0.2}
         uniform_rank = {"1": 0.2, "2": 0.2, "3": 0.2, "4": 0.2, "5": 0.2}
-        
+
         self.belief_graph = {
             "GameState": {
                 "clues": 8,
@@ -1356,11 +1504,68 @@ class BeliefGraphToMAgent(GeminiAgent):
                 }
             }
         }
-        
+
         # Store uniform distributions for later use
         self.uniform_color = uniform_color
         self.uniform_rank = uniform_rank
-    
+
+        # 清空已处理 move 集合
+        self._seen_move_ids.clear()
+        # 清空上一帧 observed_hands
+        self._previous_observed_hands = None
+
+        # Initialize game state tracker
+        tracker = get_game_state_tracker()
+        num_players = config.get('players', 2)
+        tracker.reset(num_players)
+
+    # ------------------------------------------------------------------
+    # New helper: Update game state tracker at the earliest possible point
+    # ------------------------------------------------------------------
+    def _update_game_state_tracker_early(self, observation: Dict[str, Any]):
+        """Update game state tracker with the latest observation IMMEDIATELY.
+
+        This is called at the very start of every act() call to ensure the tracker
+        has the most current game state before any belief updates or processing.
+        """
+        tracker = get_game_state_tracker()
+
+        self.logger.log_info("EARLY_UPDATE", "🔄 Updating game state tracker with latest observation")
+
+        # Update visible cards immediately
+        tracker.update_visible_cards(
+            self.my_player_number,
+            observation.get('observed_hands', [])
+        )
+
+        # Update card knowledge immediately
+        if 'card_knowledge' in observation and len(observation['card_knowledge']) > 0:
+            tracker.update_card_knowledge(
+                self.my_player_number,
+                observation['card_knowledge'][0]
+            )
+
+        # Update game state immediately
+        tracker.update_game_state(
+            observation.get('fireworks', {}),
+            observation.get('life_tokens', 3),
+            observation.get('information_tokens', 8),
+            observation.get('deck_size', 50)
+        )
+
+        # Log the updated tracker state
+        tracker_state = tracker.get_state_summary()
+        self.logger.log_info("EARLY_UPDATE_COMPLETE",
+                           f"✅ Game state tracker updated: {tracker_state}")
+
+        # Update belief graph immediately with fresh tracker data
+        self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
+        self.belief_graph['GameState']['clues'] = tracker.clues
+        self.belief_graph['GameState']['life'] = tracker.lives
+        self.belief_graph['GameState']['deck_size'] = tracker.deck_size
+
+        self.logger.log_info("BELIEF_SYNC", f"🔄 Belief graph synced: clues={tracker.clues}, lives={tracker.lives}, deck={tracker.deck_size}")
+
     def _initialize_belief_graph_with_player_number(self, observation: Dict[str, Any]):
         """Initialize belief graph with ToM layer."""
         # First, call the parent class to initialize basic beliefs
@@ -1384,25 +1589,36 @@ class BeliefGraphToMAgent(GeminiAgent):
             self._determine_player_number(observation)
             self._initialize_belief_graph_with_player_number(observation)
             self._initialized = True
-        
-        # Always update beliefs when observing, regardless of whose turn it is
+
+        # CRITICAL: Update game state tracker IMMEDIATELY at the start of every act call
+        # This ensures the tracker has the latest possible information before any processing
+        self._update_game_state_tracker_early(observation)
+
+        # CRITICAL: Process belief updates IMMEDIATELY after any hints
         if observation.get('last_moves'):
-            self._update_beliefs_with_tom(observation)
-        
+            # Update tracker and process hints IMMEDIATELY
+            self._process_immediate_updates(observation)
+
         # If not our turn, just record observation and return None
         if observation['current_player_offset'] != 0:
             self._add_observation_to_history(observation)
             return None
-        
+
         # Our turn - augment observation with belief graph
         augmented_observation = observation.copy()
+        # Update GameState with current fireworks from tracker
+        tracker = get_game_state_tracker()
+        self.belief_graph['GameState']['fireworks'] = tracker.get_fireworks()
+        self.belief_graph['GameState']['clues'] = tracker.clues
+        self.belief_graph['GameState']['life'] = tracker.lives
+        self.belief_graph['GameState']['deck_size'] = tracker.deck_size
         augmented_observation['belief_graph'] = self.belief_graph
         augmented_observation['belief_variant'] = 'theory_of_mind'
         augmented_observation['belief_graph_natural_language'] = self._format_belief_graph_natural_language()
-        
+
         self.logger.log_info("BELIEF_STATE", f"ToM graph size: {len(json.dumps(self.belief_graph))} chars")
         self.logger.log_debug("BELIEF_GRAPH_DETAIL", json.dumps(self.belief_graph, indent=2))
-        
+
         # Let parent handle all the action logic
         return super().act(augmented_observation)
     
@@ -1501,83 +1717,112 @@ class BeliefGraphToMAgent(GeminiAgent):
     
     def _process_single_event_tom(self, event: Dict[str, Any]):
         """Process a single event through the LLM with ToM reasoning."""
-        # Get agent's actual player number (already determined)
-        my_player_id = f"P{self.my_player_number + 1}"
-        
         # Only update beliefs for clue events
         if 'clue_recipient' not in event:
             self.logger.log_debug("BELIEF_UPDATE", "No belief update needed for non-clue events")
             return
-        
-        prompt = f"""You are agent {my_player_id}. Here is your current belief graph:
-{json.dumps(self.belief_graph, indent=2)}
 
-You just observed this event: {json.dumps(event)}
+        # Use intelligent ToM prompt
+        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'theory_of_mind')
 
-Your task is to perform Theory of Mind reasoning.
-Analyze this action in the full context of your belief graph.
-Does this action provide new evidence about the player's inferred_skill or signal a change in the team's Team_Focus?
-
-Please reason step by step:
-1. What does this event tell us about the player's skill level?
-2. What might this reveal about team strategy?
-3. How should both belief distributions AND ToM_Layer be updated?
-
-Key principle: Use negative inference CORRECTLY
-
-⚠️ INDEXING: card_indices uses 0-BASED ARRAY INDEXING ⚠️
-   - Index 0 = P1_Card1 (first card)
-   - Index 1 = P1_Card2 (second card)
-   - Index 2 = P1_Card3 (third card)
-   - Index 3 = P1_Card4 (fourth card)
-   - Index 4 = P1_Card5 (fifth card)
-
-- Cards at the indices in 'card_indices' HAVE the clued property (update to only that value)
-- Cards NOT in 'card_indices' (other indices 0-4) do NOT have the clued property (remove ONLY the clued value, keep all other possibilities)
-- Example: If clue is "rank 1" targeting card_indices [1,4] (0-indexed):
-  * P1_Card1 (index 0): remove rank 1, keep ranks [2,3,4,5]
-  * P1_Card2 (index 1): set to rank 1 ONLY ← clued
-  * P1_Card3 (index 2): remove rank 1, keep ranks [2,3,4,5]
-  * P1_Card4 (index 3): remove rank 1, keep ranks [2,3,4,5]
-  * P1_Card5 (index 4): set to rank 1 ONLY ← clued
-- Preserve the "actual_card_I_see" field - only update belief fields
-
-Return the complete updated JSON graph."""
-        
         # Log the ToM update prompt
         self.logger.log_info("TOM_UPDATE_PROMPT", f"Sending ToM update to LLM: {len(prompt)} chars")
         self.logger.log_debug("TOM_UPDATE_PROMPT_DETAIL", prompt)
-        
+
         try:
             response = self.model.generate_content(
                 prompt,
-                generation_config={'response_mime_type': 'application/json', 'temperature': 0.7}
+                generation_config={'response_mime_type': 'application/json', 'temperature': 0.2}
             )
-            
+
             # Log the response
             self.logger.log_info("TOM_UPDATE_RESPONSE", f"LLM response: {len(response.text)} chars")
             self.logger.log_debug("TOM_UPDATE_RESPONSE_DETAIL", response.text)
-            
+
             # Store previous belief state for comparison
             previous_belief_graph = self.belief_graph.copy()
-            
+
             # Update with new belief state
             new_belief_graph = json.loads(response.text)
-            
+
             # Generate and log diff BEFORE updating
             diff_summary = self._generate_belief_diff(previous_belief_graph, new_belief_graph)
             self.logger.log_info("BELIEF_UPDATE_DIFF", diff_summary)
-            
+
             # Now update the belief graph
             self.belief_graph = new_belief_graph
-            
+
             # Log ToM insights
             if 'ToM_Layer' in self.belief_graph:
                 self.logger.log_info("TOM_UPDATE", f"Team focus: {self.belief_graph['ToM_Layer']['Team_Focus']}")
                 self.logger.log_info("LLM_UPDATE", "ToM belief graph updated via LLM")
-            
+
         except Exception as e:
             self.logger.log_error("TOM_ERROR", f"Failed to update ToM beliefs: {e}")
+
+    def _process_immediate_updates(self, observation: Dict[str, Any]):
+        """Process IMMEDIATE belief updates after any game actions."""
+        tracker = get_game_state_tracker()
+        num_players = observation['num_players']
+
+        # The tracker is ALREADY updated in _update_game_state_tracker_early()
+        # No need to update it again here - use the current state
+
+        # NOW process hint events with updated tracker data
+        last_moves = observation.get('last_moves', [])
+        for last_move in last_moves:
+            move_id = json.dumps(last_move, sort_keys=True)
+            if move_id in self._seen_move_ids:
+                continue
+
+            move_data = last_move.get('move', {})
+            action_type = move_data.get('action_type')
+
+            if last_move.get('player', -1) < 0:
+                continue
+
+            # Process hint events immediately
+            if action_type in ['REVEAL_COLOR', 'REVEAL_RANK']:
+                acting_player_offset = last_move['player']
+                acting_player_absolute = (self.my_player_number + acting_player_offset) % num_players
+
+                target_offset = move_data['target_offset']
+                target_player_absolute = (acting_player_absolute + target_offset) % num_players
+
+                if action_type == 'REVEAL_COLOR':
+                    color = move_data['color']
+                    # Tracker has correct data to find matching cards
+                    card_indices = tracker.find_matching_cards_for_hint(
+                        target_player_absolute, 'color', color
+                    )
+
+                    event = {
+                        'clue_giver': f"P{acting_player_absolute + 1}",
+                        'clue_recipient': f"P{target_player_absolute + 1}",
+                        'clue_type': 'color',
+                        'value': color,
+                        'card_indices': card_indices
+                    }
+
+                elif action_type == 'REVEAL_RANK':
+                    rank = move_data['rank']
+                    # Tracker has correct data to find matching cards
+                    card_indices = tracker.find_matching_cards_for_hint(
+                        target_player_absolute, 'rank', rank
+                    )
+
+                    event = {
+                        'clue_giver': f"P{acting_player_absolute + 1}",
+                        'clue_recipient': f"P{target_player_absolute + 1}",
+                        'clue_type': 'rank',
+                        'value': rank,
+                        'card_indices': card_indices
+                    }
+
+                # Process the hint event IMMEDIATELY
+                self.logger.log_info("IMMEDIATE_UPDATE", f"Processing immediate ToM belief update: {json.dumps(event, indent=2)}")
+                self._process_single_event_tom(event)
+                self._seen_move_ids.add(move_id)
     
     def _detect_events(self, curr_obs: Dict[str, Any]) -> List[Dict]:
         """Detect game events by comparing observations."""

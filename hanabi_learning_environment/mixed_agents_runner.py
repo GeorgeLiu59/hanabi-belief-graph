@@ -66,6 +66,8 @@ class MixedAgentsRunner:
         self.episodes = episodes
         self.agent_configs = agent_configs
         self.environment = rl_env.make('Hanabi-Full-CardKnowledge', num_players=players)
+        self.fireworks_totals: List[int] = []
+        self.fireworks_maxima: List[int] = []
         
         # Validate we have the right number of agent configs
         if len(agent_configs) != players:
@@ -100,7 +102,15 @@ class MixedAgentsRunner:
         
         return agents
     
-    def run_episode(self, episode_num: int = 0) -> float:
+    def _extract_fireworks_total(self, observation: Dict[str, Any]) -> int:
+        """Compute total fireworks built from an observation."""
+        player_observations = observation.get('player_observations', [])
+        if not player_observations:
+            return 0
+        fireworks = player_observations[0].get('fireworks', {})
+        return sum(fireworks.values())
+
+    def run_episode(self, episode_num: int = 0) -> Dict[str, Any]:
         """Run a single episode."""
         observations = self.environment.reset()
         agents = self.create_agents(episode_num)
@@ -108,6 +118,8 @@ class MixedAgentsRunner:
         done = False
         episode_reward = 0
         turn_count = 0
+        final_fireworks = self._extract_fireworks_total(observations)
+        max_fireworks = final_fireworks
         
         print(f"\n{'='*60}")
         print(f"EPISODE {episode_num + 1} START")
@@ -138,15 +150,25 @@ class MixedAgentsRunner:
             if current_player_action is not None:
                 observations, reward, done, _ = self.environment.step(current_player_action)
                 episode_reward += reward
+                final_fireworks = self._extract_fireworks_total(observations)
+                if final_fireworks > max_fireworks:
+                    max_fireworks = final_fireworks
             else:
                 raise ValueError("No valid action found for current player")
         
         print(f"\nEpisode {episode_num + 1} completed with reward: {episode_reward}")
-        return episode_reward
+        print(f"Fireworks built this episode: {final_fireworks} (max reached: {max_fireworks})")
+        return {
+            'reward': episode_reward,
+            'final_fireworks': final_fireworks,
+            'max_fireworks': max_fireworks
+        }
     
     def run(self) -> List[float]:
         """Run multiple episodes."""
         rewards = []
+        self.fireworks_totals = []
+        self.fireworks_maxima = []
         
         print(f"Starting {self.episodes} episodes with {self.players} players")
         print("Agent configuration:")
@@ -158,10 +180,16 @@ class MixedAgentsRunner:
         
         try:
             for episode in range(self.episodes):
-                episode_reward = self.run_episode(episode)
+                episode_result = self.run_episode(episode)
+                episode_reward = episode_result['reward']
                 rewards.append(episode_reward)
+                self.fireworks_totals.append(episode_result['final_fireworks'])
+                self.fireworks_maxima.append(episode_result['max_fireworks'])
                 
-                print(f'Episode {episode + 1}/{self.episodes} completed - Reward: {episode_reward}')
+                print(
+                    f'Episode {episode + 1}/{self.episodes} completed - Reward: {episode_reward} | '
+                    f'Fireworks built: {episode_result["final_fireworks"]} (max: {episode_result["max_fireworks"]})'
+                )
                 if rewards:
                     print(f'Best so far: {max(rewards)} | Average: {sum(rewards)/len(rewards):.1f}')
                 
@@ -224,6 +252,10 @@ def main():
         print(f"Average reward: {sum(rewards)/len(rewards):.2f}")
         print(f"Best reward: {max(rewards)}")
         print(f"Episode rewards: {rewards}")
+        if getattr(runner, 'fireworks_totals', None) is not None:
+            print(f"Episode fireworks built: {runner.fireworks_totals}")
+        if getattr(runner, 'fireworks_maxima', None) is not None:
+            print(f"Episode peak fireworks: {runner.fireworks_maxima}")
         
     except KeyboardInterrupt:
         print("\nGame interrupted by user")
