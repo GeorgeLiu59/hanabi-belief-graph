@@ -15,11 +15,9 @@ from hanabi_learning_environment import rl_env
 from hanabi_learning_environment.agents.random_agent import RandomAgent
 from hanabi_learning_environment.agents.simple_agent import SimpleAgent
 from hanabi_learning_environment.agents.gemini_agent import GeminiAgent
-from hanabi_learning_environment.agents.belief_graph_agents import (
-    BeliefGraphCertaintyAgent,
-    BeliefGraphProbabilisticAgent,
-    BeliefGraphToMAgent
-)
+from hanabi_learning_environment.agents.certainty_agent import BeliefGraphCertaintyAgent
+from hanabi_learning_environment.agents.probabilistic_agent import BeliefGraphProbabilisticAgent
+from hanabi_learning_environment.agents.tom_agent import BeliefGraphToMAgent
 
 # Available agent classes
 AGENT_CLASSES = {

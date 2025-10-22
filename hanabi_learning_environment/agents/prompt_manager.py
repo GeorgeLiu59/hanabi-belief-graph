@@ -8,11 +8,11 @@ class PromptManager:
     """Manages all prompt generation for Hanabi agents."""
 
     def get_hanabi_game_rules(self) -> str:
-        """Complete Hanabi game rules for intelligent LLM reasoning."""
-        return """## HANABI COMPLETE GAME RULES
+        """Hanabi game information."""
+        return """## HANABI GAME INFORMATION
 
 **DECK COMPOSITION:**
-- 5 colors: red, blue, green, white, yellow, yellow
+- 5 colors: red, blue, green, white, yellow
 - 5 ranks: 1, 2, 3, 4, 5
 - Each combination appears exactly once (25 unique cards total)
 - Distribution: Three 1s, two each of 2-4, one 5 per color
@@ -26,23 +26,15 @@ class PromptManager:
 **CLUE SYSTEM:**
 - **Color clues**: "These cards are [color]" - affects ALL cards of that color in hand
 - **Rank clues**: "These cards are [rank]" - affects ALL cards of that rank in hand
-- **ABSOLUTE RULE**: Clued cards MUST have the hinted property - NO EXCEPTIONS
-- **NEGATIVE INFERENCE**: Un-clued cards CANNOT have the hinted property - DEFINITIVE
+- **ABSOLUTE RULE**: Clued cards MUST have the hinted property
+- **NEGATIVE INFERENCE**: Un-clued cards CANNOT have the hinted property
 - **EXHAUSTIVE**: Clues affect ALL matching cards in the target player's hand
 
-**CLUE MECHANICS ARE ABSOLUTE:**
+**CLUE MECHANICS:**
 - When someone says "These cards are BLUE", they are telling the TRUTH
 - All blue cards in that hand ARE marked by the clue
 - All non-blue cards in that hand ARE NOT marked by the clue
-- This is the fundamental rule of Hanabi communication
-- There is NO ambiguity or uncertainty in the clue system
-
-**STRATEGIC INSIGHTS:**
-- **Early game**: Color clues often suggest rank 1 (most common card)
-- **Late game**: Rank 5 clues are very informative (only one per color)
-- **Play timing**: Clues reveal player skill and team coordination
-- **Card value**: Some cards are "trash" (duplicates, unplayable sequences)
-- **Probability**: Consider what's been played and remaining deck composition"""
+- There is NO ambiguity or uncertainty in the clue system"""
 
     def get_belief_update_prompt(self, event: Dict[str, Any], current_beliefs: Dict[str, Any] = None, variant: str = 'certainty') -> str:
         """Generate intelligent belief update prompt based on event and variant type."""
@@ -76,8 +68,7 @@ class PromptManager:
 **BELIEF UPDATE REQUIREMENTS:**
 - Cards numbered {clued_cards} ARE {clued_value}
 - Cards with other numbers ARE NOT {clued_value}
-- Update beliefs using your Hanabi expertise and strategic reasoning
-- IMPORTANT: JSON keys already follow the card numbering convention (e.g., `P2_Card3` means card number 3)
+- JSON keys follow the card numbering convention (e.g., `P2_Card3` means card number 3)
 """
 
         recipient_section = """
@@ -101,43 +92,21 @@ class PromptManager:
         # Variant-specific sections
         if variant == 'certainty':
             base_prompt += """
-**CERTAINTY VARIANT TASK:**
-Update your belief graph by eliminating impossible combinations and narrowing possibilities:
-- Set clued cards to ONLY {clued_value} for {clue_type}
-- Remove {clued_value} from un-clued cards for {clue_type}
-- Maintain all other possibilities that remain viable
-- Use strategic reasoning about what this clue reveals
+**CERTAINTY VARIANT UPDATE:**
+
 
 """
         elif variant == 'probabilistic':
             base_prompt += """
-**PROBABILISTIC VARIANT TASK:**
-Update probability distributions with intelligent reasoning:
-- Clued cards: Increase probability of {clued_value} (potentially to 100%)
-- Un-clued cards: Set {clued_value} probability to 0%, renormalize others
-- Consider strategic probability factors:
-  * Early color clues → higher rank 1 probability
-  * Late game rank clues → very informative
-  * Deck composition and what's been played
-  * Clue timing reveals team strategy and player skill level
+**PROBABILISTIC VARIANT UPDATE:**
+
 
 """
         elif variant == 'theory_of_mind':
             base_prompt += """
-**THEORY OF MIND VARIANT TASK:**
-Multi-level analysis required:
+**THEORY OF MIND VARIANT UPDATE:**
 
-1. **Card Beliefs**: Update beliefs about actual cards (same as certainty variant)
-2. **Player Modeling**: What does this clue reveal about:
-   - The giver's skill level and Hanabi expertise?
-   - Team strategy (aggressive vs conservative play)?
-   - Is this a "save" clue (protecting important cards) or "play" clue (enabling plays)?
-3. **Team Strategy**: How does this affect:
-   - Team coordination and communication patterns?
-   - Strategic priorities for current game state?
-   - What does this reveal about team psychology?
 
-Use your understanding of Hanabi psychology to update both card beliefs AND Theory of Mind models.
 """
 
         # Add current beliefs if provided
@@ -160,16 +129,14 @@ Use your understanding of Hanabi psychology to update both card beliefs AND Theo
         # Final instruction
         base_prompt += """
 
-**INSTRUCTION:**
-Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a `REASONING:` section (it can span multiple lines) explaining the key updates.
-Focus on intelligent inference, not just mechanical rule application.
-Apply your complete understanding of Hanabi strategy and player psychology.
-Remember to update existing structures IN PLACE - do not create new JSON blocks."""
+**RESPONSE FORMAT:**
+Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a `REASONING:` section explaining the key updates.
+Update existing structures IN PLACE - do not create new JSON blocks."""
 
         return base_prompt
 
     def get_rules_and_mechanics_block(self) -> str:
-        """Core Hanabi rules and unique mechanics."""
+        """Core Hanabi rules and mechanics."""
         return """## HANABI RULES & MECHANICS
 - **CRITICAL**: You CANNOT see your own cards! This is the fundamental rule of Hanabi.
 - **CRITICAL**: You CAN see other players' cards, but they cannot see their own either.
@@ -180,41 +147,11 @@ Remember to update existing structures IN PLACE - do not create new JSON blocks.
 - Game ends when you run out of life tokens, deck is empty, or complete all fireworks
 - Maximum score is 25 points (5 colors × 5 ranks)
 
-**Why this matters**: You hold cards facing away from you, must rely on hints from teammates, and can only play cards you're confident about. The tension is between giving helpful hints vs. making safe plays."""
+**Game mechanics**: You hold cards facing away from you, must rely on hints from teammates, and can only play cards you're confident about."""
 
     def get_strategy_and_priorities_block(self) -> str:
-        """Strategic guidelines, action priorities, and hint techniques."""
-        return """## STRATEGY & PRIORITIES
-
-**Core Principles:**
-1. **AGGRESSIVE EARLY GAME**: Play 1s immediately - they're always safe and start sequences
-2. **CONFIDENCE PLAYING**: Only play cards you're 100% certain about (except 1s)
-3. **HINT EFFICIENCY**: Give hints that create immediate plays or save critical cards
-4. **TOKEN MANAGEMENT**: Balance information tokens - don't waste them on obvious plays
-5. **SEQUENCE BUILDING**: Focus on completing one color at a time when possible
-6. **ENDGAME AWARENESS**: When deck is low, prioritize plays over hints
-
-**Action Priority (in order):**
-1. **PLAY** cards marked ✅ CERTAIN - you know BOTH color AND rank with 100% certainty
-2. **PLAY** cards marked ⚠️ SAFE BET - special cases where risk is acceptable:
-   - Rank 1 + known color (1s are always playable if that color hasn't started)
-   - Known rank + highly probable color (only 1-2 color possibilities left)
-3. **HINT** to enable a teammate's immediate play (especially helping them identify 1s)
-4. **HINT** to save critical cards from being discarded (especially 5s)
-5. **DISCARD** when you need info tokens and have no better options
-6. **AVOID** playing cards marked ❌ RISKY - too much uncertainty
-
-**Critical Early Game Strategy:**
-- **1s ARE SPECIAL**: If you know a card is rank 1 (even if color uncertain), it's often worth playing - 1s start all sequences
-- **HINT EFFICIENTLY**: One good hint can help identify multiple cards through negative inference
-- **BUILD MOMENTUM**: Early plays create more options - don't get stuck in hint loops
-- **ACCEPTABLE RISKS**: With 3 lives, taking a calculated risk on a likely 1 is often better than endless hinting
-
-**Hint Techniques:**
-- **Playable hints**: Tell someone about a card they can play RIGHT NOW (especially 1s)
-- **Save hints**: Prevent discarding cards needed for sequences (especially 5s)
-- **Multi-card hints**: When possible, hint multiple cards at once
-- **1s are special**: Always prioritize hinting about 1s - they're free points"""
+        """Game information."""
+        return ""
 
     def get_format_requirements_block(self) -> str:
         """JSON response format specification."""
@@ -228,27 +165,8 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
 - For REVEAL_RANK: use "rank" (1-5) and "target_offset", set card_index/color to null"""
 
     def get_decision_framework_block(self) -> str:
-        """Complete decision-making process and tactical considerations."""
-        return """## DECISION FRAMEWORK:
-
-**Step-by-step process:**
-1. **CHECK FOR CERTAIN PLAYS**: Do you have any ✅ CERTAIN cards? Play these immediately!
-2. **CHECK FOR SAFE BETS**: Do you have ⚠️ SAFE BET cards (especially rank 1s)? These are worth playing if tokens are low or progress is needed
-3. **ASSESS TEAMMATE NEEDS**: Can you give a hint that enables an immediate play?
-4. **STRATEGIC HINTS**: Save critical cards (5s) or help narrow down possibilities
-5. **DISCARD WISELY**: When stuck, discard the riskiest/least useful cards
-6. **BALANCE TOKENS**: Don't let info tokens max out (8/8) - that's wasteful
-
-**Key considerations:**
-- **PRIORITIZE CERTAINTY**: ✅ CERTAIN cards should always be played
-- **CALCULATED RISKS**: ⚠️ SAFE BET cards (rank 1s with known color) are usually worth it
-- **VERIFY PLAYABILITY**: Before playing, check that the rank matches what fireworks need next
-- **DON'T WASTE HINTS**: If teammate already knows enough to play, don't redundantly hint
-- Give hints to help teammates identify their playable cards
-- Look at teammates' hands - hint about cards they can play immediately
-- Save critical cards (especially 5s and cards needed for sequences) from being discarded
-- When unsure, giving a helpful hint is often safer than guessing a play
-- Pay attention to what cards are in the discard pile - some sequences may be impossible now"""
+        """Decision process information."""
+        return ""
 
     def format_observation_for_llm(self, observation: Dict[str, Any]) -> str:
         """Format the observation into a natural language description for the LLM."""
@@ -326,18 +244,18 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
             else:
                 game_state += "Rank: unknown"
 
-            # Add strategic analysis
+            # Add card information
             if knowledge.get('color') is not None and rank_info is not None and rank_info >= 0:
                 current_firework = observation['fireworks'][knowledge['color']]
                 if rank_info == current_firework:
                     if rank_info == 0:
-                        game_state += " 🎯 THIS IS A 1 - PLAY IT NOW! (Always safe)"
+                        game_state += " - this is a 1"
                     else:
-                        game_state += " ✅ PLAYABLE NOW!"
+                        game_state += " - playable"
                 elif rank_info < current_firework:
-                    game_state += " ❌ Too low - already played"
+                    game_state += " - already played"
                 else:
-                    game_state += f" ⏳ Need {current_firework + 1} first"
+                    game_state += f" - need {current_firework + 1} first"
 
             game_state += "\n"
 
@@ -365,14 +283,14 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                     display_target = target_offset
                 game_state += f"{i}: Hint rank {move['rank'] + 1} to player {display_target} (-1 info token)\n"
 
-        # Strategic recommendations
-        game_state += "\n## STRATEGIC CONSIDERATIONS\n"
+        # Game state information
+        game_state += "\n## GAME STATE\n"
         if observation['information_tokens'] == 0:
-            game_state += "- ⚠️ No info tokens left - must discard to get more\n"
+            game_state += "- No info tokens left\n"
         elif observation['information_tokens'] == 8:
-            game_state += "- ⚠️ Max info tokens - should give hints or play cards\n"
+            game_state += "- Max info tokens\n"
 
-        # Check for obvious plays
+        # Card play information
         obvious_plays = []
         for i, (card, knowledge) in enumerate(zip(my_hand, my_knowledge), 1):
             color = knowledge.get('color')
@@ -383,9 +301,9 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                     obvious_plays.append(f"Card {i} ({color}{rank_info + 1})")
 
         if obvious_plays:
-            game_state += f"- 🎯 Obvious plays available: {', '.join(obvious_plays)}\n"
+            game_state += f"- Playable cards: {', '.join(obvious_plays)}\n"
         else:
-            game_state += "- 🤔 No obvious plays - consider hinting or discarding\n"
+            game_state += "- No playable cards\n"
 
         return game_state
 
@@ -439,25 +357,25 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                     if new_cards > 0:
                         history_text += f"- {new_cards} card(s) added to discard pile\n"
 
-        history_text += "\n**Key Insights from History:**\n"
+        history_text += "\n**Pattern Analysis:**\n"
 
         # Analyze patterns in the history
         if len(action_history) >= 2:
             recent_actions = [action['action_type'] for action in action_history[-3:]]
             if recent_actions.count('REVEAL_COLOR') + recent_actions.count('REVEAL_RANK') >= 2:
-                history_text += "- You've been giving many hints recently - consider playing cards or discarding\n"
+                history_text += "- Recent hints given\n"
             elif recent_actions.count('PLAY') >= 2:
-                history_text += "- You've been playing cards successfully - good progress!\n"
+                history_text += "- Recent successful plays\n"
             elif recent_actions.count('DISCARD') >= 2:
-                history_text += "- You've been discarding frequently - make sure you're not discarding important cards\n"
+                history_text += "- Recent discards\n"
 
-        # Check for information token management
+        # Information token status
         if observation_history:
             current_tokens = observation_history[-1]['information_tokens']
             if current_tokens == 0:
-                history_text += "- ⚠️ No information tokens left - must discard to get more\n"
+                history_text += "- No information tokens remaining\n"
             elif current_tokens == 8:
-                history_text += "- ⚠️ Maximum information tokens - should give hints or play cards\n"
+                history_text += "- Maximum information tokens\n"
 
         return history_text
 
@@ -479,7 +397,6 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
 
         # Add belief graph data if present
         if 'belief_graph' in observation:
-            belief_variant = observation['belief_variant']
 
             # Use natural language version - must be available
             prompt_sections.extend([
@@ -489,12 +406,6 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                 "```json",
                 json.dumps(observation['belief_graph'], indent=2),
                 "```",
-                "",
-                "Use this belief analysis to make more informed decisions about:",
-                "- Which cards you can safely play based on your certainty",
-                "- Which cards your teammates know about and can play",
-                "- What hints would be most helpful to give",
-                "- Which cards are safe to discard",
                 ""
             ])
 
@@ -504,12 +415,8 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
             "## CURRENT GAME STATE:",
             game_state,
             "",
-            "## YOUR TASK:",
-            "Analyze the game state and choose the most strategic action. Remember: you CANNOT see your own cards!",
-            "",
-            self.get_decision_framework_block(),
-            "",
-            "Choose the action that maximizes your team's chance of achieving a high score (aim for 20+ points). Be strategic and coordinate with your teammate!"
+            "## DECISION REQUIRED:",
+            "Choose your action."
         ])
 
         return "\n".join(prompt_sections)
@@ -518,13 +425,11 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
         """Create a retry prompt with error feedback."""
         game_state = self.format_observation_for_llm(observation)
 
-        retry_prompt = f"""PREVIOUS ACTION WAS ILLEGAL!
+        retry_prompt = f"""PREVIOUS ACTION WAS ILLEGAL
 
 {error_message}
 
-You must choose from ONLY the legal moves listed below. Do not make up actions.
-
-## CURRENT LEGAL MOVES:
+Available legal moves:
 """
         for i, move in enumerate(observation['legal_moves']):
             retry_prompt += f"{i}: {move}\n"
@@ -532,7 +437,236 @@ You must choose from ONLY the legal moves listed below. Do not make up actions.
         retry_prompt += f"""
 {game_state}
 
-Respond with ONLY a valid JSON object that matches EXACTLY one of the legal moves above:
+Respond with a valid JSON action object:
 {{"action_type": "...", "card_index": ..., "color": "...", "rank": ..., "target_offset": ...}}"""
 
         return retry_prompt
+
+    def format_belief_graph_natural_language(self, belief_graph: Dict[str, Any], variant: str) -> str:
+        """Format belief graph to natural language based on variant type."""
+        if variant == 'certainty':
+            return self.format_certainty_belief_graph_natural_language(belief_graph)
+        elif variant == 'probabilistic':
+            return self.format_probabilistic_belief_graph_natural_language(belief_graph)
+        elif variant == 'theory_of_mind':
+            return self.format_theory_of_mind_belief_graph_natural_language(belief_graph)
+        else:
+            # Fallback to certainty format if variant not recognized
+            return self.format_certainty_belief_graph_natural_language(belief_graph)
+
+    def format_certainty_belief_graph_natural_language(self, belief_graph: Dict[str, Any]) -> str:
+        """Convert certainty belief graph to natural language (pure information)."""
+        nl_description = "## BELIEF GRAPH ANALYSIS (CERTAINTY VARIANT)\n\n"
+
+        gs = belief_graph['GameState']
+        nl_description += f"**Game State:** {gs['clues']} clues, {gs['life']} lives, {gs['deck_size']} cards in deck\n\n"
+
+        nl_description += "**MY HAND BELIEFS:**\n"
+
+        game_state = belief_graph.get('GameState', {})
+        fireworks = game_state.get('fireworks', {})
+        if not fireworks:
+            fireworks = {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+
+        for card_id, beliefs in belief_graph['My_Hand_Beliefs'].items():
+            card_num = card_id.split('Card')[1]
+            card_idx = int(card_num) - 1
+            colors = beliefs['possible_colors']
+            ranks = beliefs['possible_ranks']
+
+            if len(colors) == 1 and len(ranks) == 1:
+                color = colors[0]
+                rank = ranks[0]
+                color_key = color[0].upper() if len(color) > 0 else color.upper()
+                current_firework = fireworks.get(color_key, 0)
+
+                if rank == current_firework + 1:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - playable now\n"
+                elif rank <= current_firework:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - already played\n"
+                else:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - not yet\n"
+            elif len(ranks) == 1 and ranks[0] == 1:
+                possible_plays = []
+                for c in colors:
+                    c_key = c[0].upper() if len(c) > 0 else c.upper()
+                    if fireworks.get(c_key, 0) == 0:
+                        possible_plays.append(c.upper())
+
+                if possible_plays:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): Rank 1, can start {'/'.join(possible_plays)}\n"
+                else:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): Rank 1, colors already started\n"
+            elif len(colors) == 1 and len(ranks) <= 2:
+                color = colors[0]
+                nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {'/'.join(map(str,ranks))}\n"
+            elif len(colors) == 1:
+                nl_description += f"- Card {card_num} (card_index {card_idx}): {colors[0].upper()} color only\n"
+            elif len(ranks) == 1:
+                nl_description += f"- Card {card_num} (card_index {card_idx}): Rank {ranks[0]} only\n"
+            else:
+                nl_description += f"- Card {card_num} (card_index {card_idx}): {len(colors)} colors, {len(ranks)} ranks possible\n"
+
+        nl_description += "\n**TEAMMATE KNOWLEDGE MODEL:**\n"
+        for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():
+            player_num = player_hand.split('P')[1].split('_')[0]
+            nl_description += f"\nPlayer {player_num}'s cards:\n"
+
+            for card_id, card_data in hand_data.items():
+                card_num = card_id.split('Card')[1]
+                actual = card_data.get('actual_card_I_see', 'Unknown')
+                belief = card_data.get(f'p{player_num}_belief', {})
+                colors = belief.get('possible_colors', [])
+                ranks = belief.get('possible_ranks', [])
+
+                if len(colors) == 1 and len(ranks) == 1:
+                    nl_description += f"  - Card {card_num}: I see {actual}, they know {colors[0].upper()} {ranks[0]}\n"
+                elif len(colors) == 1:
+                    nl_description += f"  - Card {card_num}: I see {actual}, they know color {colors[0].upper()}\n"
+                elif len(ranks) == 1:
+                    nl_description += f"  - Card {card_num}: I see {actual}, they know rank {ranks[0]}\n"
+                else:
+                    nl_description += f"  - Card {card_num}: I see {actual}, uncertain\n"
+
+        return nl_description
+
+    def format_probabilistic_belief_graph_natural_language(self, belief_graph: Dict[str, Any]) -> str:
+        """Convert probabilistic belief graph to natural language (pure information)."""
+        nl_description = "## BELIEF GRAPH ANALYSIS (PROBABILISTIC VARIANT)\n\n"
+
+        gs = belief_graph['GameState']
+        nl_description += f"**Game State:** {gs['clues']} clues, {gs['life']} lives, {gs['deck_size']} cards in deck\n\n"
+
+        nl_description += "**MY HAND BELIEFS:**\n"
+
+        # Get current fireworks for playability checking
+        game_state = belief_graph.get('GameState', {})
+        fireworks = game_state.get('fireworks', {})
+        if not fireworks:
+            fireworks = {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+
+        for card_id, beliefs in belief_graph['My_Hand_Beliefs'].items():
+            card_num = card_id.split('Card')[1]
+            card_idx = int(card_num) - 1
+            color_dist = beliefs['color_distribution']
+            rank_dist = beliefs['rank_distribution']
+
+            max_color = max(color_dist, key=color_dist.get)
+            max_color_prob = color_dist[max_color]
+            max_rank = max(rank_dist, key=rank_dist.get)
+            max_rank_prob = rank_dist[max_rank]
+
+            if max_color_prob == 1.0 and max_rank_prob == 1.0:
+                # 100% certain - check if actually playable
+                color = max_color
+                rank = int(max_rank)
+                color_key = color[0].upper() if len(color) > 0 else color.upper()
+                current_firework = fireworks.get(color_key, 0)
+
+                if rank == current_firework + 1:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - playable\n"
+                elif rank <= current_firework:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - already played\n"
+                else:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - waiting\n"
+            elif max_color_prob >= 0.8 and max_rank_prob >= 0.8:
+                # High confidence (80%+)
+                nl_description += f"- Card {card_num} (card_index {card_idx}): {max_color.upper()} {max_rank} ({max_color_prob*100:.0f}%/{max_rank_prob*100:.0f}% confidence)\n"
+            elif max_rank_prob >= 0.8 and max_rank == "1":
+                # Very confident it's a rank 1
+                possible_starts = []
+                for c in color_dist:
+                    c_key = c[0].upper() if len(c) > 0 else c.upper()
+                    if fireworks.get(c_key, 0) == 0 and color_dist[c] > 0.5:
+                        possible_starts.append(c.upper())
+
+                if possible_starts:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): Likely rank 1 - can start {'/'.join(possible_starts)} ({max_rank_prob*100:.0f}% confidence)\n"
+                else:
+                    nl_description += f"- Card {card_num} (card_index {card_idx}): Likely rank 1 - {max_color.upper()} ({max_rank_prob*100:.0f}% confidence)\n"
+            else:
+                nl_description += f"- Card {card_num} (card_index {card_idx}): {max_color} {max_rank} ({max_color_prob*100:.0f}%/{max_rank_prob*100:.0f}% confidence)\n"
+
+        nl_description += "\n**TEAMMATE KNOWLEDGE MODEL:**\n"
+        for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():
+            player_num = player_hand.split('P')[1].split('_')[0]
+            nl_description += f"\nPlayer {player_num}'s cards:\n"
+
+            for card_id, card_data in hand_data.items():
+                card_num = card_id.split('Card')[1]
+                actual = card_data.get('actual_card_I_see', 'Unknown')
+                belief = card_data.get(f'p{player_num}_belief', {})
+                color_dist = belief.get('color_distribution', {})
+                rank_dist = belief.get('rank_distribution', {})
+
+                max_color_prob = max(color_dist.values()) if color_dist else 0
+                max_rank_prob = max(rank_dist.values()) if rank_dist else 0
+
+                if max_color_prob == 1.0 and max_rank_prob == 1.0:
+                    nl_description += f"  - Card {card_num}: I see {actual}, certain knowledge\n"
+                elif max_color_prob >= 0.8:
+                    nl_description += f"  - Card {card_num}: I see {actual}, color known ({max_color_prob*100:.0f}%)\n"
+                elif max_rank_prob >= 0.8:
+                    nl_description += f"  - Card {card_num}: I see {actual}, rank known ({max_rank_prob*100:.0f}%)\n"
+                else:
+                    nl_description += f"  - Card {card_num}: I see {actual}, uncertain\n"
+
+        return nl_description
+
+    def format_theory_of_mind_belief_graph_natural_language(self, belief_graph: Dict[str, Any]) -> str:
+        """Convert Theory of Mind belief graph to natural language (pure information)."""
+        nl_description = "## BELIEF GRAPH ANALYSIS (THEORY OF MIND VARIANT)\n\n"
+
+        gs = belief_graph['GameState']
+        nl_description += f"**Game State:** {gs['clues']} clues, {gs['life']} lives, {gs['deck_size']} cards in deck\n\n"
+
+        tom = belief_graph['ToM_Layer']
+        nl_description += "**TEAM DYNAMICS ANALYSIS:**\n"
+
+        team_focus = tom['Team_Focus']['focus_distribution']
+        max_focus = max(team_focus, key=team_focus.get)
+        focus_prob = team_focus[max_focus]
+        nl_description += f"- Team Strategy: {max_focus} ({focus_prob*100:.0f}% confidence)\n"
+
+        nl_description += "\n**TEAMMATE PROFILES:**\n"
+        for player, profile in tom['Teammates'].items():
+            skill = profile['inferred_skill']
+            aggr = profile.get('play_aggressiveness', 0.5)
+            hint_q = profile.get('hint_quality', 0.5)
+
+            skill_desc = "expert" if skill > 0.8 else "competent" if skill > 0.6 else "average" if skill > 0.4 else "novice"
+            aggr_desc = "aggressive" if aggr > 0.7 else "balanced" if aggr > 0.3 else "conservative"
+            hint_desc = "excellent hints" if hint_q > 0.8 else "good hints" if hint_q > 0.6 else "average hints" if hint_q > 0.4 else "poor hints"
+
+            nl_description += f"- {player}: {skill_desc} player (skill: {skill:.1f}), {aggr_desc} style, {hint_desc}\n"
+
+        nl_description += "\n**CARD BELIEFS (probabilistic base):**\n"
+
+        nl_description += "\nMy Hand:\n"
+        for card_id, beliefs in belief_graph['My_Hand_Beliefs'].items():
+            card_num = card_id.split('Card')[1]
+            color_dist = beliefs['color_distribution']
+            rank_dist = beliefs['rank_distribution']
+
+            max_color = max(color_dist, key=color_dist.get)
+            max_rank = max(rank_dist, key=rank_dist.get)
+
+            nl_description += f"- Card {card_num}: Likely {max_color} {max_rank}\n"
+
+        nl_description += "\n**TEAMMATE HANDS (with mental models):**\n"
+        for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():
+            player_num = player_hand.split('P')[1].split('_')[0]
+            player_key = f"P{player_num}"
+
+            if player_key in tom['Teammates']:
+                skill = tom['Teammates'][player_key]['inferred_skill']
+                nl_description += f"\nPlayer {player_num} (skill: {skill:.1f}):\n"
+            else:
+                nl_description += f"\nPlayer {player_num}:\n"
+
+            for card_id, card_data in hand_data.items():
+                card_num = card_id.split('Card')[1]
+                actual = card_data.get('actual_card_I_see', 'Unknown')
+                nl_description += f"  - Card {card_num}: I see {actual}\n"
+
+        return nl_description

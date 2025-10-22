@@ -163,8 +163,8 @@ python hanabi_learning_environment/mixed_agents_runner.py "$PLAYERS" "$EPISODES"
 
 log_setup "Game completed successfully"
 
-# Extract all episode scores
-ALL_EPISODE_SCORES=$(grep -o "Best so far: [0-9]*" "$GAME_LOG" | grep -o "[0-9]*" || echo "0")
+# Extract all episode fireworks scores
+ALL_EPISODE_SCORES=$(grep -o "Fireworks built this episode: [0-9]*" "$GAME_LOG" | grep -o "[0-9]*" || echo "0")
 FINAL_SCORE=$(echo "$ALL_EPISODE_SCORES" | tail -1)
 FINAL_SCORE_INT=$(echo "$FINAL_SCORE" | cut -d. -f1)
 
@@ -178,4 +178,4 @@ else
     AVERAGE_INT="0"
 fi 
 
-echo "[Mixed Agents] Episodes: $(echo "$ALL_EPISODE_SCORES" | tr '\n' ' ' | sed 's/ $//' | sed 's/\.[0-9]*//g') | Avg: $AVERAGE_INT out of 25" | tee -a "$GAME_LOG"
+echo "[Mixed Agents] Episodes: $(echo "$ALL_EPISODE_SCORES" | tr '\n' ' ' | sed 's/ $//' | sed 's/\.[0-9]*//g') | Avg Fireworks: $AVERAGE_INT out of 25" | tee -a "$GAME_LOG"

@@ -42,7 +42,7 @@ class GeminiAgent(Agent):
         
         # Configure Gemini
         genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-2.5-pro')
+        self.model = genai.GenerativeModel('gemini-2.0-flash')
 
         # Game state tracking
         self.current_game_id = None
