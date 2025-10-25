@@ -9,32 +9,7 @@ class PromptManager:
 
     def get_hanabi_game_rules(self) -> str:
         """Hanabi game information."""
-        return """## HANABI GAME INFORMATION
-
-**DECK COMPOSITION:**
-- 5 colors: red, blue, green, white, yellow
-- 5 ranks: 1, 2, 3, 4, 5
-- Each combination appears exactly once (25 unique cards total)
-- Distribution: Three 1s, two each of 2-4, one 5 per color
-
-**OBJECTIVE:**
-- Play cards in ascending order by color (1→2→3→4→5) to build fireworks
-- Successfully playing all 5 cards of a color scores 5 points
-- Maximum score: 25 points (5 colors × 5 ranks)
-- Playing a 5 earns an extra clue token
-
-**CLUE SYSTEM:**
-- **Color clues**: "These cards are [color]" - affects ALL cards of that color in hand
-- **Rank clues**: "These cards are [rank]" - affects ALL cards of that rank in hand
-- **ABSOLUTE RULE**: Clued cards MUST have the hinted property
-- **NEGATIVE INFERENCE**: Un-clued cards CANNOT have the hinted property
-- **EXHAUSTIVE**: Clues affect ALL matching cards in the target player's hand
-
-**CLUE MECHANICS:**
-- When someone says "These cards are BLUE", they are telling the TRUTH
-- All blue cards in that hand ARE marked by the clue
-- All non-blue cards in that hand ARE NOT marked by the clue
-- There is NO ambiguity or uncertainty in the clue system"""
+        return self.get_rules_and_mechanics_block()
 
     def get_belief_update_prompt(self, event: Dict[str, Any], current_beliefs: Dict[str, Any] = None, variant: str = 'certainty') -> str:
         """Generate intelligent belief update prompt based on event and variant type."""
@@ -136,18 +111,35 @@ Update existing structures IN PLACE - do not create new JSON blocks."""
         return base_prompt
 
     def get_rules_and_mechanics_block(self) -> str:
-        """Core Hanabi rules and mechanics."""
+        """Core Hanabi rules and mechanics - single source of truth."""
         return """## HANABI RULES & MECHANICS
-- **CRITICAL**: You CANNOT see your own cards! This is the fundamental rule of Hanabi.
-- **CRITICAL**: You CAN see other players' cards, but they cannot see their own either.
-- **CardKnowledge variant**: You get explicit information about what you've been told about your cards.
-- Goal: Play cards in ascending order (1→2→3→4→5) for each color (R=Red, Y=Yellow, G=Green, W=White, B=Blue)
-- You have 8 information tokens (for giving hints) and 3 life tokens
-- Playing a wrong card costs 1 life token and the card goes to discard pile
-- Game ends when you run out of life tokens, deck is empty, or complete all fireworks
-- Maximum score is 25 points (5 colors × 5 ranks)
 
-**Game mechanics**: You hold cards facing away from you, must rely on hints from teammates, and can only play cards you're confident about."""
+**GAME SETUP:**
+- 5 colors (R,G,W,Y,B) × 5 ranks (1-5) = 25 unique cards
+- 3 ones, 2 each of 2-4, 1 five per color
+
+**OBJECTIVE:**
+- Build fireworks: play 1→2→3→4→5 for each color
+- Score: 25 points max (5 colors × 5 ranks)
+- Playing a 5 earns +1 clue token
+
+**FUNDAMENTAL RULE:**
+- You CANNOT see your own cards
+- You CAN see everyone else's cards
+- CardKnowledge variant: explicit info about clues you receive
+
+**CLUE SYSTEM:**
+- 8 information tokens for hints, 3 life tokens
+- Color clues: "These cards are [COLOR]" - affects ALL cards of that color
+- Rank clues: "These cards are [RANK]" - affects ALL cards of that rank
+- ABSOLUTE: Clued cards ALWAYS have the hinted property
+- NEGATIVE: Un-clued cards NEVER have the hinted property
+- NO ambiguity - clues are 100% truthful
+
+**GAMEPLAY:**
+- Wrong play costs 1 life, card goes to discard
+- Game ends: 0 lives, empty deck, or complete fireworks
+- You hold cards facing away, rely on teammate hints"""
 
     def get_strategy_and_priorities_block(self) -> str:
         """Game information."""
@@ -181,22 +173,22 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
 - Deck size: {observation['deck_size']}
 - Number of players: {observation['num_players']}
 
-## FIREWORKS PROGRESS (cards played so far)
+## FIREWORKS PROGRESS
 """
 
         for color, rank in observation['fireworks'].items():
-            game_state += f"- {color}: {rank}/5 (need {rank+1} next)\n"
+            game_state += f"- {color}: {rank}/5\n"
 
-        # Discard pile analysis
+        # Discard pile
         if observation['discard_pile']:
-            game_state += f"\n## DISCARD PILE (what's been lost)\n"
+            game_state += f"\n## DISCARD PILE\n"
             for card in observation['discard_pile']:
                 game_state += f"- {card['color']}{card['rank']}\n"
         else:
-            game_state += "\n## DISCARD PILE: empty (good - no cards lost yet)\n"
+            game_state += "\n## DISCARD PILE: empty\n"
 
-        # Other players' hands with strategic analysis
-        game_state += "\n## OTHER PLAYERS' HANDS (what you can see)\n"
+        # Other players' hands
+        game_state += "\n## OTHER PLAYERS' HANDS\n"
         current_player = observation.get('current_player')
         num_players = observation.get('num_players', len(observation['observed_hands']))
 
@@ -206,28 +198,19 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                 actual_player = (current_player + offset) % num_players
             display_player = (actual_player + 1) if actual_player is not None else (offset + 1)
             game_state += f"Player {display_player}: "
-            playable_cards = []
             for j, card in enumerate(hand, 1):
                 color = card.get('color')
                 rank = card.get('rank')
                 if color is not None and rank is not None and rank >= 0:
                     display_rank = rank + 1
                     display_card = f"{color}{display_rank}"
-                    current_firework = observation['fireworks'][color]
-                    if rank == current_firework:
-                        symbol = "🎯" if rank == 0 else "✅"
-                        game_state += f"{symbol}{display_card}(HINT!) "
-                        playable_cards.append(f"{display_card} at position {j}")
-                    else:
-                        game_state += f"{display_card} "
+                    game_state += f"{display_card} "
                 else:
                     game_state += "? "
-            if playable_cards:
-                game_state += f" <- CAN PLAY: {', '.join(playable_cards)}"
             game_state += "\n"
 
-        # Your hand with knowledge analysis
-        game_state += "\n## YOUR HAND (what you know vs. what you need)\n"
+        # Your hand
+        game_state += "\n## YOUR HAND\n"
         my_hand = observation['observed_hands'][0]
         my_knowledge = observation['card_knowledge'][0]
 
@@ -243,23 +226,9 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                 game_state += f"Rank: {rank_info + 1}"
             else:
                 game_state += "Rank: unknown"
-
-            # Add card information
-            if knowledge.get('color') is not None and rank_info is not None and rank_info >= 0:
-                current_firework = observation['fireworks'][knowledge['color']]
-                if rank_info == current_firework:
-                    if rank_info == 0:
-                        game_state += " - this is a 1"
-                    else:
-                        game_state += " - playable"
-                elif rank_info < current_firework:
-                    game_state += " - already played"
-                else:
-                    game_state += f" - need {current_firework + 1} first"
-
             game_state += "\n"
 
-        # Legal moves with strategic context
+        # Legal moves
         game_state += "\n## AVAILABLE ACTIONS\n"
         for i, move in enumerate(observation['legal_moves']):
             if move['action_type'] == 'PLAY':
@@ -283,122 +252,46 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
                     display_target = target_offset
                 game_state += f"{i}: Hint rank {move['rank'] + 1} to player {display_target} (-1 info token)\n"
 
-        # Game state information
-        game_state += "\n## GAME STATE\n"
-        if observation['information_tokens'] == 0:
-            game_state += "- No info tokens left\n"
-        elif observation['information_tokens'] == 8:
-            game_state += "- Max info tokens\n"
-
-        # Card play information
-        obvious_plays = []
-        for i, (card, knowledge) in enumerate(zip(my_hand, my_knowledge), 1):
-            color = knowledge.get('color')
-            rank_info = knowledge.get('rank')
-            if color is not None and rank_info is not None and rank_info >= 0:
-                current_firework = observation['fireworks'][color]
-                if rank_info == current_firework:
-                    obvious_plays.append(f"Card {i} ({color}{rank_info + 1})")
-
-        if obvious_plays:
-            game_state += f"- Playable cards: {', '.join(obvious_plays)}\n"
-        else:
-            game_state += "- No playable cards\n"
-
         return game_state
 
     def format_history_for_llm(self, observation_history: List[Dict], action_history: List[Dict]) -> str:
         """Format the observation and action history for the LLM."""
         if not observation_history:
-            return "## GAME HISTORY: This is the first turn of the game.\n"
+            return "## GAME HISTORY: First turn\n"
 
-        history_text = "## GAME HISTORY (Previous Turns)\n"
+        history_text = "## GAME HISTORY\n"
 
         for i, (obs, action) in enumerate(zip(observation_history, action_history)):
             turn_num = obs['turn']
             history_text += f"\n**Turn {turn_num}:**\n"
 
-            # Show what happened in this turn
             if action['action_type'] == 'PLAY':
-                history_text += f"- You PLAYED card {action['card_index']}\n"
+                history_text += f"- PLAYED card {action['card_index']}\n"
             elif action['action_type'] == 'DISCARD':
-                history_text += f"- You DISCARDED card {action['card_index']}\n"
+                history_text += f"- DISCARDED card {action['card_index']}\n"
             elif action['action_type'] == 'REVEAL_COLOR':
-                history_text += f"- You gave a COLOR hint ({action['color']}) to player {action['target_offset']}\n"
+                history_text += f"- COLOR hint ({action['color']}) to player {action['target_offset']}\n"
             elif action['action_type'] == 'REVEAL_RANK':
-                history_text += f"- You gave a RANK hint ({action['rank'] + 1}) to player {action['target_offset']}\n"
-
-            # Show state changes
-            if i > 0:
-                prev_obs = observation_history[i-1]
-                if obs['information_tokens'] != prev_obs['information_tokens']:
-                    change = obs['information_tokens'] - prev_obs['information_tokens']
-                    if change > 0:
-                        history_text += f"- Gained {change} information token(s)\n"
-                    else:
-                        history_text += f"- Used {abs(change)} information token(s)\n"
-
-                if obs['life_tokens'] != prev_obs['life_tokens']:
-                    change = obs['life_tokens'] - prev_obs['life_tokens']
-                    if change < 0:
-                        history_text += f"- Lost {abs(change)} life token(s) (mistake made)\n"
-
-                if obs['deck_size'] != prev_obs['deck_size']:
-                    history_text += f"- Deck size changed from {prev_obs['deck_size']} to {obs['deck_size']}\n"
-
-                # Show fireworks progress
-                for color in obs['fireworks']:
-                    if obs['fireworks'][color] != prev_obs['fireworks'][color]:
-                        history_text += f"- {color} firework progressed from {prev_obs['fireworks'][color]} to {obs['fireworks'][color]}\n"
-
-                # Show discard pile changes
-                if obs['discard_pile_size'] != prev_obs['discard_pile_size']:
-                    new_cards = obs['discard_pile_size'] - prev_obs['discard_pile_size']
-                    if new_cards > 0:
-                        history_text += f"- {new_cards} card(s) added to discard pile\n"
-
-        history_text += "\n**Pattern Analysis:**\n"
-
-        # Analyze patterns in the history
-        if len(action_history) >= 2:
-            recent_actions = [action['action_type'] for action in action_history[-3:]]
-            if recent_actions.count('REVEAL_COLOR') + recent_actions.count('REVEAL_RANK') >= 2:
-                history_text += "- Recent hints given\n"
-            elif recent_actions.count('PLAY') >= 2:
-                history_text += "- Recent successful plays\n"
-            elif recent_actions.count('DISCARD') >= 2:
-                history_text += "- Recent discards\n"
-
-        # Information token status
-        if observation_history:
-            current_tokens = observation_history[-1]['information_tokens']
-            if current_tokens == 0:
-                history_text += "- No information tokens remaining\n"
-            elif current_tokens == 8:
-                history_text += "- Maximum information tokens\n"
+                history_text += f"- RANK hint ({action['rank'] + 1}) to player {action['target_offset']}\n"
 
         return history_text
 
     def create_main_prompt(self, observation: Dict[str, Any], history: str) -> str:
-        """Create the main prompt for the LLM using modular building blocks."""
+        """Create the main prompt for the LLM."""
         game_state = self.format_observation_for_llm(observation)
 
-        # Build prompt using consolidated modular components
+        # Build prompt sections
         prompt_sections = [
-            "You are playing Hanabi-Full-CardKnowledge, a cooperative card game where you must work with your teammates to build fireworks.",
+            "You are playing Hanabi-Full-CardKnowledge.",
             "",
             history,
             "",
             self.get_rules_and_mechanics_block(),
-            "",
-            self.get_strategy_and_priorities_block(),
             ""
         ]
 
         # Add belief graph data if present
         if 'belief_graph' in observation:
-
-            # Use natural language version - must be available
             prompt_sections.extend([
                 observation['belief_graph_natural_language'],
                 "",
