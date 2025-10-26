@@ -7,11 +7,15 @@ from typing import Dict, Any, List
 class PromptManager:
     """Manages all prompt generation for Hanabi agents."""
 
+    def _get_default_fireworks(self) -> Dict[str, int]:
+        """Get default fireworks structure."""
+        return {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+
     def get_hanabi_game_rules(self) -> str:
         """Hanabi game information."""
         return self.get_rules_and_mechanics_block()
 
-    def get_belief_update_prompt(self, event: Dict[str, Any], current_beliefs: Dict[str, Any] = None, variant: str = 'certainty') -> str:
+    def get_belief_update_prompt(self, event: Dict[str, Any], current_beliefs: Dict[str, Any] = None, variant: str = 'certainty', history: str = "", observation: Dict[str, Any] = None) -> str:
         """Generate intelligent belief update prompt based on event and variant type."""
         clue_type = event.get('clue_type')
         raw_value = event.get('value')
@@ -31,7 +35,18 @@ class PromptManager:
         giver = event.get('clue_giver', 'Unknown')
 
         # Base rules section - reused across all variants
-        base_prompt = f"""{self.get_hanabi_game_rules()}
+        base_prompt = f"""You are playing Hanabi-Full-CardKnowledge.
+
+{self.get_hanabi_game_rules()}
+
+**COOPERATIVE TEAM CONTEXT:**
+You and your teammates are working together to build fireworks and score the maximum 25 points. This is a COOPERATIVE game - your success depends on teamwork.
+
+**GAME HISTORY:**
+{history}
+
+**CURRENT GAME STATE:**
+{self.format_observation_for_llm(observation)}
 
 **CURRENT CLUE EVENT:**
 - Clue giver: {giver}
@@ -40,29 +55,38 @@ class PromptManager:
 - Clue value: {clued_value}
 - Target card numbers (leftmost = 1): {clued_cards}
 
+**STRATEGIC TEAM REASONING:**
+Think cooperatively about this clue event:
+- What game stage is this? (early/mid/late game based on remaining cards, clues, lives)
+- What is the team's current priority? (building fireworks, saving important cards, managing information)
+- What is {giver} trying to communicate? (which card to play/save, signaling strategy)
+- How does this help {recipient} make better decisions?
+- How should this update affect the team's shared mental model?
+
 **BELIEF UPDATE REQUIREMENTS:**
-- Cards numbered {clued_cards} ARE {clued_value}
-- Cards with other numbers ARE NOT {clued_value}
+- Update beliefs based on cooperative reasoning and team strategy
+- Cards numbered {clued_cards} ARE {clued_value} (100% certain)
+- Cards with other numbers ARE NOT {clued_value} (negative inference)
+- Consider what this means for future team coordination
+- Update mental models of what teammates know about their cards and the game state
 - JSON keys follow the card numbering convention (e.g., `P2_Card3` means card number 3)
 """
 
         recipient_section = """
 **HAND SECTION TO UPDATE:**
 - Clue recipient: {recipient}
-- If {recipient} is YOU, update the cards in `My_Hand_Beliefs` using keys `P{recipient_num}_CardN`.
-- If {recipient} is a teammate, update only `Teammate_Hand_Beliefs["P{recipient_num}_Hand"]["P{recipient_num}_CardN"]`.
-- Do NOT touch any other player's belief sections or rename structures.
+- If {recipient} is YOU, update your beliefs about your own cards in `My_Hand_Beliefs`
+- If {recipient} is a teammate, update beliefs about their cards in `Teammate_Hand_Beliefs`
+- Use your creativity to structure the belief updates in the most logical and helpful way
+- Focus on accurately representing what the clue reveals and what can be inferred
+- You can reorganize or restructure beliefs as needed to best reflect the new information
 """
 
         if recipient.startswith('P') and recipient[1:].isdigit():
             recipient_num = int(recipient[1:])
             base_prompt += recipient_section.format(recipient=recipient, recipient_num=recipient_num)
         else:
-            base_prompt += """
-**HAND SECTION TO UPDATE:**
-- Apply the clue ONLY to the recipient's existing belief entries.
-- Never modify other players' sections or rename structures.
-"""
+            base_prompt += recipient_section.format(recipient=recipient)
 
         # Variant-specific sections
         if variant == 'certainty':
@@ -105,7 +129,12 @@ class PromptManager:
         base_prompt += """
 
 **RESPONSE FORMAT:**
-Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a `REASONING:` section explaining the key updates.
+Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a `REASONING:` section explaining:
+
+1. **STRATEGIC ANALYSIS**: What this clue reveals about game state, team strategy, and future possibilities
+2. **MENTAL MODEL UPDATES**: How you've updated beliefs about what teammates know and think
+3. **FUTURE IMPLICATIONS**: What this means for upcoming turns and decision-making
+
 Update existing structures IN PLACE - do not create new JSON blocks."""
 
         return base_prompt
@@ -262,7 +291,8 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
         history_text = "## GAME HISTORY\n"
 
         for i, (obs, action) in enumerate(zip(observation_history, action_history)):
-            turn_num = obs['turn']
+            # Use loop index + 1 for turn numbering to ensure proper incrementing
+            turn_num = i + 1
             history_text += f"\n**Turn {turn_num}:**\n"
 
             if action['action_type'] == 'PLAY':
@@ -294,11 +324,6 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
         if 'belief_graph' in observation:
             prompt_sections.extend([
                 observation['belief_graph_natural_language'],
-                "",
-                "## BELIEF GRAPH SNAPSHOT (JSON)",
-                "```json",
-                json.dumps(observation['belief_graph'], indent=2),
-                "```",
                 ""
             ])
 
@@ -348,7 +373,7 @@ Respond with a valid JSON action object:
             return self.format_certainty_belief_graph_natural_language(belief_graph)
 
     def format_certainty_belief_graph_natural_language(self, belief_graph: Dict[str, Any]) -> str:
-        """Convert certainty belief graph to natural language (pure information)."""
+        """Convert certainty belief graph to natural language with complete detail."""
         nl_description = "## BELIEF GRAPH ANALYSIS (CERTAINTY VARIANT)\n\n"
 
         gs = belief_graph['GameState']
@@ -356,10 +381,9 @@ Respond with a valid JSON action object:
 
         nl_description += "**MY HAND BELIEFS:**\n"
 
+        # Get current fireworks for playability checking
         game_state = belief_graph.get('GameState', {})
-        fireworks = game_state.get('fireworks', {})
-        if not fireworks:
-            fireworks = {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+        fireworks = game_state.get('fireworks', self._get_default_fireworks())
 
         for card_id, beliefs in belief_graph['My_Hand_Beliefs'].items():
             card_num = card_id.split('Card')[1]
@@ -367,6 +391,23 @@ Respond with a valid JSON action object:
             colors = beliefs['possible_colors']
             ranks = beliefs['possible_ranks']
 
+            nl_description += f"- Card {card_num} (card_index {card_idx}):\n"
+
+            # Format possible colors
+            if colors:
+                color_str = ", ".join([c.upper() for c in sorted(colors)])
+                nl_description += f"  * Possible colors: {color_str}\n"
+            else:
+                nl_description += f"  * Possible colors: Unknown\n"
+
+            # Format possible ranks
+            if ranks:
+                rank_str = ", ".join([str(r) for r in sorted(ranks)])
+                nl_description += f"  * Possible ranks: {rank_str}\n"
+            else:
+                nl_description += f"  * Possible ranks: Unknown\n"
+
+            # Certainty assessment
             if len(colors) == 1 and len(ranks) == 1:
                 color = colors[0]
                 rank = ranks[0]
@@ -374,11 +415,11 @@ Respond with a valid JSON action object:
                 current_firework = fireworks.get(color_key, 0)
 
                 if rank == current_firework + 1:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - playable now\n"
+                    nl_description += f"  * Status: Certain - {color.upper()} {rank} (PLAYABLE NOW)\n"
                 elif rank <= current_firework:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - already played\n"
+                    nl_description += f"  * Status: Certain - {color.upper()} {rank} (already played)\n"
                 else:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - not yet\n"
+                    nl_description += f"  * Status: Certain - {color.upper()} {rank} (not yet playable)\n"
             elif len(ranks) == 1 and ranks[0] == 1:
                 possible_plays = []
                 for c in colors:
@@ -387,18 +428,19 @@ Respond with a valid JSON action object:
                         possible_plays.append(c.upper())
 
                 if possible_plays:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): Rank 1, can start {'/'.join(possible_plays)}\n"
+                    nl_description += f"  * Status: Rank 1 - can start {'/'.join(possible_plays)}\n"
                 else:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): Rank 1, colors already started\n"
-            elif len(colors) == 1 and len(ranks) <= 2:
-                color = colors[0]
-                nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {'/'.join(map(str,ranks))}\n"
+                    nl_description += f"  * Status: Rank 1 - all colors already started\n"
             elif len(colors) == 1:
-                nl_description += f"- Card {card_num} (card_index {card_idx}): {colors[0].upper()} color only\n"
+                color = colors[0]
+                rank_str = '/'.join(map(str, sorted(ranks)))
+                nl_description += f"  * Status: {color.upper()} color, ranks: {rank_str}\n"
             elif len(ranks) == 1:
-                nl_description += f"- Card {card_num} (card_index {card_idx}): Rank {ranks[0]} only\n"
+                rank = ranks[0]
+                color_str = ', '.join([c.upper() for c in sorted(colors)])
+                nl_description += f"  * Status: Rank {rank}, colors: {color_str}\n"
             else:
-                nl_description += f"- Card {card_num} (card_index {card_idx}): {len(colors)} colors, {len(ranks)} ranks possible\n"
+                nl_description += f"  * Status: {len(colors)} colors, {len(ranks)} ranks possible\n"
 
         nl_description += "\n**TEAMMATE KNOWLEDGE MODEL:**\n"
         for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():
@@ -412,19 +454,31 @@ Respond with a valid JSON action object:
                 colors = belief.get('possible_colors', [])
                 ranks = belief.get('possible_ranks', [])
 
-                if len(colors) == 1 and len(ranks) == 1:
-                    nl_description += f"  - Card {card_num}: I see {actual}, they know {colors[0].upper()} {ranks[0]}\n"
-                elif len(colors) == 1:
-                    nl_description += f"  - Card {card_num}: I see {actual}, they know color {colors[0].upper()}\n"
-                elif len(ranks) == 1:
-                    nl_description += f"  - Card {card_num}: I see {actual}, they know rank {ranks[0]}\n"
+                nl_description += f"  - Card {card_num}: I see {actual}\n"
+
+                # What the teammate knows
+                if colors and ranks:
+                    color_str = ", ".join([c.upper() for c in sorted(colors)])
+                    rank_str = ", ".join([str(r) for r in sorted(ranks)])
+                    nl_description += f"    * They believe colors: {color_str}\n"
+                    nl_description += f"    * They believe ranks: {rank_str}\n"
+
+                    # Their certainty level
+                    if len(colors) == 1 and len(ranks) == 1:
+                        nl_description += f"    * Their knowledge: Certain ({colors[0].upper()} {ranks[0]})\n"
+                    elif len(colors) == 1:
+                        nl_description += f"    * Their knowledge: Color known ({colors[0].upper()})\n"
+                    elif len(ranks) == 1:
+                        nl_description += f"    * Their knowledge: Rank known ({ranks[0]})\n"
+                    else:
+                        nl_description += f"    * Their knowledge: Uncertain ({len(colors)} colors, {len(ranks)} ranks)\n"
                 else:
-                    nl_description += f"  - Card {card_num}: I see {actual}, uncertain\n"
+                    nl_description += f"    * Their knowledge: No belief data\n"
 
         return nl_description
 
     def format_probabilistic_belief_graph_natural_language(self, belief_graph: Dict[str, Any]) -> str:
-        """Convert probabilistic belief graph to natural language (pure information)."""
+        """Convert probabilistic belief graph to natural language with complete detail."""
         nl_description = "## BELIEF GRAPH ANALYSIS (PROBABILISTIC VARIANT)\n\n"
 
         gs = belief_graph['GameState']
@@ -434,9 +488,7 @@ Respond with a valid JSON action object:
 
         # Get current fireworks for playability checking
         game_state = belief_graph.get('GameState', {})
-        fireworks = game_state.get('fireworks', {})
-        if not fireworks:
-            fireworks = {'R': 0, 'Y': 0, 'G': 0, 'W': 0, 'B': 0}
+        fireworks = game_state.get('fireworks', self._get_default_fireworks())
 
         for card_id, beliefs in belief_graph['My_Hand_Beliefs'].items():
             card_num = card_id.split('Card')[1]
@@ -444,41 +496,35 @@ Respond with a valid JSON action object:
             color_dist = beliefs['color_distribution']
             rank_dist = beliefs['rank_distribution']
 
+            # Find highest probability color and rank
             max_color = max(color_dist, key=color_dist.get)
             max_color_prob = color_dist[max_color]
             max_rank = max(rank_dist, key=rank_dist.get)
             max_rank_prob = rank_dist[max_rank]
 
+            # Format color distribution
+            color_items = sorted(color_dist.items(), key=lambda x: x[1], reverse=True)
+            color_str = ", ".join([f"{c.upper()}({p*100:.0f}%)" for c, p in color_items])
+
+            # Format rank distribution
+            rank_items = sorted(rank_dist.items(), key=lambda x: x[1], reverse=True)
+            rank_str = ", ".join([f"{r}({p*100:.0f}%)" for r, p in rank_items])
+
+            nl_description += f"- Card {card_num} (card_index {card_idx}):\n"
+            nl_description += f"  * Colors: {color_str}\n"
+            nl_description += f"  * Ranks: {rank_str}\n"
+
+            # Confidence assessment
             if max_color_prob == 1.0 and max_rank_prob == 1.0:
-                # 100% certain - check if actually playable
-                color = max_color
-                rank = int(max_rank)
-                color_key = color[0].upper() if len(color) > 0 else color.upper()
-                current_firework = fireworks.get(color_key, 0)
-
-                if rank == current_firework + 1:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - playable\n"
-                elif rank <= current_firework:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - already played\n"
-                else:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): {color.upper()} {rank} - waiting\n"
+                nl_description += f"  * Status: Certain - {max_color.upper()} {max_rank}\n"
             elif max_color_prob >= 0.8 and max_rank_prob >= 0.8:
-                # High confidence (80%+)
-                nl_description += f"- Card {card_num} (card_index {card_idx}): {max_color.upper()} {max_rank} ({max_color_prob*100:.0f}%/{max_rank_prob*100:.0f}% confidence)\n"
-            elif max_rank_prob >= 0.8 and max_rank == "1":
-                # Very confident it's a rank 1
-                possible_starts = []
-                for c in color_dist:
-                    c_key = c[0].upper() if len(c) > 0 else c.upper()
-                    if fireworks.get(c_key, 0) == 0 and color_dist[c] > 0.5:
-                        possible_starts.append(c.upper())
-
-                if possible_starts:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): Likely rank 1 - can start {'/'.join(possible_starts)} ({max_rank_prob*100:.0f}% confidence)\n"
-                else:
-                    nl_description += f"- Card {card_num} (card_index {card_idx}): Likely rank 1 - {max_color.upper()} ({max_rank_prob*100:.0f}% confidence)\n"
+                nl_description += f"  * Status: {max_color_prob*100:.0f}% color, {max_rank_prob*100:.0f}% rank - High confidence\n"
+            elif max_color_prob >= 0.8:
+                nl_description += f"  * Status: {max_color_prob*100:.0f}% color known ({max_color.upper()}), rank uncertain\n"
+            elif max_rank_prob >= 0.8:
+                nl_description += f"  * Status: {max_rank_prob*100:.0f}% rank known ({max_rank}), color uncertain\n"
             else:
-                nl_description += f"- Card {card_num} (card_index {card_idx}): {max_color} {max_rank} ({max_color_prob*100:.0f}%/{max_rank_prob*100:.0f}% confidence)\n"
+                nl_description += f"  * Status: {max_color_prob*100:.0f}% color, {max_rank_prob*100:.0f}% rank - Uncertain\n"
 
         nl_description += "\n**TEAMMATE KNOWLEDGE MODEL:**\n"
         for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():
@@ -488,21 +534,55 @@ Respond with a valid JSON action object:
             for card_id, card_data in hand_data.items():
                 card_num = card_id.split('Card')[1]
                 actual = card_data.get('actual_card_I_see', 'Unknown')
-                belief = card_data.get(f'p{player_num}_belief', {})
+
+                # Extract player number from the belief key instead of player_num from iteration
+                belief_key = None
+                for key in card_data.keys():
+                    if key.endswith('_belief'):
+                        belief_key = key
+                        break
+
+                belief = card_data.get(belief_key, {})
                 color_dist = belief.get('color_distribution', {})
                 rank_dist = belief.get('rank_distribution', {})
 
+                # Find highest probability color and rank
                 max_color_prob = max(color_dist.values()) if color_dist else 0
                 max_rank_prob = max(rank_dist.values()) if rank_dist else 0
 
-                if max_color_prob == 1.0 and max_rank_prob == 1.0:
-                    nl_description += f"  - Card {card_num}: I see {actual}, certain knowledge\n"
-                elif max_color_prob >= 0.8:
-                    nl_description += f"  - Card {card_num}: I see {actual}, color known ({max_color_prob*100:.0f}%)\n"
-                elif max_rank_prob >= 0.8:
-                    nl_description += f"  - Card {card_num}: I see {actual}, rank known ({max_rank_prob*100:.0f}%)\n"
+                # Format what player believes
+                if color_dist and rank_dist:
+                    color_items = sorted(color_dist.items(), key=lambda x: x[1], reverse=True)
+                    color_str = ", ".join([f"{c.upper()}({p*100:.0f}%)" for c, p in color_items if p > 0])
+
+                    rank_items = sorted(rank_dist.items(), key=lambda x: x[1], reverse=True)
+                    rank_str = ", ".join([f"{r}({p*100:.0f}%)" for r, p in rank_items if p > 0])
+
+                    nl_description += f"  - Card {card_num}: I see {actual}\n"
+                    nl_description += f"    * They believe colors: {color_str}\n"
+                    nl_description += f"    * They believe ranks: {rank_str}\n"
+
+                    # Confidence assessment with raw percentages
+                    max_color_prob = max(color_dist.values()) if color_dist else 0
+                    max_rank_prob = max(rank_dist.values()) if rank_dist else 0
+
+                    if max_color_prob == 1.0 and max_rank_prob == 1.0:
+                        # Find the actual color and rank for certain case
+                        certain_color = max(color_dist, key=color_dist.get)
+                        certain_rank = max(rank_dist, key=rank_dist.get)
+                        nl_description += f"    * Their knowledge: Certain ({certain_color.upper()} {certain_rank})\n"
+                    elif max_color_prob >= 0.8 and max_rank_prob >= 0.8:
+                        nl_description += f"    * Their knowledge: {max_color_prob*100:.0f}% color, {max_rank_prob*100:.0f}% rank\n"
+                    elif max_color_prob >= 0.8:
+                        max_color = max(color_dist, key=color_dist.get)
+                        nl_description += f"    * Their knowledge: {max_color_prob*100:.0f}% color known ({max_color.upper()})\n"
+                    elif max_rank_prob >= 0.8:
+                        max_rank = max(rank_dist, key=rank_dist.get)
+                        nl_description += f"    * Their knowledge: {max_rank_prob*100:.0f}% rank known ({max_rank})\n"
+                    else:
+                        nl_description += f"    * Their knowledge: {max_color_prob*100:.0f}% color, {max_rank_prob*100:.0f}% rank\n"
                 else:
-                    nl_description += f"  - Card {card_num}: I see {actual}, uncertain\n"
+                    nl_description += f"  - Card {card_num}: I see {actual}, no belief data\n"
 
         return nl_description
 
@@ -527,11 +607,7 @@ Respond with a valid JSON action object:
             aggr = profile.get('play_aggressiveness', 0.5)
             hint_q = profile.get('hint_quality', 0.5)
 
-            skill_desc = "expert" if skill > 0.8 else "competent" if skill > 0.6 else "average" if skill > 0.4 else "novice"
-            aggr_desc = "aggressive" if aggr > 0.7 else "balanced" if aggr > 0.3 else "conservative"
-            hint_desc = "excellent hints" if hint_q > 0.8 else "good hints" if hint_q > 0.6 else "average hints" if hint_q > 0.4 else "poor hints"
-
-            nl_description += f"- {player}: {skill_desc} player (skill: {skill:.1f}), {aggr_desc} style, {hint_desc}\n"
+            nl_description += f"- {player}: Skill {skill:.1f}, Play aggressiveness {aggr:.1f}, Hint quality {hint_q:.1f}\n"
 
         nl_description += "\n**CARD BELIEFS (probabilistic base):**\n"
 
@@ -542,9 +618,11 @@ Respond with a valid JSON action object:
             rank_dist = beliefs['rank_distribution']
 
             max_color = max(color_dist, key=color_dist.get)
+            max_color_prob = color_dist[max_color]
             max_rank = max(rank_dist, key=rank_dist.get)
+            max_rank_prob = rank_dist[max_rank]
 
-            nl_description += f"- Card {card_num}: Likely {max_color} {max_rank}\n"
+            nl_description += f"- Card {card_num}: {max_color.upper()} {max_rank} ({max_color_prob*100:.0f}% color, {max_rank_prob*100:.0f}% rank)\n"
 
         nl_description += "\n**TEAMMATE HANDS (with mental models):**\n"
         for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():

@@ -55,13 +55,52 @@ class BeliefGraphToMAgent(BeliefGraphAgentBase):
                     "hint_quality": 0.5
                 }
 
-    def _process_single_event(self, event: Dict[str, Any]):
+    def _update_variant_specific_models(self, observation: Dict[str, Any]):
+        """Update ToM teammate models - ensure all current players are tracked."""
+        num_players = observation['num_players']
+
+        # Initialize ToM layer if it doesn't exist
+        if "ToM_Layer" not in self.belief_graph:
+            self.belief_graph["ToM_Layer"] = {
+                "Team_Focus": {
+                    "focus_distribution": {
+                        "building_fireworks": 0.4,
+                        "saving_cards": 0.3,
+                        "information_management": 0.3
+                    }
+                },
+                "Teammates": {}
+            }
+
+        # Ensure all current players have models
+        for player_idx in range(num_players):
+            if player_idx != self.my_player_number:
+                player_id = player_idx + 1
+                player_key = f"P{player_id}"
+                if player_key not in self.belief_graph["ToM_Layer"]["Teammates"]:
+                    self.belief_graph["ToM_Layer"]["Teammates"][player_key] = {
+                        "inferred_skill": 0.5,
+                        "play_aggressiveness": 0.5,
+                        "hint_quality": 0.5
+                    }
+
+        # Remove players who are no longer in the game (shouldn't happen but just in case)
+        current_players = {f"P{i+1}" for i in range(num_players) if i != self.my_player_number}
+        existing_players = set(self.belief_graph["ToM_Layer"]["Teammates"].keys())
+        players_to_remove = existing_players - current_players
+        for player_key in players_to_remove:
+            del self.belief_graph["ToM_Layer"]["Teammates"][player_key]
+
+    def _process_single_event(self, event: Dict[str, Any], observation: Dict[str, Any]):
         """Process a single event through the LLM with ToM reasoning."""
         if 'clue_recipient' not in event:
             self.logger.log_debug("BELIEF_UPDATE", "No belief update needed for non-clue events")
             return
 
-        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'theory_of_mind')
+        # Create history like in gemini_agent.py
+        history = self.prompt_manager.format_history_for_llm(self.observation_history, self.action_history)
+
+        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'theory_of_mind', history, observation)
 
         self.logger.log_info("TOM_UPDATE_PROMPT", f"Sending ToM update to LLM: {len(prompt)} chars")
         self.logger.log_debug("TOM_UPDATE_PROMPT_DETAIL", prompt)
@@ -83,6 +122,9 @@ class BeliefGraphToMAgent(BeliefGraphAgentBase):
             self.logger.log_info("BELIEF_UPDATE_DIFF", diff_summary)
 
             self.belief_graph = new_belief_graph
+
+            # CRITICAL: Update snapshots after LLM belief update to keep them in sync
+            self._update_snapshots_after_belief_update()
 
             if 'ToM_Layer' in self.belief_graph:
                 self.logger.log_info("TOM_UPDATE", f"Team focus: {self.belief_graph['ToM_Layer']['Team_Focus']}")

@@ -31,7 +31,7 @@ class BeliefGraphCertaintyAgent(BeliefGraphAgentBase):
             "possible_ranks": [1, 2, 3, 4, 5]
         }
 
-    def _process_single_event(self, event: Dict[str, Any]):
+    def _process_single_event(self, event: Dict[str, Any], observation: Dict[str, Any]):
         """Process a single event through the LLM."""
         if 'clue_recipient' not in event:
             self.logger.log_debug("BELIEF_UPDATE", "No belief update needed for non-clue events")
@@ -39,7 +39,10 @@ class BeliefGraphCertaintyAgent(BeliefGraphAgentBase):
 
         self.logger.log_info("BELIEF_BEFORE_UPDATE", f"Current belief graph: {json.dumps(self.belief_graph, indent=2)}")
 
-        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'certainty')
+        # Create history like in gemini_agent.py
+        history = self.prompt_manager.format_history_for_llm(self.observation_history, self.action_history)
+
+        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'certainty', history, observation)
 
         self.logger.log_info("PROMPT_TO_LLM", f"Prompt ({len(prompt)} chars):\n{prompt}")
 
@@ -62,6 +65,9 @@ class BeliefGraphCertaintyAgent(BeliefGraphAgentBase):
             self.logger.log_info("BELIEF_UPDATE_DIFF", diff_summary)
 
             self.belief_graph = new_belief_graph
+
+            # CRITICAL: Update snapshots after LLM belief update to keep them in sync
+            self._update_snapshots_after_belief_update()
 
             self.logger.log_info("BELIEF_AFTER_UPDATE", f"Updated belief graph:\n{json.dumps(self.belief_graph, indent=2)}")
 

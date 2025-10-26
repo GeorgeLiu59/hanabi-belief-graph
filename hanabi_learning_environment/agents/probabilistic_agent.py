@@ -32,13 +32,16 @@ class BeliefGraphProbabilisticAgent(BeliefGraphAgentBase):
             "rank_distribution": self.uniform_rank.copy()
         }
 
-    def _process_single_event(self, event: Dict[str, Any]):
+    def _process_single_event(self, event: Dict[str, Any], observation: Dict[str, Any]):
         """Process a single event through the LLM for probabilistic beliefs."""
         if 'clue_recipient' not in event:
             self.logger.log_debug("BELIEF_UPDATE", "No belief update needed for non-clue events")
             return
 
-        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'probabilistic')
+        # Create history like in gemini_agent.py
+        history = self.prompt_manager.format_history_for_llm(self.observation_history, self.action_history)
+
+        prompt = self.prompt_manager.get_belief_update_prompt(event, self.belief_graph, 'probabilistic', history, observation)
 
         self.logger.log_info("BELIEF_UPDATE_PROMPT", f"Sending probabilistic update to LLM: {len(prompt)} chars")
         self.logger.log_debug("BELIEF_UPDATE_PROMPT_DETAIL", prompt)
@@ -96,6 +99,9 @@ class BeliefGraphProbabilisticAgent(BeliefGraphAgentBase):
             self.logger.log_info("BELIEF_UPDATE_DIFF", diff_summary)
 
             self.belief_graph = new_belief_graph
+
+            # CRITICAL: Update snapshots after LLM belief update to keep them in sync
+            self._update_snapshots_after_belief_update()
 
             updated_belief = json.dumps(self.belief_graph, indent=2)
             self.logger.log_debug("BELIEF_UPDATE_AFTER", updated_belief)
