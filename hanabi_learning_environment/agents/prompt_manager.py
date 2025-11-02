@@ -740,4 +740,26 @@ Respond with a valid JSON action object:
                     strategy_assessment = beliefs.get('believes_about_my_strategy', 0.5)
                     nl_description += f"  * My skill: {skill_assessment:.1f}, My strategy: {strategy_assessment:.1f}\n"
 
+                    # Add detailed beliefs about my hand
+                    hand_beliefs = beliefs.get('believes_about_my_hand', {})
+                    if hand_beliefs:
+                        nl_description += "  * They believe about my hand:\n"
+                        for card_id, card_belief in hand_beliefs.items():
+                            if isinstance(card_belief, dict):
+                                # Handle different belief formats
+                                if 'rank' in card_belief and 'confidence' in card_belief:
+                                    rank = card_belief['rank']
+                                    conf = card_belief['confidence']
+                                    color = card_belief.get('color', 'unknown')
+                                    nl_description += f"    - {card_id}: {color.upper()} {rank} ({conf*100:.0f}% confident)\n"
+                                elif 'color' in card_belief and 'confidence' in card_belief:
+                                    color = card_belief['color']
+                                    conf = card_belief['confidence']
+                                    rank = card_belief.get('rank', 'unknown')
+                                    nl_description += f"    - {card_id}: {color.upper()} {rank} ({conf*100:.0f}% confident)\n"
+                                else:
+                                    # Generic format
+                                    details = ", ".join([f"{k}: {v}" for k, v in card_belief.items()])
+                                    nl_description += f"    - {card_id}: {details}\n"
+
         return nl_description
