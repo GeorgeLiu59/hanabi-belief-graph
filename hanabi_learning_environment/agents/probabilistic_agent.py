@@ -57,37 +57,7 @@ class BeliefGraphProbabilisticAgent(BeliefGraphAgentBase):
 
             response_text = reasoning_response.text
 
-            if '```json' in response_text:
-                json_start = response_text.find('```json') + 7
-                json_end = response_text.find('```', json_start)
-                if json_end == -1:
-                    json_end = len(response_text)
-                json_text = response_text[json_start:json_end].strip()
-            else:
-                brace_count = 0
-                json_start = -1
-                json_end = -1
-
-                for i, char in enumerate(response_text):
-                    if char == '{':
-                        if brace_count == 0:
-                            json_start = i
-                        brace_count += 1
-                    elif char == '}':
-                        brace_count -= 1
-                        if brace_count == 0 and json_start != -1:
-                            json_end = i + 1
-                            try:
-                                potential_json = response_text[json_start:json_end]
-                                json.loads(potential_json)
-                                json_text = potential_json
-                                break
-                            except:
-                                continue
-
-                if json_start == -1 or json_end == -1:
-                    raise ValueError("No valid JSON found in LLM response")
-
+            json_text = self._extract_json_from_response(response_text)
             self.logger.log_debug("BELIEF_UPDATE_JSON_EXTRACTED", json_text)
 
             previous_belief = json.dumps(self.belief_graph, indent=2)

@@ -787,44 +787,65 @@ class BeliefGraphAgentBase(GeminiAgent, ABC):
         return ""
 
     def _extract_json_from_response(self, response_text: str) -> str:
-        """Robustly extract the JSON block returned by the LLM."""
-        candidate = response_text
-
+        """Robustly extract the JSON block returned by the LLM with comprehensive fallbacks."""
+        # First try: Extract from code blocks with JSON marker
         if '```json' in response_text:
-            start = response_text.find('```json') + len('```json')
-            remainder = response_text[start:]
-            end_marker = remainder.find('```')
-            if end_marker != -1:
-                candidate = remainder[:end_marker]
-            else:
-                candidate = remainder
+            json_start = response_text.find('```json') + 7
+            json_end = response_text.find('```', json_start)
+            if json_end == -1:
+                json_end = len(response_text)
+            json_text = response_text[json_start:json_end].strip()
+            try:
+                json.loads(json_text)
+                return json_text
+            except:
+                pass  # Fall through to next method
+
+        # Second try: Extract from any code blocks
         elif '```' in response_text:
-            start = response_text.find('```') + 3
-            remainder = response_text[start:]
-            end_marker = remainder.find('```')
-            if end_marker != -1:
-                candidate = remainder[:end_marker]
-            else:
-                candidate = remainder
+            json_start = response_text.find('```') + 3
+            json_end = response_text.find('```', json_start)
+            if json_end == -1:
+                json_end = len(response_text)
+            json_text = response_text[json_start:json_end].strip()
+            try:
+                json.loads(json_text)
+                return json_text
+            except:
+                pass  # Fall through to next method
 
-        candidate = candidate.strip()
-
+        # Third try: Find JSON by brace counting (gv2 probabilistic approach)
         brace_count = 0
         json_start = -1
-        for idx, char in enumerate(candidate):
+        json_end = -1
+
+        for i, char in enumerate(response_text):
             if char == '{':
                 if brace_count == 0:
-                    json_start = idx
+                    json_start = i
                 brace_count += 1
             elif char == '}':
                 brace_count -= 1
                 if brace_count == 0 and json_start != -1:
-                    snippet = candidate[json_start:idx + 1]
+                    json_end = i + 1
                     try:
-                        json.loads(snippet)
-                        return snippet
-                    except json.JSONDecodeError:
+                        potential_json = response_text[json_start:json_end]
+                        json.loads(potential_json)
+                        return potential_json
+                    except:
                         continue
+
+        # Fourth try: Find first { to last } (basic fallback for simple cases)
+        if response_text.startswith('```'):
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            if json_start != -1 and json_end != 0:
+                try:
+                    json_text = response_text[json_start:json_end]
+                    json.loads(json_text)
+                    return json_text
+                except:
+                    pass
 
         raise ValueError("No valid JSON found in LLM response")
 

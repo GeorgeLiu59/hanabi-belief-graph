@@ -15,7 +15,7 @@ class PromptManager:
         """Hanabi game information."""
         return self.get_rules_and_mechanics_block()
 
-    def get_belief_update_prompt(self, event: Dict[str, Any], current_beliefs: Dict[str, Any] = None, variant: str = 'certainty', history: str = "", observation: Dict[str, Any] = None) -> str:
+    def get_belief_update_prompt(self, event: Dict[str, Any], current_beliefs: Dict[str, Any] = None, variant: str = 'certainty', history: str = "", observation: Dict[str, Any] = None, cot_reasoner=None) -> str:
         """Generate intelligent belief update prompt based on event and variant type."""
         clue_type = event.get('clue_type')
         raw_value = event.get('value')
@@ -55,7 +55,7 @@ You and your teammates are working together to build fireworks and score the max
 - Clue value: {clued_value}
 - Target card numbers (leftmost = 1): {clued_cards}
 
-**STRATEGIC TEAM REASONING:**
+**GENERAL BELIEF GRAPH UPDATE PRMPT - STRATEGIC TEAM REASONING:**
 Think cooperatively about this clue event:
 - What game stage is this? (early/mid/late game based on remaining cards, clues, lives)
 - What is the team's current priority? (building fireworks, saving important cards, managing information)
@@ -71,7 +71,6 @@ Think cooperatively about this clue event:
 - Update mental models of what teammates know about their cards and the game state
 - JSON keys follow the card numbering convention (e.g., `P2_Card3` means card number 3)
 """
-
         recipient_section = """
 **HAND SECTION TO UPDATE:**
 - Clue recipient: {recipient}
@@ -95,15 +94,61 @@ Think cooperatively about this clue event:
 
 
 """
-        elif variant == 'probabilistic':
+        elif variant in ['probabilistic', 'theory_of_mind']:
             base_prompt += """
 **PROBABILISTIC VARIANT UPDATE:**
 
 
 """
-        elif variant == 'theory_of_mind':
+        if variant == 'theory_of_mind':
             base_prompt += """
-**THEORY OF MIND VARIANT UPDATE:**
+**THEORY OF MIND VARIANT UPDATE (Variation 4 - Recursive ToM):**
+CRITICAL: You must perform recursive Theory of Mind reasoning about what teammates think about YOU.
+
+**TEAM FOCUS STRATEGIES - DEFINITIONS AND INDICATORS:**
+
+**PLAY_ANYTHING:**
+- Meaning: No specific priority, play whatever seems most valuable
+- Use when: Early game, multiple options available, no clear strategic priority
+- Shift away from: When specific strategic needs emerge (save 5s, play 1s)
+
+**SAVE_FIVES:**
+- Meaning: Prioritize identifying and saving 5s for endgame (+1 clue token bonus)
+- Use when: Mid-to-late game, clues are plentiful, 5s become valuable
+- Indicators: Players giving conservative clues, holding potentially valuable cards
+
+**PLAY_ONES:**
+- Meaning: Prioritize playing 1s to start new fireworks (foundational strategy)
+- Use when: Early game, multiple colors unstarted, high information-to-clue ratio
+- Indicators: Players getting rank 1 clues, need to establish color foundations
+
+**RECURSIVE ToM REASONING:**
+1. **First-order ToM**: Update what you think about the clue recipient's beliefs about their own cards
+2. **Second-order ToM (Variation 4)**: Update what you think the clue giver thinks about YOU (player n itself)
+3. **Strategic Intent**: Analyze how this clue affects what everyone thinks about your capabilities and team strategy
+
+**TEAM MENTAL MODEL UPDATES:**
+- Update Team_Focus distribution based on strategic implications of the clue
+- Consider GAME STAGE (early/mid/late) when determining appropriate focus
+- Update inferred_skill for players based on the quality/complexity of their actions
+- Update Recursive_ToM beliefs about what players think about YOUR skill and strategy (not about other players)
+- Consider how this clue changes what others think about your decision-making capabilities
+- CLUE TYPE ANALYSIS: Rank 1 clues often signal PLAY_ONES, complex clues may signal SAVE_FIVES strategy
+
+**CRITICAL RECURSIVE ToM STRUCTURE:**
+For each player's Recursive_ToM section about YOU (e.g., "P1 thinks about ME"), maintain this exact structure:
+```json
+"believes_about_my_hand": {
+  "Card1": {"color": "R", "rank": 1, "confidence": 0.8},
+  "Card2": {"color": "Y", "rank": 2, "confidence": 0.6}
+},
+"believes_about_my_skill": 0.55,
+"believes_about_my_strategy": 0.6
+```
+
+- `believes_about_my_hand`: Update what this player thinks about your specific cards
+- `believes_about_my_skill`: Update what this player thinks about your overall skill level (0-1)
+- `believes_about_my_strategy`: Update what this player thinks about your strategic tendencies (0-1)
 
 
 """
@@ -129,13 +174,19 @@ Think cooperatively about this clue event:
         base_prompt += """
 
 **RESPONSE FORMAT:**
-Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a `REASONING:` section explaining:
+Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a comprehensive `REASONING:` section explaining your belief update analysis.
 
-1. **STRATEGIC ANALYSIS**: What this clue reveals about game state, team strategy, and future possibilities
-2. **MENTAL MODEL UPDATES**: How you've updated beliefs about what teammates know and think
-3. **FUTURE IMPLICATIONS**: What this means for upcoming turns and decision-making
+**NOTE:** Your belief updates should follow Chain of Thought reasoning covering:
+- Direct impact of the clue on card knowledge
+- Team mental model and strategy updates
+- Theory of Mind reasoning (for ToM variants)
+- Strategic implications for future coordination
 
 Update existing structures IN PLACE - do not create new JSON blocks."""
+
+        # Apply Chain of Thought enhancement if CoT reasoner is provided
+        if cot_reasoner:
+            base_prompt = cot_reasoner.create_belief_update_cot_prompt(observation, base_prompt)
 
         return base_prompt
 
@@ -169,6 +220,74 @@ Update existing structures IN PLACE - do not create new JSON blocks."""
 - Wrong play costs 1 life, card goes to discard
 - Game ends: 0 lives, empty deck, or complete fireworks
 - You hold cards facing away, rely on teammate hints"""
+
+    def get_belief_graph_usage_hint(self, variant: str) -> str:
+        """Get variant-specific hint on how to leverage the belief graph for better decisions."""
+
+        if variant == 'certainty':
+            return """
+**BELIEF GRAPH INTELLIGENCE (CERTAINTY VARIANT):**
+Your belief graph contains pre-computed logical constraints from the complete game history.
+
+**Available Information:**
+- Certain card identities (single remaining color + rank combinations)
+- Negative constraints (colors/ranks definitively ruled out)
+- Teammate knowledge states about their own cards
+- Complete elimination possibilities
+
+**Strategic Applications:**
+- Certain cards can be played immediately when fireworks align
+- Negative constraints enable safe discards of impossible cards
+- Teammate knowledge states indicate optimal timing for clues
+- Process of elimination reveals card identities through constraint satisfaction
+"""
+
+        result = ""
+        if variant in ['probabilistic', 'theory_of_mind']:
+            result += """
+**BELIEF GRAPH INTELLIGENCE (PROBABILISTIC VARIANT):**
+Your belief graph contains quantified confidence distributions from aggregated historical evidence.
+
+**Available Information:**
+- Confidence levels for each color/rank possibility
+- Information-theoretic value of potential actions
+- Expected risk/reward calculations for different choices
+- Uncertainty reduction potentials
+
+**Strategic Applications:**
+- High-confidence cards (>95%) can be played for critical points
+- Medium-confidence cards (70-95%) work well for information gathering
+- Clues can target cards with highest uncertainty reduction value
+- Risk calculations inform optimal play/discard timing decisions
+"""
+
+        if variant == 'theory_of_mind':
+            result += """
+**BELIEF GRAPH INTELLIGENCE (THEORY OF MIND VARIANT):**
+Your belief graph contains extracted coordination patterns and strategic priorities from team behavior analysis.
+
+**Available Information:**
+- Team_Focus strategic priorities (SAVE_FIVES, PLAY_ONES, PLAY_ANYTHING distributions)
+- Teammate skill assessments and complexity tolerance
+- Recent strategic shifts and coordination patterns
+- Recursive beliefs about how teammates perceive your capabilities
+
+**Strategic Applications:**
+- Team_Focus alignment suggests actions that support current strategic momentum
+- Skill assessments guide appropriate clue complexity for each teammate
+- Recent shifts indicate timing for strategic pivots or coordination plays
+- Recursive awareness helps calibrate action expectations and communication style
+"""
+
+        if result:
+            return result
+
+        else:
+            # Fallback for unknown variants
+            return """
+**BELIEF GRAPH ADVANTAGE:**
+Your belief graph provides structured information about the game state. Use this knowledge to make more informed decisions than players relying only on direct observation.
+"""
 
     def get_strategy_and_priorities_block(self) -> str:
         """Game information."""
@@ -306,7 +425,7 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
 
         return history_text
 
-    def create_main_prompt(self, observation: Dict[str, Any], history: str) -> str:
+    def create_main_prompt(self, observation: Dict[str, Any], history: str, variant: str = 'certainty') -> str:
         """Create the main prompt for the LLM."""
         game_state = self.format_observation_for_llm(observation)
 
@@ -324,6 +443,8 @@ Respond with ONLY a valid JSON object in this exact format (ranks MUST use human
         if 'belief_graph' in observation:
             prompt_sections.extend([
                 observation['belief_graph_natural_language'],
+                "",
+                self.get_belief_graph_usage_hint(variant),
                 ""
             ])
 
@@ -364,10 +485,13 @@ Respond with a valid JSON action object:
         """Format belief graph to natural language based on variant type."""
         if variant == 'certainty':
             return self.format_certainty_belief_graph_natural_language(belief_graph)
-        elif variant == 'probabilistic':
-            return self.format_probabilistic_belief_graph_natural_language(belief_graph)
-        elif variant == 'theory_of_mind':
-            return self.format_theory_of_mind_belief_graph_natural_language(belief_graph)
+        elif variant in ['probabilistic', 'theory_of_mind']:
+            probabilistic_nl = self.format_probabilistic_belief_graph_natural_language(belief_graph)
+            if variant == 'theory_of_mind':
+                # Add ToM-specific layer on top of probabilistic base
+                tom_nl = self.format_theory_of_mind_belief_graph_natural_language(belief_graph)
+                return probabilistic_nl + "\n\n" + tom_nl
+            return probabilistic_nl
         else:
             # Fallback to certainty format if variant not recognized
             return self.format_certainty_belief_graph_natural_language(belief_graph)
@@ -587,11 +711,8 @@ Respond with a valid JSON action object:
         return nl_description
 
     def format_theory_of_mind_belief_graph_natural_language(self, belief_graph: Dict[str, Any]) -> str:
-        """Convert Theory of Mind belief graph to natural language (pure information)."""
-        nl_description = "## BELIEF GRAPH ANALYSIS (THEORY OF MIND VARIANT)\n\n"
-
-        gs = belief_graph['GameState']
-        nl_description += f"**Game State:** {gs['clues']} clues, {gs['life']} lives, {gs['deck_size']} cards in deck\n\n"
+        """Convert Theory of Mind belief graph to natural language (ToM layer only)."""
+        nl_description = "## THEORY OF MIND ANALYSIS\n\n"
 
         tom = belief_graph['ToM_Layer']
         nl_description += "**TEAM DYNAMICS ANALYSIS:**\n"
@@ -609,35 +730,14 @@ Respond with a valid JSON action object:
 
             nl_description += f"- {player}: Skill {skill:.1f}, Play aggressiveness {aggr:.1f}, Hint quality {hint_q:.1f}\n"
 
-        nl_description += "\n**CARD BELIEFS (probabilistic base):**\n"
-
-        nl_description += "\nMy Hand:\n"
-        for card_id, beliefs in belief_graph['My_Hand_Beliefs'].items():
-            card_num = card_id.split('Card')[1]
-            color_dist = beliefs['color_distribution']
-            rank_dist = beliefs['rank_distribution']
-
-            max_color = max(color_dist, key=color_dist.get)
-            max_color_prob = color_dist[max_color]
-            max_rank = max(rank_dist, key=rank_dist.get)
-            max_rank_prob = rank_dist[max_rank]
-
-            nl_description += f"- Card {card_num}: {max_color.upper()} {max_rank} ({max_color_prob*100:.0f}% color, {max_rank_prob*100:.0f}% rank)\n"
-
-        nl_description += "\n**TEAMMATE HANDS (with mental models):**\n"
-        for player_hand, hand_data in belief_graph['Teammate_Hand_Beliefs'].items():
-            player_num = player_hand.split('P')[1].split('_')[0]
-            player_key = f"P{player_num}"
-
-            if player_key in tom['Teammates']:
-                skill = tom['Teammates'][player_key]['inferred_skill']
-                nl_description += f"\nPlayer {player_num} (skill: {skill:.1f}):\n"
-            else:
-                nl_description += f"\nPlayer {player_num}:\n"
-
-            for card_id, card_data in hand_data.items():
-                card_num = card_id.split('Card')[1]
-                actual = card_data.get('actual_card_I_see', 'Unknown')
-                nl_description += f"  - Card {card_num}: I see {actual}\n"
+        # Add recursive ToM information
+        if 'Recursive_ToM' in tom:
+            nl_description += "\n**RECURSIVE ToM (What others think about ME):**\n"
+            for player_key, player_recursive in tom['Recursive_ToM'].items():
+                nl_description += f"- {player_key} thinks about ME:\n"
+                for me_player, beliefs in player_recursive.items():
+                    skill_assessment = beliefs.get('believes_about_my_skill', 0.5)
+                    strategy_assessment = beliefs.get('believes_about_my_strategy', 0.5)
+                    nl_description += f"  * My skill: {skill_assessment:.1f}, My strategy: {strategy_assessment:.1f}\n"
 
         return nl_description

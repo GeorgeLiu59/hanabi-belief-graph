@@ -140,7 +140,8 @@ class GeminiAgent(Agent):
         
         # Create history and base prompt
         history = self.prompt_manager.format_history_for_llm(self.observation_history, self.action_history)
-        base_prompt = self.prompt_manager.create_main_prompt(observation, history)
+        variant = observation.get('belief_variant', 'certainty')
+        base_prompt = self.prompt_manager.create_main_prompt(observation, history, variant)
         
         # Create Chain of Thought prompt
         cot_prompt = self.cot_reasoner.create_cot_prompt(observation, base_prompt)
