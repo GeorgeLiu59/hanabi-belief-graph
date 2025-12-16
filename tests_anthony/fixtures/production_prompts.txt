@@ -1,0 +1,673 @@
+=======================================================================
+HANABI PRODUCTION PROMPTS - EXTRACTED FROM CODEBASE
+=======================================================================
+
+This document contains the exact prompts, templates, and configurations used
+in production Hanabi belief graph agent runs. Extracted for use in unit tests
+to ensure test prompts match production exactly.
+
+Source Files:
+- hanabi_learning_environment/agents/prompt_manager.py
+- hanabi_learning_environment/agents/cot_reasoning.py
+- hanabi_learning_environment/agents/gemini_agent.py
+
+Extraction Date: 2025
+Purpose: Unit testing for belief graph bug detection
+
+=======================================================================
+SECTION 1: MODEL CONFIGURATION
+=======================================================================
+
+Source: gemini_agent.py:45, belief_graph_base.py:147-150, tom_agent.py:147-150
+
+Model Name: gemini-2.5-pro
+  NOTE: Instructions.md indicates Laksh used "gemini-2.0-flash-lite"
+  Current code uses gemini-2.5-pro - discrepancy to investigate
+
+Temperature: 0.2
+  Used in all belief update calls
+  Low temperature for more deterministic output
+
+Generation Config:
+  generation_config={'temperature': 0.2}
+
+Rate Limiting:
+  Max requests per minute: 30
+  Implemented in gemini_agent.py:119-135
+
+=======================================================================
+SECTION 2: GAME RULES BLOCK
+=======================================================================
+
+Source: prompt_manager.py:193-222 (get_rules_and_mechanics_block)
+
+This block is included in ALL prompts (action decisions and belief updates).
+
+---BEGIN GAME RULES---
+
+## HANABI RULES & MECHANICS
+
+**GAME SETUP:**
+- 5 colors (R,G,W,Y,B) × 5 ranks (1-5) = 25 unique cards
+- 3 ones, 2 each of 2-4, 1 five per color
+
+**OBJECTIVE:**
+- Build fireworks: play 1→2→3→4→5 for each color
+- Score: 25 points max (5 colors × 5 ranks)
+- Playing a 5 earns +1 clue token
+
+**FUNDAMENTAL RULE:**
+- You CANNOT see your own cards
+- You CAN see everyone else's cards
+- CardKnowledge variant: explicit info about clues you receive
+
+**CLUE SYSTEM:**
+- 8 information tokens for hints, 3 life tokens
+- Color clues: "These cards are [COLOR]" - affects ALL cards of that color
+- Rank clues: "These cards are [RANK]" - affects ALL cards of that rank
+- ABSOLUTE: Clued cards ALWAYS have the hinted property
+- NEGATIVE: Un-clued cards NEVER have the hinted property
+- NO ambiguity - clues are 100% truthful
+
+**GAMEPLAY:**
+- Wrong play costs 1 life, card goes to discard
+- Game ends: 0 lives, empty deck, or complete fireworks
+- You hold cards facing away, rely on teammate hints
+
+---END GAME RULES---
+
+=======================================================================
+SECTION 3: FORMAT REQUIREMENTS BLOCK
+=======================================================================
+
+Source: prompt_manager.py:296-305 (get_format_requirements_block)
+
+This specifies the exact JSON action format required from the LLM.
+
+---BEGIN FORMAT REQUIREMENTS---
+
+## FORMAT REQUIREMENTS:
+Respond with ONLY a valid JSON object in this exact format (ranks MUST use human numbers 1-5):
+{"action_type": "PLAY|DISCARD|REVEAL_COLOR|REVEAL_RANK", "card_index": 0-4, "color": "R|Y|G|W|B", "rank": 1-5, "target_offset": 1-3}
+
+**IMPORTANT**:
+- For PLAY/DISCARD: use "card_index" (0-4), set color/rank/target_offset to null
+- For REVEAL_COLOR: use "color" and "target_offset", set card_index/rank to null
+- For REVEAL_RANK: use "rank" (1-5) and "target_offset", set card_index/color to null
+
+---END FORMAT REQUIREMENTS---
+
+=======================================================================
+SECTION 4: MAIN ACTION DECISION PROMPT TEMPLATE
+=======================================================================
+
+Source: prompt_manager.py:428-461 (create_main_prompt)
+
+This is the structure of the main prompt for action decisions.
+
+---BEGIN MAIN ACTION PROMPT TEMPLATE---
+
+You are playing Hanabi-Full-CardKnowledge.
+
+{GAME_HISTORY}
+
+{HANABI_RULES_BLOCK}
+
+{BELIEF_GRAPH_NATURAL_LANGUAGE}  # If belief graph present
+
+{BELIEF_GRAPH_USAGE_HINT}  # Variant-specific
+
+{FORMAT_REQUIREMENTS_BLOCK}
+
+## CURRENT GAME STATE:
+{GAME_STATE_FORMATTED}
+
+## DECISION REQUIRED:
+Choose your action.
+
+---END MAIN ACTION PROMPT TEMPLATE---
+
+Variable Substitutions:
+- {GAME_HISTORY}: From format_history_for_llm() - recent turns and actions
+- {HANABI_RULES_BLOCK}: From get_rules_and_mechanics_block()
+- {BELIEF_GRAPH_NATURAL_LANGUAGE}: From format_belief_graph_natural_language()
+- {BELIEF_GRAPH_USAGE_HINT}: From get_belief_graph_usage_hint()
+- {FORMAT_REQUIREMENTS_BLOCK}: From get_format_requirements_block()
+- {GAME_STATE_FORMATTED}: From format_observation_for_llm()
+
+=======================================================================
+SECTION 5: CHAIN OF THOUGHT - ACTION DECISION
+=======================================================================
+
+Source: cot_reasoning.py:9-52 (create_cot_prompt)
+
+This CoT wrapper is applied to the main action decision prompt.
+
+---BEGIN COT ACTION PROMPT---
+
+## CHAIN OF THOUGHT REQUIREMENT:
+
+Before providing your final JSON action, you MUST provide detailed reasoning following this structure:
+
+**REASONING:**
+**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**
+CRITICAL: Your belief graph is your primary decision-making tool. Analyze it thoroughly:
+
+1. **Belief Graph Data**: What specific information from your belief graph drives this decision?
+   - Card probabilities/certainties?
+   - Teammate knowledge patterns?
+   - Team_Focus or ToM insights?
+   - How does this compare to raw observation?
+
+2. **Decision Process**: How did belief graph information lead to your action?
+   - What did the belief graph reveal that raw observation missed?
+   - How did it change your strategic priorities?
+   - Which data points were decisive and why?
+
+**PART 2: QUICK DECISION SUMMARY**
+Brief summary of action and key belief graph influence.
+
+**FORMAT:**
+First provide your belief graph analysis in PART 1.
+Then provide a brief summary in PART 2.
+Then provide your action as a JSON object.
+
+Example:
+REASONING:
+**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**
+1. **Belief Graph Data**: My belief graph shows Team_Focus is PLAY_ONES (70% confidence) and P2 has 85% confidence in Red cards. This reveals the team prioritizes foundation building, making color clues most valuable now. My hand shows uniform probabilities (20% each), confirming I must share information.
+
+2. **Decision Process**: The belief graph's Team_Focus information directly prioritized color clues over other options. The confidence levels confirmed Red information would be most valuable to support the PLAY_ONES strategy. This led me to choose a Red color hint instead of other alternatives.
+
+**PART 2: QUICK DECISION SUMMARY**
+Team_Focus (PLAY_ONES) + Red confidence (85%) → Red color hint to P2 to enable play.
+
+{"action_type": "REVEAL_COLOR", "color": "R", "target_offset": 1}
+
+---END COT ACTION PROMPT---
+
+=======================================================================
+SECTION 6: BELIEF UPDATE PROMPT TEMPLATE (ALL VARIANTS)
+=======================================================================
+
+Source: prompt_manager.py:18-191 (get_belief_update_prompt)
+
+This is the base template used for all belief updates. Variant-specific
+sections are added based on the agent type.
+
+---BEGIN BELIEF UPDATE PROMPT BASE---
+
+You are playing Hanabi-Full-CardKnowledge.
+
+{HANABI_RULES_BLOCK}
+
+**COOPERATIVE TEAM CONTEXT:**
+You and your teammates are working together to build fireworks and score the maximum 25 points. This is a COOPERATIVE game - your success depends on teamwork.
+
+**GAME HISTORY:**
+{GAME_HISTORY}
+
+**CURRENT GAME STATE:**
+{GAME_STATE_FORMATTED}
+
+**CURRENT CLUE EVENT:**
+- Clue giver: {CLUE_GIVER}
+- Clue recipient: {CLUE_RECIPIENT}
+- Clue type: {CLUE_TYPE}
+- Clue value: {CLUE_VALUE}
+- Target card numbers (leftmost = 1): {CLUED_CARDS}
+
+**GENERAL BELIEF GRAPH UPDATE PROMPT - STRATEGIC TEAM REASONING:**
+Think cooperatively about this clue event:
+- What game stage is this? (early/mid/late game based on remaining cards, clues, lives)
+- What is the team's current priority? (building fireworks, saving important cards, managing information)
+- What is {CLUE_GIVER} trying to communicate? (which card to play/save, signaling strategy)
+- How does this help {CLUE_RECIPIENT} make better decisions?
+- How should this update affect the team's shared mental model?
+
+**BELIEF UPDATE REQUIREMENTS:**
+- Update beliefs based on cooperative reasoning and team strategy
+- Cards numbered {CLUED_CARDS} ARE {CLUE_VALUE} (100% certain)
+- Cards with other numbers ARE NOT {CLUE_VALUE} (negative inference)
+- Consider what this means for future team coordination
+- Update mental models of what teammates know about their cards and the game state
+- JSON keys follow the card numbering convention (e.g., `P2_Card3` means card number 3)
+
+**HAND SECTION TO UPDATE:**
+- Clue recipient: {CLUE_RECIPIENT}
+- If {CLUE_RECIPIENT} is YOU, update your beliefs about your own cards in `My_Hand_Beliefs`
+- If {CLUE_RECIPIENT} is a teammate, update beliefs about their cards in `Teammate_Hand_Beliefs`
+- Use your creativity to structure the belief updates in the most logical and helpful way
+- Focus on accurately representing what the clue reveals and what can be inferred
+- You can reorganize or restructure beliefs as needed to best reflect the new information
+
+---END BELIEF UPDATE PROMPT BASE---
+
+---BEGIN VARIANT-SPECIFIC SECTIONS---
+
+CERTAINTY VARIANT SECTION (lines 91-96):
+
+**CERTAINTY VARIANT UPDATE:**
+
+
+PROBABILISTIC VARIANT SECTION (lines 97-102):
+
+**PROBABILISTIC VARIANT UPDATE:**
+
+
+THEORY OF MIND VARIANT SECTION (lines 103-154):
+
+**THEORY OF MIND VARIANT UPDATE (Variation 4 - Recursive ToM):**
+CRITICAL: You must perform recursive Theory of Mind reasoning about what teammates think about YOU.
+
+**TEAM FOCUS STRATEGIES - DEFINITIONS AND INDICATORS:**
+
+**PLAY_ANYTHING:**
+- Meaning: No specific priority, play whatever seems most valuable
+- Use when: Early game, multiple options available, no clear strategic priority
+- Shift away from: When specific strategic needs emerge (save 5s, play 1s)
+
+**SAVE_FIVES:**
+- Meaning: Prioritize identifying and saving 5s for endgame (+1 clue token bonus)
+- Use when: Mid-to-late game, clues are plentiful, 5s become valuable
+- Indicators: Players giving conservative clues, holding potentially valuable cards
+
+**PLAY_ONES:**
+- Meaning: Prioritize playing 1s to start new fireworks (foundational strategy)
+- Use when: Early game, multiple colors unstarted, high information-to-clue ratio
+- Indicators: Players getting rank 1 clues, need to establish color foundations
+
+**RECURSIVE ToM REASONING:**
+1. **First-order ToM**: Update what you think about the clue recipient's beliefs about their own cards
+2. **Second-order ToM (Variation 4)**: Update what you think the clue giver thinks about YOU (player n itself)
+3. **Strategic Intent**: Analyze how this clue affects what everyone thinks about your capabilities and team strategy
+
+**TEAM MENTAL MODEL UPDATES:**
+- Update Team_Focus distribution based on strategic implications of the clue
+- Consider GAME STAGE (early/mid/late) when determining appropriate focus
+- Update inferred_skill for players based on the quality/complexity of their actions
+- Update Recursive_ToM beliefs about what players think about YOUR skill and strategy (not about other players)
+- Consider how this clue changes what others think about your decision-making capabilities
+- CLUE TYPE ANALYSIS: Rank 1 clues often signal PLAY_ONES, complex clues may signal SAVE_FIVES strategy
+
+**CRITICAL RECURSIVE ToM STRUCTURE:**
+For each player's Recursive_ToM section about YOU (e.g., "P1 thinks about ME"), maintain this exact structure:
+```json
+"believes_about_my_hand": {
+  "Card1": {"color": "R", "rank": 1, "confidence": 0.8},
+  "Card2": {"color": "Y", "rank": 2, "confidence": 0.6}
+},
+"believes_about_my_skill": 0.55,
+"believes_about_my_strategy": 0.6
+```
+
+- `believes_about_my_hand`: Update what this player thinks about your specific cards
+- `believes_about_my_skill`: Update what this player thinks about your overall skill level (0-1)
+- `believes_about_my_strategy`: Update what this player thinks about your strategic tendencies (0-1)
+
+---END VARIANT-SPECIFIC SECTIONS---
+
+---BEGIN BELIEF UPDATE JSON INSTRUCTIONS---
+
+CRITICAL JSON UPDATE INSTRUCTIONS:
+  - You MUST UPDATE the existing belief structures in place
+  - DO NOT create new JSON blocks like "Updated_P2_Hand_Beliefs"
+  - Find each player's belief section in the Current Beliefs and MODIFY it directly
+  - For P2_Hand_Beliefs, modify that exact structure
+  - For P3_Hand_Beliefs, modify that exact structure
+  - For P4_Hand_Beliefs, modify that exact structure
+  - Keep the same structure names and organization
+  - Only update the values within existing arrays and objects
+  - Your output should be the complete updated Current Beliefs JSON structure
+
+Current Beliefs:
+{CURRENT_BELIEFS_JSON}
+
+---END BELIEF UPDATE JSON INSTRUCTIONS---
+
+---BEGIN BELIEF UPDATE RESPONSE FORMAT---
+
+**RESPONSE FORMAT:**
+Return the updated belief graph inside a ```json``` block with no extra text in the block. After closing the block add a comprehensive `REASONING:` section explaining your belief update analysis.
+
+**NOTE:** Your belief updates should follow Chain of Thought reasoning covering:
+- Direct impact of the clue on card knowledge
+- Team mental model and strategy updates
+- Theory of Mind reasoning (for ToM variants)
+- Strategic implications for future coordination
+
+Update existing structures IN PLACE - do not create new JSON blocks.
+
+---END BELIEF UPDATE RESPONSE FORMAT---
+
+=======================================================================
+SECTION 7: CHAIN OF THOUGHT - BELIEF UPDATE
+=======================================================================
+
+Source: cot_reasoning.py:54-129 (create_belief_update_cot_prompt)
+
+This CoT wrapper is applied to belief update prompts.
+
+---BEGIN COT BELIEF UPDATE PROMPT---
+
+## CHAIN OF THOUGHT BELIEF UPDATE REQUIREMENT:
+
+CRITICAL: Before providing your final JSON belief graph update, you MUST provide detailed Chain of Thought reasoning showing how EVERY analysis component directly drives belief graph updates.
+
+**REASONING:**
+
+**PART 1: DIRECT IMPACT ANALYSIS** (Most Critical)
+- What specific information did the clue provide?
+- Which cards received direct updates (100% certain or negative inference)?
+- **BELIEF GRAPH IMPACT**: How this updates My_Hand_Beliefs/Teammate_Hand_Beliefs with new color/rank certainties
+
+**PART 2: GAME STAGE & TEAM STRATEGY REASONING**
+- What game stage is this? (early/mid/late based on remaining cards, clues, lives)
+- What is the team's current priority? (building fireworks, saving important cards, managing information)
+- What is {giver} trying to communicate? (which card to play/save, signaling strategy)
+- How does this help {recipient} make better decisions?
+- **BELIEF GRAPH IMPACT**: How this updates Team_Focus distribution and strategic priorities in the belief graph
+
+**PART 3: SHARED MENTAL MODEL REASONING**
+- How should this update affect the team's shared mental model?
+- What does this reveal about {giver}'s assessment of game state?
+- How does this change what {recipient} knows about their cards?
+- **BELIEF GRAPH IMPACT**: How this updates mental models of teammates in Teammate_Hand_Beliefs and ToM_Layer
+
+**PART 4: THEORY OF MIND REASONING** (Theory of Mind variants only)
+- First-order: What does this reveal about recipient's knowledge state?
+- Recursive: What does giver think about recipient's knowledge of ME?
+- Strategic: How does this affect team coordination and shared understanding?
+- **BELIEF GRAPH IMPACT**: How this updates Recursive_ToM beliefs about what others think about MY skill/strategy
+
+**PART 5: COORDINATION IMPLICATIONS**
+- What future actions are now enabled/constrained?
+- How does this affect risk assessment for upcoming decisions?
+- What coordination opportunities does this create?
+- **BELIEF GRAPH IMPACT**: How this updates inferred_skill, play_aggressiveness, hint_quality in ToM_Layer
+
+**CRITICAL REQUIREMENT**: For each part above, you MUST explicitly state how the reasoning drives specific belief graph updates. Every analysis point must connect to concrete JSON structure changes.
+
+**FORMAT:**
+First provide your Chain of Thought analysis in the REASONING section above with explicit BELIEF GRAPH IMPACT connections.
+Then provide your updated belief graph as a JSON object.
+
+Example:
+REASONING:
+
+**PART 1: DIRECT IMPACT ANALYSIS** (Most Critical)
+- The Red color clue to P2 cards 2,4 confirms P2_Card2 and P2_Card4 are Red (100% certain)
+- P2's other cards (1,3,5) are definitively NOT Red (negative inference)
+- **BELIEF GRAPH IMPACT**: Update P2_Card2 and P2_Card4 in Teammate_Hand_Beliefs with color="R", rank_probabilities, confidence=1.0. Set Red probability to 0.0 for P2_Card1, P2_Card3, P2_Card5.
+
+**PART 2: GAME STAGE & TEAM STRATEGY REASONING**
+- Mid-game with 15 cards remaining, 6 clues, 3 lives suggests focus on building fireworks
+- Red clue indicates team needs Red fireworks built
+- **BELIEF GRAPH IMPACT**: Increase Team_Focus "building_fireworks" probability from 0.3 to 0.6, decrease "saving_cards" to 0.2.
+
+**PART 3: THEORY OF MIND REASONING** (Theory of Mind variants only)
+- P2 now knows their Red cards and can make informed decisions
+- Clue giver likely thinks I need to understand P2's new Red knowledge
+- This may affect coordination around Red fireworks
+
+**PART 4: STRATEGIC IMPLICATIONS**
+- P2 may be able to play Red cards if fireworks align
+- Team focus might shift toward Red foundation building
+- Future clues can build on this Red information
+
+```json
+{
+  "updated_belief_graph": "..."
+}
+```
+
+---END COT BELIEF UPDATE PROMPT---
+
+=======================================================================
+SECTION 8: BELIEF GRAPH USAGE HINTS (VARIANT-SPECIFIC)
+=======================================================================
+
+Source: prompt_manager.py:224-290 (get_belief_graph_usage_hint)
+
+These hints guide agents on how to leverage belief graphs strategically.
+
+---BEGIN CERTAINTY VARIANT HINT---
+
+**BELIEF GRAPH INTELLIGENCE (CERTAINTY VARIANT):**
+Your belief graph contains pre-computed logical constraints from the complete game history.
+
+**Available Information:**
+- Certain card identities (single remaining color + rank combinations)
+- Negative constraints (colors/ranks definitively ruled out)
+- Teammate knowledge states about their own cards
+- Complete elimination possibilities
+
+**Strategic Applications:**
+- Certain cards can be played immediately when fireworks align
+- Negative constraints enable safe discards of impossible cards
+- Teammate knowledge states indicate optimal timing for clues
+- Process of elimination reveals card identities through constraint satisfaction
+
+---END CERTAINTY VARIANT HINT---
+
+---BEGIN PROBABILISTIC VARIANT HINT---
+
+**BELIEF GRAPH INTELLIGENCE (PROBABILISTIC VARIANT):**
+Your belief graph contains quantified confidence distributions from aggregated historical evidence.
+
+**Available Information:**
+- Confidence levels for each color/rank possibility
+- Information-theoretic value of potential actions
+- Expected risk/reward calculations for different choices
+- Uncertainty reduction potentials
+
+**Strategic Applications:**
+- High-confidence cards (>95%) can be played for critical points
+- Medium-confidence cards (70-95%) work well for information gathering
+- Clues can target cards with highest uncertainty reduction value
+- Risk calculations inform optimal play/discard timing decisions
+
+---END PROBABILISTIC VARIANT HINT---
+
+---BEGIN THEORY OF MIND VARIANT HINT---
+
+**BELIEF GRAPH INTELLIGENCE (THEORY OF MIND VARIANT):**
+Your belief graph contains extracted coordination patterns and strategic priorities from team behavior analysis.
+
+**Available Information:**
+- Team_Focus strategic priorities (SAVE_FIVES, PLAY_ONES, PLAY_ANYTHING distributions)
+- Teammate skill assessments and complexity tolerance
+- Recent strategic shifts and coordination patterns
+- Recursive beliefs about how teammates perceive your capabilities
+
+**Strategic Applications:**
+- Team_Focus alignment suggests actions that support current strategic momentum
+- Skill assessments guide appropriate clue complexity for each teammate
+- Recent shifts indicate timing for strategic pivots or coordination plays
+- Recursive awareness helps calibrate action expectations and communication style
+
+---END THEORY OF MIND VARIANT HINT---
+
+=======================================================================
+SECTION 9: NATURAL LANGUAGE BELIEF FORMATTING EXAMPLES
+=======================================================================
+
+Source: prompt_manager.py:484-765
+
+These methods convert belief graph JSON to natural language for prompts.
+
+---BEGIN CERTAINTY VARIANT NATURAL LANGUAGE---
+
+Example output from format_certainty_belief_graph_natural_language():
+
+## BELIEF GRAPH ANALYSIS (CERTAINTY VARIANT)
+
+**Game State:** 7 clues, 3 lives, 40 cards in deck
+
+**MY HAND BELIEFS:**
+- Card 1 (card_index 0):
+  * Possible colors: R, B, G, Y
+  * Possible ranks: 2, 3, 4, 5
+  * Status: 4 colors, 4 ranks possible
+
+- Card 2 (card_index 1):
+  * Possible colors: R
+  * Possible ranks: 1
+  * Status: Certain - R 1 (PLAYABLE NOW)
+
+**TEAMMATE KNOWLEDGE MODEL:**
+
+Player 2's cards:
+  - Card 1: I see B 5
+    * They believe colors: R, B, G, W, Y
+    * They believe ranks: 1, 2, 3, 4, 5
+    * Their knowledge: Uncertain (5 colors, 5 ranks)
+
+---END CERTAINTY VARIANT NATURAL LANGUAGE---
+
+---BEGIN PROBABILISTIC VARIANT NATURAL LANGUAGE---
+
+Example output from format_probabilistic_belief_graph_natural_language():
+
+## BELIEF GRAPH ANALYSIS (PROBABILISTIC VARIANT)
+
+**Game State:** 7 clues, 3 lives, 40 cards in deck
+
+**MY HAND BELIEFS:**
+- Card 1 (card_index 0):
+  * Colors: R(25%), B(25%), G(25%), Y(25%)
+  * Ranks: 2(30%), 3(30%), 4(25%), 5(15%)
+  * Status: 25% color, 30% rank - Uncertain
+
+- Card 2 (card_index 1):
+  * Colors: R(100%)
+  * Ranks: 1(100%)
+  * Status: Certain - R 1
+
+**TEAMMATE KNOWLEDGE MODEL:**
+
+Player 2's cards:
+  - Card 1: I see B 5
+    * They believe colors: R(20%), B(20%), G(20%), W(20%), Y(20%)
+    * They believe ranks: 1(20%), 2(20%), 3(20%), 4(20%), 5(20%)
+    * Their knowledge: 20% color, 20% rank
+
+---END PROBABILISTIC VARIANT NATURAL LANGUAGE---
+
+---BEGIN THEORY OF MIND VARIANT NATURAL LANGUAGE---
+
+Example output from format_theory_of_mind_belief_graph_natural_language():
+
+## THEORY OF MIND ANALYSIS
+
+**TEAM DYNAMICS ANALYSIS:**
+- Team Strategy: PLAY_ONES (70% confidence)
+
+**TEAMMATE PROFILES:**
+- P2: Skill 0.6, Play aggressiveness 0.5, Hint quality 0.7
+
+**RECURSIVE ToM (What others think about ME):**
+- P2 thinks about ME:
+  * My skill: 0.5, My strategy: 0.6
+  * They believe about my hand:
+    - Card1: R 1 (80% confident)
+    - Card2: Y 2 (60% confident)
+
+---END THEORY OF MIND VARIANT NATURAL LANGUAGE---
+
+=======================================================================
+SECTION 10: GAME STATE FORMATTING
+=======================================================================
+
+Source: prompt_manager.py:311-403 (format_observation_for_llm)
+
+This formats the current game observation into natural language.
+
+---BEGIN GAME STATE FORMAT EXAMPLE---
+
+## GAME OVERVIEW
+- Information tokens: 7/8
+- Life tokens: 3/3
+- Deck size: 40
+- Number of players: 2
+
+## FIREWORKS PROGRESS
+- R: 3/5
+- Y: 2/5
+- G: 0/5
+- W: 3/5
+- B: 1/5
+
+## DISCARD PILE
+- R1
+- G2
+- B3
+
+## OTHER PLAYERS' HANDS
+Player 2: B5 R2 B2 B3 Y1
+
+## YOUR HAND
+Card 1: Color: unknown, Rank: unknown
+Card 2: Color: unknown, Rank: unknown
+Card 3: Color: unknown, Rank: unknown
+Card 4: Color: unknown, Rank: unknown
+Card 5: Color: R, Rank: 1
+
+## AVAILABLE ACTIONS
+0: Discard card 0 (+1 info token)
+1: Discard card 1 (+1 info token)
+...
+10: Hint color R to player 2 (-1 info token)
+11: Hint rank 1 to player 2 (-1 info token)
+...
+
+---END GAME STATE FORMAT EXAMPLE---
+
+=======================================================================
+SECTION 11: GAME HISTORY FORMATTING
+=======================================================================
+
+Source: prompt_manager.py:405-426 (format_history_for_llm)
+
+This formats recent game history for context.
+
+---BEGIN GAME HISTORY FORMAT EXAMPLE---
+
+## GAME HISTORY
+
+**Turn 1:**
+- PLAYED card 0
+
+**Turn 2:**
+- COLOR hint (R) to player 1
+
+**Turn 3:**
+- RANK hint (1) to player 1
+
+**Turn 4:**
+- DISCARDED card 2
+
+---END GAME HISTORY FORMAT EXAMPLE---
+
+=======================================================================
+END OF PRODUCTION PROMPTS DOCUMENT
+=======================================================================
+
+Usage Notes for Testing:
+1. These prompts should be used EXACTLY in tests to match production
+2. Any discrepancies between test and production prompts invalidate tests
+3. Model configuration (gemini-2.5-pro vs gemini-2.0-flash-lite) needs investigation
+4. Temperature=0.2 is critical for reproducibility
+5. CoT requirements are mandatory - responses without reasoning should be rejected
+
+Document Completeness:
+✅ Model configuration
+✅ Game rules block
+✅ Format requirements
+✅ Main action prompt template
+✅ Belief update prompt templates (all variants)
+✅ Chain of Thought templates (action + belief update)
+✅ Belief graph usage hints (all variants)
+✅ Natural language formatting examples (all variants)
+✅ Game state formatting
+✅ Game history formatting

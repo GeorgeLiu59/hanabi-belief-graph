@@ -1,0 +1,73 @@
+{
+  "description": "Pre-defined game scenarios for Hanabi belief graph testing",
+  "scenarios": {
+    "turn_28_bug": {
+      "turn": 28,
+      "fireworks": {
+        "R": 3,
+        "Y": 2,
+        "G": 0,
+        "W": 3,
+        "B": 1
+      },
+      "life_tokens": 3,
+      "info_tokens": 7,
+      "deck_size": 40,
+      "discard_pile": [],
+      "description": "Bug scenario where agent played White-1 when White stack at 3",
+      "evidence_source": "Game logs lines 20590-20764",
+      "bug_manifestation": "Agent belief showed WHITE(20%), Rank-1(20%) instead of P=0%"
+    },
+    "game_start": {
+      "turn": 1,
+      "fireworks": {
+        "R": 0,
+        "Y": 0,
+        "G": 0,
+        "W": 0,
+        "B": 0
+      },
+      "life_tokens": 3,
+      "info_tokens": 8,
+      "deck_size": 50,
+      "discard_pile": [],
+      "description": "Initial game state - all cards possible"
+    },
+    "early_game": {
+      "turn": 5,
+      "fireworks": {
+        "R": 1,
+        "Y": 0,
+        "G": 0,
+        "W": 0,
+        "B": 0
+      },
+      "life_tokens": 3,
+      "info_tokens": 7,
+      "deck_size": 45,
+      "discard_pile": [],
+      "description": "Early game - first card played"
+    },
+    "mid_game": {
+      "turn": 15,
+      "fireworks": {
+        "R": 3,
+        "Y": 2,
+        "G": 1,
+        "W": 2,
+        "B": 1
+      },
+      "life_tokens": 3,
+      "info_tokens": 5,
+      "deck_size": 35,
+      "discard_pile": [],
+      "description": "Mid-game with significant fireworks progress"
+    }
+  },
+  "test_usage_notes": [
+    "These scenarios can be loaded in tests to set up specific game states",
+    "Each scenario includes the minimum information needed to reproduce bugs",
+    "Discard pile data can be added when needed for more complex tests",
+    "Turn numbers are approximate and for reference only"
+  ]
+}
