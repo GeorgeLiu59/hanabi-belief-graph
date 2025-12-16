@@ -195,8 +195,8 @@ Update existing structures IN PLACE - do not create new JSON blocks."""
         return """## HANABI RULES & MECHANICS
 
 **GAME SETUP:**
-- 5 colors (R,G,W,Y,B) × 5 ranks (1-5) = 25 unique cards
-- 3 ones, 2 each of 2-4, 1 five per color
+- 5 colors (R,G,W,Y,B) × 5 ranks (1-5) = 25 unique combinations
+- Standard deck: per color -> three 1s, two 2s, two 3s, two 4s, one 5 (50 total cards)
 
 **OBJECTIVE:**
 - Build fireworks: play 1→2→3→4→5 for each color
