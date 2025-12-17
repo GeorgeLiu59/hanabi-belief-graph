@@ -298,17 +298,3 @@ def classify_game_stage(scenario: Dict[str, Any]) -> GameStage:
 4. **Convention-specific strategies**: Assumes standard play patterns
    - **Future**: Encode advanced conventions (Finesse, Bluff) as pressure signals
 
-### 7.2 Extensions
-
-**Potential enhancements**:
-1. **Sub-phases**: Early-early, early-late, etc. (finer granularity)
-2. **Probability distributions**: `P(stage | s)` instead of deterministic labels
-3. **Adaptive thresholds**: Learn optimal thresholds from win rate data
-4. **Multi-dimensional visualization**: Plot state space in (t, c, pressure) coordinates
-
-## 8. References
-
-**Related work**:
-- Hanabi is NP-hard (Baffier et al., 2017)
-- Convention emergence in cooperative AI (Hu et al., 2020)
-- Theory of mind in multi-agent systems (Rabinowitz et al., 2018)
