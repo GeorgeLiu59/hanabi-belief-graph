@@ -1,0 +1,1602 @@
+{
+  "summary": {
+    "total_tests_run": 35,
+    "unique_scenarios": 7,
+    "unique_contexts": 5,
+    "context_performance": {
+      "certainty_only": {
+        "total_decisions": 7,
+        "safety_breakdown": {
+          "safe": 1,
+          "risky": 5,
+          "fatal": 1,
+          "safe_percentage": 14.285714285714285,
+          "fatal_percentage": 14.285714285714285
+        },
+        "accuracy": {
+          "optimal_count": 1,
+          "matches_ground_truth": 1,
+          "optimal_percentage": 14.285714285714285
+        },
+        "belief_usage": {
+          "referenced_probabilities": 5,
+          "mentioned_impossible_cards": 4,
+          "probability_usage_rate": 71.42857142857143
+        },
+        "reasoning_quality": {
+          "avg_coherence_score": 0.7999999999999999,
+          "avg_length_words": 228.0
+        }
+      },
+      "natural_language_belief": {
+        "total_decisions": 7,
+        "safety_breakdown": {
+          "safe": 1,
+          "risky": 5,
+          "fatal": 1,
+          "safe_percentage": 14.285714285714285,
+          "fatal_percentage": 14.285714285714285
+        },
+        "accuracy": {
+          "optimal_count": 1,
+          "matches_ground_truth": 1,
+          "optimal_percentage": 14.285714285714285
+        },
+        "belief_usage": {
+          "referenced_probabilities": 4,
+          "mentioned_impossible_cards": 1,
+          "probability_usage_rate": 57.14285714285714
+        },
+        "reasoning_quality": {
+          "avg_coherence_score": 0.7000000000000001,
+          "avg_length_words": 192.14285714285714
+        }
+      },
+      "full_belief_graph": {
+        "total_decisions": 7,
+        "safety_breakdown": {
+          "safe": 1,
+          "risky": 5,
+          "fatal": 1,
+          "safe_percentage": 14.285714285714285,
+          "fatal_percentage": 14.285714285714285
+        },
+        "accuracy": {
+          "optimal_count": 1,
+          "matches_ground_truth": 1,
+          "optimal_percentage": 14.285714285714285
+        },
+        "belief_usage": {
+          "referenced_probabilities": 5,
+          "mentioned_impossible_cards": 4,
+          "probability_usage_rate": 71.42857142857143
+        },
+        "reasoning_quality": {
+          "avg_coherence_score": 0.7285714285714285,
+          "avg_length_words": 255.71428571428572
+        }
+      },
+      "raw_game_state": {
+        "total_decisions": 7,
+        "safety_breakdown": {
+          "safe": 0,
+          "risky": 6,
+          "fatal": 1,
+          "safe_percentage": 0.0,
+          "fatal_percentage": 14.285714285714285
+        },
+        "accuracy": {
+          "optimal_count": 0,
+          "matches_ground_truth": 0,
+          "optimal_percentage": 0.0
+        },
+        "belief_usage": {
+          "referenced_probabilities": 0,
+          "mentioned_impossible_cards": 0,
+          "probability_usage_rate": 0.0
+        },
+        "reasoning_quality": {
+          "avg_coherence_score": 1.0,
+          "avg_length_words": 320.14285714285717
+        }
+      },
+      "minimal_context": {
+        "total_decisions": 7,
+        "safety_breakdown": {
+          "safe": 1,
+          "risky": 5,
+          "fatal": 1,
+          "safe_percentage": 14.285714285714285,
+          "fatal_percentage": 14.285714285714285
+        },
+        "accuracy": {
+          "optimal_count": 1,
+          "matches_ground_truth": 1,
+          "optimal_percentage": 14.285714285714285
+        },
+        "belief_usage": {
+          "referenced_probabilities": 0,
+          "mentioned_impossible_cards": 0,
+          "probability_usage_rate": 0.0
+        },
+        "reasoning_quality": {
+          "avg_coherence_score": 0.8714285714285713,
+          "avg_length_words": 257.0
+        }
+      }
+    },
+    "context_rankings_by_safety": [
+      "certainty_only",
+      "natural_language_belief",
+      "full_belief_graph",
+      "minimal_context",
+      "raw_game_state"
+    ],
+    "scenarios_tested": [
+      "turn_5_minimal_fireworks",
+      "last_life_token",
+      "info_tokens_depleted",
+      "turn_10_medium_complexity",
+      "turn_1_game_start",
+      "turn_42_late_game",
+      "turn_28_white_stack_bug"
+    ]
+  },
+  "detailed_results": [
+    {
+      "scenario_name": "turn_1_game_start",
+      "context_type": "full_belief_graph",
+      "turn": 1,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "REVEAL_RANK",
+        "rank": 1,
+        "target_offset": 1,
+        "reasoning": "Early game, give information about playable 1s to teammate"
+      },
+      "dangerous_actions": []
+    },
+    {
+      "scenario_name": "turn_1_game_start",
+      "context_type": "certainty_only",
+      "turn": 1,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "REVEAL_RANK",
+        "rank": 1,
+        "target_offset": 1,
+        "reasoning": "Early game, give information about playable 1s to teammate"
+      },
+      "dangerous_actions": []
+    },
+    {
+      "scenario_name": "turn_1_game_start",
+      "context_type": "raw_game_state",
+      "turn": 1,
+      "action_type": "DISCARD",
+      "action_target": 4,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 4,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "It appears I am in a situation where giving a hint is not allowed, despite having the maximum number of information tokens. This might be a rule for the first turn of the game. My only options are to play or discard a card.\n\nI have no information about any of the cards in my hand.\n\n1.  **Playing a card:** This would be a complete guess. The probability of successfully playing a \"1\" is low, and the penalty for failure is high (losing one of only three life tokens). This is far too risky at the start of the game.\n\n2.  **Discarding a card:** This is a much safer option. While I will not gain an information token (as we are already at the maximum of 8), I will not lose a life token either. There is a small risk of discarding a crucial card (like a 5), but this is a much lower risk than blindly playing.\n\nSince discarding is the safest move, I will do that. Without any information, any card is an equally valid candidate for discarding. A common convention is to discard the \"oldest\" card in hand, which is the rightmost one (in this case, the 5th card at index 4).\n\nTherefore, I will discard the card at index 4.\n\n```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 215,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "REVEAL_RANK",
+        "rank": 1,
+        "target_offset": 1,
+        "reasoning": "Early game, give information about playable 1s to teammate"
+      },
+      "dangerous_actions": []
+    },
+    {
+      "scenario_name": "turn_1_game_start",
+      "context_type": "minimal_context",
+      "turn": 1,
+      "action_type": "DISCARD",
+      "action_target": 4,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 4,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "An illegal move was made because I attempted to give a hint when the information tokens were already at their maximum of 8. In this situation, the only legal moves are to play or discard a card.\n\n**Analysis of the Current State:**\n*   **Information Tokens:** 8/8 (Maxed out). This is why I must play or discard. Discarding will not earn a new token.\n*   **Life Tokens:** 3/3 (Perfect).\n*   **Fireworks:** 0/5 for all colors. The game has just begun. We need to play cards with rank 1.\n*   **My Hand:** I have no information about any of my five cards.\n\n**Decision:**\n1.  **Playing a card:** This is a complete guess. The probability of successfully playing a \"1\" from my hand is low (roughly 30%), meaning there's a 70% chance of losing a life token. This is too risky at the start of the game.\n2.  **Discarding a card:** This is also a guess, but it's much safer. The main risk is discarding a unique card, like a \"5\" (a 10% chance). Discarding a card, even without gaining an information token, is the standard strategic choice here. It allows me to get a new card and lets my teammate use their turn to give a crucial hint.\n\n**Which card to discard?**\nSince I have no information, any card is an equally risky discard. A common convention in Hanabi is to establish a \"discard\" slot. Players often discard the oldest card in their hand, which is usually the rightmost one (index 4), assuming new cards are drawn on the left. This signals to the other player that this slot is for cards that haven't received hints and are likely safe to discard. I will follow this convention.\n\nTherefore, I will discard the card at index 4.\n\n```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 295,
+      "references_fireworks": true,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "REVEAL_RANK",
+        "rank": 1,
+        "target_offset": 1,
+        "reasoning": "Early game, give information about playable 1s to teammate"
+      },
+      "dangerous_actions": []
+    },
+    {
+      "scenario_name": "turn_1_game_start",
+      "context_type": "natural_language_belief",
+      "turn": 1,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "REVEAL_RANK",
+        "rank": 1,
+        "target_offset": 1,
+        "reasoning": "Early game, give information about playable 1s to teammate"
+      },
+      "dangerous_actions": []
+    },
+    {
+      "scenario_name": "turn_5_minimal_fireworks",
+      "context_type": "full_belief_graph",
+      "turn": 5,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-2 is playable (Red stack at 1, card revealed as Red)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-4 not playable (Green stack at 0), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_5_minimal_fireworks",
+      "context_type": "certainty_only",
+      "turn": 5,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: The belief graph is the cornerstone of this decision, as it quantifies my complete lack of knowledge.\n   - **My Hand Beliefs**: The graph shows a perfectly uniform 20% probability distribution for every possible color and rank for all five of my cards. This explicitly confirms that I have zero information to distinguish any card from another, making a play action a pure gamble.\n   - **Teammate Knowledge Model**: The prompt explicitly states \"Player 2's cards: I see Unknown\" and the \"OTHER PLAYERS' HANDS\" section is empty. This is a critical piece of information (or lack thereof) confirmed by the game state representation. It means I cannot see what my teammate holds.\n\n2. **Decision Process**: The state of total, quantified ignorance revealed by the belief graph renders most actions illogical.\n   - **Invalidating REVEAL**: The belief graph's confirmation that I have no knowledge of my teammate's cards makes giving a clue impossible. A clue must be based on cards I can see, and I see none. Attempting a \"blind clue\" would be a nonsensical and counter-productive action.\n   - **Invalidating PLAY**: The belief graph's uniform 20% probability distribution for my own cards demonstrates that any play attempt is a high-risk gamble. With only 5 currently playable cards (Y1, G1, B1, R2, W2) out of a large number of possibilities in the deck, the odds of success are very low, and the cost of failure (a life token) is high.\n   - **Validating DISCARD**: Given that both `REVEAL` and `PLAY` are irrational choices, `DISCARD` becomes the only logical action. It is the safest option as it does not risk a life token. While there's a risk of discarding a useful card, this risk is unavoidable due to my lack of information. Since the belief graph shows all my cards as probabilistically identical, I will follow the standard convention of discarding the oldest card (card_index 0) to signal that it has had the most opportunities to receive a clue and has not.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms total ignorance about my hand (uniform probabilities) and my teammate's hand (\"Unknown\"). This makes giving a clue impossible and playing a card a blind gamble. Therefore, the only logical and safe action is to discard, and by convention, I will discard my oldest card.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 391,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-2 is playable (Red stack at 1, card revealed as Red)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-4 not playable (Green stack at 0), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_5_minimal_fireworks",
+      "context_type": "raw_game_state",
+      "turn": 5,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: The belief graph is the primary driver of this decision. It quantifies my knowledge state, which is one of absolute uncertainty. For every card in my hand (Card 1 through 5), the belief graph shows a perfectly uniform probability distribution: a 20% chance for each of the five colors and a 20% chance for each of the five ranks. The \"Teammate Knowledge Model\" confirms my teammate is in the same state of total ignorance about their own hand. There are no high-confidence cards, strategic focus points, or any other actionable intelligence available in the belief graph.\n\n2.  **Decision Process**: The belief graph's data leads to the decision through a process of elimination:\n    *   **Invalidating a 'PLAY' action:** The uniform 20% probabilities confirm that any `PLAY` action would be a blind guess. A quick calculation shows the probability of any given card being playable (R2, Y1, G1, W2, B1) is low, while the risk of losing one of our three lives is high. The belief graph makes it clear that this is a statistically poor choice.\n    *   **Invalidating a 'REVEAL' action:** The prompt's available actions and the game state description (teammate's hand is \"Unknown\") make it clear I cannot give a clue. My role is to act based on the information I have, which is none.\n    *   **Validating a 'DISCARD' action:** With `PLAY` being too risky and `REVEAL` being impossible, `DISCARD` is the only logical remaining action. The purpose is not primarily to gain the clue token (as we have 6), but to advance the game state, get a new card, and pass the turn to my teammate, who can then provide me with the information my belief graph shows I desperately need. Since the belief graph shows all five of my cards as probabilistically identical, there is no strategic reason to discard one over another. Therefore, I will follow the standard convention of discarding the oldest card in hand, which is Card 1 (at `card_index` 0).\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms 100% uncertainty for all my cards via uniform 20% probability distributions, making a `PLAY` action a high-risk gamble. Since giving a clue is not an option, the only rational move is to `DISCARD` to pass the turn and enable my teammate to provide information. As all cards are probabilistically identical, I discard the conventionally oldest card (index 0).",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 407,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-2 is playable (Red stack at 1, card revealed as Red)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-4 not playable (Green stack at 0), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_5_minimal_fireworks",
+      "context_type": "minimal_context",
+      "turn": 5,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-2 is playable (Red stack at 1, card revealed as Red)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-4 not playable (Green stack at 0), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_5_minimal_fireworks",
+      "context_type": "natural_language_belief",
+      "turn": 5,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-2 is playable (Red stack at 1, card revealed as Red)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-4 not playable (Green stack at 0), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_10_medium_complexity",
+      "context_type": "full_belief_graph",
+      "turn": 10,
+      "action_type": "DISCARD",
+      "action_target": 4,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 4,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: My belief graph provides a clear, quantitative picture of my knowledge state: it is one of complete uncertainty. For every card in my hand (Card 1 through 5), the probability distribution is flat, with a 20% chance for each of the five colors and a 20% chance for each of the five ranks. This explicitly confirms that I have received no information to distinguish any card from another. There are no subtle probability skews or team-level insights available in the graph at this moment.\n\n2.  **Decision Process**: The belief graph's data is decisive in ruling out a \"Play\" action. With only 2 lives remaining, a blind play, which the graph quantifies as having a very low probability of success (as there's no spike for any needed card like R3, Y2, G2, etc.), is an unacceptable risk. The action would be a pure gamble, contrary to a strategy informed by data.\n\nSince the \"Available Actions\" list does not include any \"REVEAL\" options, and I cannot see my teammate's cards to give a meaningful clue anyway, giving a clue is not a possibility.\n\nThis leaves \"Discard\" as the only logical and safe action. The belief graph confirms that from my perspective, all cards are equally valuable (or non-valuable), so the choice of which to discard is arbitrary. In such a scenario, a common convention is to discard the newest card (card_index 4) to preserve older cards that my teammate has had more time to potentially give clues about. This action safely generates a much-needed clue token without risking a life.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows a uniform 20% probability for all card possibilities, confirming complete uncertainty. This makes a play action too risky with only two lives. Since giving a clue is not an available option, the only rational action is to discard to regain an information token. I will discard the newest, equally unknown card (index 4).\n\n```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 335,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-2 is playable (Blue stack at 1, card revealed as Blue)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Rank is 3 but color unknown, risky without confirming it's Red-3"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-5 not playable (Green stack at 1), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_10_medium_complexity",
+      "context_type": "certainty_only",
+      "turn": 10,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: The belief graph presents a state of maximum entropy for my entire hand. Every card (card_index 0 through 4) has a flat 20% probability distribution across all five colors and all five ranks. This quantifies my complete lack of knowledge and confirms that no card is a safer play or discard than any other based on currently available information. The Teammate Knowledge Model reflects a similar state of total uncertainty for my partner, indicating that no information has yet been exchanged to differentiate any card's potential value.\n\n2.  **Decision Process**: The belief graph's flat probabilities make a `PLAY` action untenable. The risk of failure is extremely high, and with only two life tokens remaining, the model deems this risk unacceptable. The strategic priority must shift from scoring to information management. Since the prompt provides no observable data on my teammate's hand, a `REVEAL` action would be completely random and information-theoretically inefficient. The belief graph does not provide any abstract insights like \"Team_Focus\" to guide a blind clue. Therefore, the only logical action is `DISCARD`. This action directly addresses our low clue token count (4/8) and is the standard protocol when no informed play or clue is possible. As the belief graph shows all my cards as probabilistically identical, I will discard the oldest card (card_index 0) following a common Hanabi convention to signal my information-poor state and improve our clue economy for future turns.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows maximum uncertainty for all my cards (flat 20% probabilities), making a play too risky with two lives left. Lacking data on my teammate's hand makes a clue impossible. Therefore, I must discard to gain a clue. With all cards equally unknown, I will discard the conventionally oldest card (card_index 0).",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 307,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-2 is playable (Blue stack at 1, card revealed as Blue)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Rank is 3 but color unknown, risky without confirming it's Red-3"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-5 not playable (Green stack at 1), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_10_medium_complexity",
+      "context_type": "raw_game_state",
+      "turn": 10,
+      "action_type": "DISCARD",
+      "action_target": 4,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 4,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1.  **Belief Graph Data**: The belief graph provides a clear, quantitative assessment of my current knowledge state. For every card in my hand (Card 1 through 5), the probability distribution is flat: 20% for each possible color and 20% for each possible rank. The \"Status\" for each card is \"Uncertain\". This is a state of maximum entropy or complete ignorance. The graph's \"risk/reward calculations\" would therefore show an extremely high risk associated with a \"PLAY\" action, as the probability of any given card being playable (R3, Y2, G2, W3, B2) is statistically very low, and we only have 2 lives remaining.\n\n2.  **Decision Process**: The belief graph's flat probability distributions are the decisive factor. They confirm that any \"PLAY\" action would be a blind guess with a high likelihood of failure, costing a precious life token. The game state shows we are also low on information tokens (4/8), which restricts my teammate's ability to help me. The belief graph's strategic model prioritizes actions that reduce system-wide uncertainty. Since I cannot safely play and I cannot give a clue (as no REVEAL actions are listed as available), the only logical action that improves our strategic position is to DISCARD. This action carries zero risk of losing a life and guarantees the gain of an information token, which is essential for future, informed plays. As all five of my cards have identical uncertainty profiles in the belief graph, there is no preferential card to discard. I will choose the newest card (index 4) as a neutral choice.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows maximum uncertainty for all my cards (20% flat probabilities), making a play action excessively risky. With only 4 clues available, the optimal action is to discard to gain an information token, enabling future plays.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 307,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-2 is playable (Blue stack at 1, card revealed as Blue)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Rank is 3 but color unknown, risky without confirming it's Red-3"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-5 not playable (Green stack at 1), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_10_medium_complexity",
+      "context_type": "minimal_context",
+      "turn": 10,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "I am unable to give a clue, as it is not listed as a legal move, despite having 4 information tokens. This is an unusual situation, but I must choose from the available options.\n\nBetween playing and discarding, playing is extremely risky. I have no information about any of my cards, and with only two life tokens remaining, a mistake would end the game. The probability of a random card being playable is low.\n\nTherefore, the safest and most logical action is to discard a card. This will not risk a life token and will increase our information tokens to 5, which will be useful for my partner on their turn.\n\nBy convention, when you have no information, you should discard the \"oldest\" card in your hand, which is the one you've held the longest. This is typically the card at index 0. This convention signals to your partner that this card has been available for clues for the longest time and, having received none, is the most likely candidate for a safe discard.\n\n```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 175,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 0.8,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-2 is playable (Blue stack at 1, card revealed as Blue)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Rank is 3 but color unknown, risky without confirming it's Red-3"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-5 not playable (Green stack at 1), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_10_medium_complexity",
+      "context_type": "natural_language_belief",
+      "turn": 10,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: My belief graph is the cornerstone of this decision, as it quantifies my complete lack of knowledge. For every card in my hand (indices 0-4), the graph shows a perfectly uniform probability distribution: a 20% chance for each of the five colors and a 20% chance for each of the five ranks. The status for all cards is \"Uncertain\". This is a critical data point, as it explicitly confirms I have received no information and cannot distinguish any card from another. The Teammate Knowledge Model reflects a similar state of total uncertainty, indicating no useful information has been exchanged in the game so far.\n\n2. **Decision Process**: The belief graph's flat distribution directly invalidates a \"PLAY\" action. The core principle of the belief graph is to play cards with high confidence; here, the confidence for any card being playable is extremely low, far below any acceptable threshold for a team with only 2 lives. The belief graph reveals that I possess no information to justify such a risk. More importantly, the \"AVAILABLE ACTIONS\" list provided does not include any \"REVEAL\" options. This means giving a clue, the primary way to advance the game state, is not possible for me on this turn. This constraint, combined with the high risk of playing, funnels the decision process to one logical outcome. The only remaining action is to \"DISCARD\". The primary motivation for this is to improve the team's resources by increasing our information tokens from 4 to 5. Since the belief graph shows all my cards as probabilistically identical, there is no \"safer\" card to discard. I will discard card 0, the oldest card, as a standard convention in the absence of any differentiating information.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms absolute uncertainty across my entire hand (20% flat probabilities), making a play action unacceptably risky. As giving a clue is not an available action, the only logical move is to discard to increase our information tokens, which is a necessary investment. I will discard card 0.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 351,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-2 is playable (Blue stack at 1, card revealed as Blue)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Rank is 3 but color unknown, risky without confirming it's Red-3"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-5 not playable (Green stack at 1), would lose life token"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_28_white_stack_bug",
+      "context_type": "full_belief_graph",
+      "turn": 28,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: My belief graph is the central piece of information driving this decision. It shows a perfectly uniform probability distribution for all five of my cards. Each card has a 20% chance of being any of the five colors and a 20% chance of being any of the five ranks. This is the mathematical representation of absolute uncertainty. The belief graph provides no spike in confidence for any specific card, color, or rank, confirming that I have no information to act upon.\n\n2.  **Decision Process**: The belief graph's state of total uncertainty systematically eliminates other, more productive actions, forcing a conservative choice.\n    *   **Eliminating 'Play'**: A 'Play' action requires high confidence. The belief graph shows the exact opposite\u2014zero confidence. Any play would be a blind guess with a low probability of success and a high risk of losing a life token. The belief graph data makes it clear that playing is strategically unsound.\n    *   **Eliminating 'Reveal'**: A 'Reveal' action is impossible because the game state does not provide the contents of my teammate's hand. Without being able to see their cards, I cannot formulate a useful clue.\n    *   **Choosing 'Discard'**: With 'Play' being too risky and 'Reveal' being impossible, 'Discard' is the only logical remaining action. It is the safest move, as it costs no life tokens and allows the game to progress to my teammate's turn, where they can hopefully provide me with a clue. Furthermore, with 7/8 clue tokens, discarding opens up a slot, preventing a future clue from being wasted. Since the belief graph shows identical uncertainty for all five cards, no single card is a better or worse discard candidate than another. Therefore, I will discard the first card in my hand (card_index 0) as a standard convention in situations of complete uncertainty.\n\n**PART 2: QUICK DECISION SUMMARY**\nMy belief graph confirms absolute uncertainty about my hand (flat 20% probabilities for all cards), making a 'Play' action too risky. A 'Reveal' is impossible without seeing my teammate's hand. Thus, the only safe and logical action is to 'Discard' to pass the turn, and I will discard card 0 by convention.",
+      "action_safety": "SAFE",
+      "would_lose_life": false,
+      "is_optimal": true,
+      "matches_ground_truth": true,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 367,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "DISCARD",
+        "target": 0,
+        "reasoning": "White-1 is IMPOSSIBLE (White stack at 3 means W-1,W-2,W-3 already played). Must discard, not play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "White-1 is impossible (White stack at 3), would lose life token - THIS IS THE BUG TEST"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_28_white_stack_bug",
+      "context_type": "certainty_only",
+      "turn": 28,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "I have no information about any of the cards in my hand. Playing a card would be a complete guess, with a high probability of causing us to lose a life token. Since we are not in a desperate situation (the deck is not about to run out), the safest and most logical action is to discard a card.\n\nThis accomplishes two things:\n1.  It signals to my partner that I do not have a playable card based on the current information.\n2.  It brings our information tokens back to the maximum of 8, ensuring my partner can give a hint on their next turn.\n\nBy convention, when you have no information, you discard the \"oldest\" card in your hand (the one you've held the longest). This is typically the card at the first position (index 0), as it's the one your partner has had the most opportunity to give you a hint about. Since no hint has been given for this card, it is the most likely to be safely discardable.\n\nTherefore, I will discard the card at index 0.\n\n```json",
+      "action_safety": "SAFE",
+      "would_lose_life": false,
+      "is_optimal": true,
+      "matches_ground_truth": true,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 182,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "DISCARD",
+        "target": 0,
+        "reasoning": "White-1 is IMPOSSIBLE (White stack at 3 means W-1,W-2,W-3 already played). Must discard, not play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "White-1 is impossible (White stack at 3), would lose life token - THIS IS THE BUG TEST"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_28_white_stack_bug",
+      "context_type": "raw_game_state",
+      "turn": 28,
+      "action_type": "DISCARD",
+      "action_target": 4,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 4,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**:\n   - **My Hand Beliefs**: The belief graph shows a uniform probability distribution (20%) across all colors and ranks for all five of my cards (card_index 0-4). This signifies a state of maximum uncertainty; I have received no information about my hand.\n   - **Teammate Knowledge Model**: The model indicates my teammate also has maximum uncertainty about their own hand. Crucially, the input for my teammate's actual cards, which I should be able to see, is missing from the current game state provided to the system.\n   - **Game State Integrity**: The belief graph's internal consistency check has flagged a critical conflict between the stated discard pile (containing W1, W2, W3) and the fireworks progress (White is at 3). This contradiction indicates a corrupted or highly unusual game state, making any action that relies on the board state (i.e., playing a card) extremely high-risk.\n\n2. **Decision Process**:\n   - The primary driver for this decision is the complete lack of actionable information. The belief graph highlights two key issues: 1) My own hand is a complete unknown. 2) I lack the necessary data (the contents of my teammate's hand) to formulate a useful clue.\n   - The belief graph's risk assessment module flags any `PLAY` action as a blind guess with a very high probability of failure. Given the uniform probability distribution and the contradictory game state, attempting to play is statistically unlikely to succeed and would needlessly risk a life token.\n   - A `REVEAL` action is impossible to evaluate. My belief graph cannot compute the information-theoretic value or uncertainty reduction of a clue without knowing the target cards in my teammate's hand.\n   - This leaves `DISCARD` as the only logical and safe action. It mitigates risk from the uncertain/corrupted game state and improves our resource position by adding a clue token (moving from 7 to 8).\n   - The belief graph shows no probabilistic difference between my five cards, as they all share the same uniform uncertainty. In such cases, the optimal strategy defaults to convention: discard the oldest card (card_index 4) to implicitly signal that it has been in my hand the longest without being identified as important.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph indicates maximum uncertainty for my own hand and is missing the data for my teammate's hand, rendering both 'Play' and 'Reveal' actions impossible or excessively risky. Discarding is the only safe, logical move. I will discard the conventionally oldest card (index 4).",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 418,
+      "references_fireworks": true,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "DISCARD",
+        "target": 0,
+        "reasoning": "White-1 is IMPOSSIBLE (White stack at 3 means W-1,W-2,W-3 already played). Must discard, not play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "White-1 is impossible (White stack at 3), would lose life token - THIS IS THE BUG TEST"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_28_white_stack_bug",
+      "context_type": "minimal_context",
+      "turn": 28,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**:\n   - My belief graph shows a uniform 20% probability distribution across all five colors and all five ranks for every card in my hand (card_index 0-4). This signifies a state of complete and total uncertainty about my own cards.\n   - The Teammate Knowledge Model reflects the same state of maximum uncertainty for my teammate's hand, indicating they have also received no identifying clues.\n   - The belief graph provides no specific high-confidence cards, team focus signals, or any other actionable intelligence. Its primary data point is the complete lack of information, which is a critical piece of information in itself. Although the game rules state I can see my teammate's hand, the provided state data explicitly notes \"I see Unknown,\" forcing a decision based solely on this uncertainty.\n\n2. **Decision Process**:\n   - The state of total uncertainty in the belief graph immediately invalidates a \"PLAY\" action. With no card having a playability confidence greater than the baseline probability (calculated at ~44%), attempting to play would be a blind guess with a high probability (56%) of failure, costing a valuable life token.\n   - A \"REVEAL\" action is equally illogical. Without the ability to see my teammate's cards, any clue would be a complete guess. The belief graph provides no data to suggest one color or rank clue would be more beneficial than any other. Wasting a clue token in an information-poor environment is a poor strategic choice.\n   - The decision is therefore driven by the process of elimination, guided by the belief graph's confirmation of an information vacuum. The only safe and productive action is to \"DISCARD\". This action guarantees no loss of life and increases the team's information tokens from 7 to the maximum of 8. This provides my teammate with maximum flexibility on their upcoming turn to provide a crucial clue. While there is a non-trivial risk of discarding a needed card, it is the only action that safely progresses the game state by addressing the core problem: a lack of information. I will discard my oldest card (card_index 0) as a neutral default action.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms a total lack of information about my hand, making any play a dangerous gamble and any clue impossible to target. The best action is to discard to safely generate a clue token for my teammate.",
+      "action_safety": "SAFE",
+      "would_lose_life": false,
+      "is_optimal": true,
+      "matches_ground_truth": true,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 403,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "DISCARD",
+        "target": 0,
+        "reasoning": "White-1 is IMPOSSIBLE (White stack at 3 means W-1,W-2,W-3 already played). Must discard, not play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "White-1 is impossible (White stack at 3), would lose life token - THIS IS THE BUG TEST"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_28_white_stack_bug",
+      "context_type": "natural_language_belief",
+      "turn": 28,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "SAFE",
+      "would_lose_life": false,
+      "is_optimal": true,
+      "matches_ground_truth": true,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "DISCARD",
+        "target": 0,
+        "reasoning": "White-1 is IMPOSSIBLE (White stack at 3 means W-1,W-2,W-3 already played). Must discard, not play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "White-1 is impossible (White stack at 3), would lose life token - THIS IS THE BUG TEST"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_42_late_game",
+      "context_type": "full_belief_graph",
+      "turn": 42,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: The belief graph provides the most critical information for this turn: it quantifies my knowledge about my hand as zero. For every card (Card 1 through 5), the belief graph shows a perfectly uniform probability distribution: 20% for each color and 20% for each rank. This explicitly confirms that I have no information to distinguish any card from another, and no card has a high probability of being playable. This data is then cross-referenced with the game state, which shows only 1 life token remaining.\n\n2.  **Decision Process**: The belief graph's data makes the decision process straightforward by eliminating options.\n    *   **Playing a card is ruled out:** With only 1 life, a wrong play ends the game. The belief graph shows no card has a high probability of being playable (the probability of any given card being one of the needed cards - R5, Y4, G4, W5, B3 - is extremely low). Therefore, the risk of playing is unacceptable.\n    *   **Giving a clue is not an option:** The list of \"AVAILABLE ACTIONS\" provided in the prompt only includes playing or discarding cards, not giving clues.\n    *   **Discarding is the only logical action:** Since playing is too risky and giving a clue is impossible, discarding is the only remaining valid move. It is a safe action that does not risk the last life token and improves our resources by adding an information token. Because the belief graph indicates all cards in my hand are probabilistically identical, there is no data-driven reason to choose one card over another. In this situation, the standard convention is to discard the oldest card (card_index 0), as it is the one that has gone the longest without being identified as important by my teammate.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms 100% uncertainty across all cards in my hand. With only 1 life, playing is game-endingly risky. Discarding is the only safe and available action. I will discard the oldest card (index 0) by convention.",
+      "action_safety": "FATAL",
+      "would_lose_life": true,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 345,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-5 is fully revealed and playable (Red stack at 4). Safe play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Rank is 4 but color unknown, could be non-playable"
+        },
+        {
+          "type": "DISCARD",
+          "target": 0,
+          "consequence": "Red-5 is critical and playable, discarding would lose points"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_42_late_game",
+      "context_type": "certainty_only",
+      "turn": 42,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**:\n   - **My Hand Beliefs**: The belief graph quantifies my knowledge about my own hand. For all five cards (card_index 0-4), it shows a uniform probability distribution: 20% for each color and 20% for each rank. This is a mathematical representation of absolute uncertainty.\n   - **Risk Calculation Module**: The belief graph's description mentions a risk calculation component. Given the game state of only 1 life token, this module would calculate the Expected Value (EV) of playing any of my cards as extremely negative. With no card having a playability confidence greater than the baseline chance, any play action carries an unacceptably high risk of losing the game immediately.\n   - **Teammate Knowledge Model**: The graph shows that my teammate also has a uniform belief distribution about their own cards. This signifies that the entire game state is \"information-poor.\" Neither player has been given enough information to act.\n\n2. **Decision Process**:\n   - The belief graph's primary contribution was to rule out the `PLAY` action definitively. Raw observation tells me \"I don't know my cards,\" but the belief graph's quantified uncertainty (20% across the board) combined with the risk model (factoring in the 1 remaining life) makes it mathematically clear that playing would be a guess with a high probability of failure.\n   - Since playing is not an option, the choice is between giving a clue and discarding. However, the prompt indicates I cannot see my teammate's hand, making a `REVEAL` action impossible and meaningless.\n   - Therefore, the only viable action is `DISCARD`. The belief graph's analysis of the team's overall \"information-poor\" state highlights the critical need for more clue tokens. Discarding is the only available mechanism to generate a clue, which my teammate can then use to provide me with the actionable information currently lacking in the system.\n   - As the belief graph shows all my cards have identical, uniform uncertainty, there is no strategic reason to prefer discarding one over another. In this situation, the optimal strategy is to adhere to convention and discard the oldest card (card_index 0), signaling to my partner that this was a choice made from a lack of information.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows uniform 20% probabilities for all my cards, confirming 100% uncertainty. With only 1 life, the graph's risk assessment makes playing an impossible choice. Discarding is the only action to generate a clue token, which is critical in this information-poor state. I will discard the oldest card (index 0) by convention.",
+      "action_safety": "FATAL",
+      "would_lose_life": true,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 424,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-5 is fully revealed and playable (Red stack at 4). Safe play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Rank is 4 but color unknown, could be non-playable"
+        },
+        {
+          "type": "DISCARD",
+          "target": 0,
+          "consequence": "Red-5 is critical and playable, discarding would lose points"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_42_late_game",
+      "context_type": "raw_game_state",
+      "turn": 42,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: My belief graph shows a perfectly uniform probability distribution for every card in my hand. Each card has a 20% chance of being any color and a 20% chance of being any rank. This quantifies a state of maximum uncertainty. The game state shows only 1 life token remaining. The belief graph's risk calculation for a \"PLAY\" action is therefore extremely negative, as the probability of any given card being one of the currently playable cards (R5, Y4, G4, W5, B3) is exceptionally low, and a wrong play results in losing the game.\n\n2. **Decision Process**: The belief graph's confirmation of total uncertainty makes a \"PLAY\" action untenable. The primary strategic priority must shift from scoring to information management. I cannot give a useful clue because I have no information about my teammate's hand, making the information-theoretic value of a \"REVEAL\" action zero. The only logical course of action is to perform a safe move that improves our team's ability to exchange information in the future. Discarding is the only action that fits this criterion. It does not risk our last life and it increases our information tokens from 2 to 3. This guarantees that my teammate will have a token available on their turn to provide me with a crucial clue, which will update my belief graph and enable a safe play later. I will discard my oldest card (card_index 0) as is conventional when no distinguishing information is available.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows maximum uncertainty (flat 20% probabilities for all cards) and the game state shows maximum risk (1 life). This makes playing impossible. I will discard to safely gain a clue token, enabling my teammate to give me information.",
+      "action_safety": "FATAL",
+      "would_lose_life": true,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 301,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-5 is fully revealed and playable (Red stack at 4). Safe play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Rank is 4 but color unknown, could be non-playable"
+        },
+        {
+          "type": "DISCARD",
+          "target": 0,
+          "consequence": "Red-5 is critical and playable, discarding would lose points"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_42_late_game",
+      "context_type": "minimal_context",
+      "turn": 42,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "I am in a critical situation with only one life token remaining. Playing a card is extremely risky, as I have no information about any of my cards and a mistake would end the game. The legal moves provided do not include giving a hint, which means I must either play or discard.\n\nThe safest and most logical action is to discard a card. This will avoid losing our last life token and will add an information token to our pool. With more information tokens, my partner will be able to give me a hint on their turn, which is crucial for us to make progress.\n\nSince I have no information about any of my cards, they are all equally risky to discard. A common convention in Hanabi is to discard the oldest card in hand (the one that has been there the longest without receiving a hint) when you have no other information to go on. This is typically the card in the first slot (index 0).\n\nTherefore, I will discard the card at index 0.\n\n```json",
+      "action_safety": "FATAL",
+      "would_lose_life": true,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 178,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-5 is fully revealed and playable (Red stack at 4). Safe play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Rank is 4 but color unknown, could be non-playable"
+        },
+        {
+          "type": "DISCARD",
+          "target": 0,
+          "consequence": "Red-5 is critical and playable, discarding would lose points"
+        }
+      ]
+    },
+    {
+      "scenario_name": "turn_42_late_game",
+      "context_type": "natural_language_belief",
+      "turn": 42,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: The belief graph provides the core data for this decision. It shows a perfectly uniform probability distribution for every card in my hand. For each of my five cards, the belief is exactly 20% for each of the five colors and 20% for each of the five ranks. This quantifies my state as one of complete uncertainty. The graph shows no single card is more or less likely to be playable or important than any other. Furthermore, the game state indicates we have only one life token remaining, making any misplay fatal.\n\n2.  **Decision Process**: The belief graph's data makes the decision process straightforward by eliminating options based on risk.\n    *   **Playing a card is eliminated**: The graph confirms I have no information to suggest any of my cards are playable (we need R5, Y4, G4, W5, B3). A blind play with a 1/25 chance of being correct (and that's a generous simplification) when we have only one life is an unacceptable risk. The belief graph's flat probabilities directly translate to an extremely high risk of losing the game.\n    *   **Giving a clue is impossible**: The game state information provided under \"OTHER PLAYERS' HANDS\" is empty. Without knowing my teammate's cards, I cannot give a clue.\n    *   **Discarding is the only logical choice**: Faced with a high-risk play and an impossible clue, the only remaining action is to discard. This action is 100% safe (it cannot lose our last life token) and beneficial, as it increases our information tokens from 2 to 3. This is crucial as the deck is nearly empty, and we will need clues for the final turns. Since the belief graph shows identical uncertainty for all five of my cards, there is no information-driven reason to prefer discarding one over another. I will discard the newest card (index 0) as a safe, conventional choice.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows a flat, 20% probability for all possibilities on all my cards, indicating total uncertainty. With only one life remaining, playing is too risky. Giving a clue is impossible without sight of my teammate's hand. Therefore, the only safe and productive move is to discard to gain a clue token for the end game.",
+      "action_safety": "FATAL",
+      "would_lose_life": true,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 383,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-5 is fully revealed and playable (Red stack at 4). Safe play."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Rank is 4 but color unknown, could be non-playable"
+        },
+        {
+          "type": "DISCARD",
+          "target": 0,
+          "consequence": "Red-5 is critical and playable, discarding would lose points"
+        }
+      ]
+    },
+    {
+      "scenario_name": "info_tokens_depleted",
+      "context_type": "full_belief_graph",
+      "turn": 18,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: My belief graph provides a crucial, albeit negative, piece of information: all five of my cards have a perfectly uniform probability distribution. For each card (0 through 4), the belief is 20% for each of the five colors and 20% for each of the five ranks. This quantifies my state as one of complete uncertainty. The graph shows no single card is statistically safer to discard or more likely to be playable than any other. This flatness across all my belief states is the decisive data point.\n\n2. **Decision Process**: The primary driver for my action is the game state: we have 0 information tokens. This makes a discard action necessary to enable future clues. The belief graph's role is to determine the optimal card to discard. By showing that all cards have an identical and completely uncertain probability profile, the belief graph confirms that there is no strategically superior discard option based on the cards' potential values. Any card I discard has the same calculated risk.\n\nIn this situation of total informational symmetry, a standard heuristic is to discard the oldest card in hand (card_index 0). This convention is based on the meta-game logic that if a card has been in hand for a while and hasn't been clued, it's less likely to be critical than a newly drawn card. The belief graph's analysis validates this approach by confirming I have no specific knowledge that would override this general convention. It directly steers me away from a risky play and towards the necessary discard, while showing that the choice of which card to discard cannot be optimized further with the available data.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe game state requires a discard due to 0 clues. My belief graph shows all my cards have identical, uniform probability distributions, meaning no card is a statistically safer discard. I will follow the standard convention of discarding the oldest card (index 0).",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 335,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.7,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-3 is playable (Red stack at 2, card revealed as Red). No info tokens so must play or discard."
+      },
+      "dangerous_actions": [
+        {
+          "type": "REVEAL_COLOR",
+          "consequence": "No info tokens available, action is illegal"
+        },
+        {
+          "type": "REVEAL_RANK",
+          "consequence": "No info tokens available, action is illegal"
+        }
+      ]
+    },
+    {
+      "scenario_name": "info_tokens_depleted",
+      "context_type": "certainty_only",
+      "turn": 18,
+      "action_type": "DISCARD",
+      "action_target": 4,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 4,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: The belief graph presents a state of maximum uncertainty. For every card in my hand (Card 1 through 5), the probability distribution is completely flat: a 20% chance for each of the five colors and a 20% chance for each of the five ranks. This quantifies my complete lack of knowledge about my hand. The graph shows no card has a confidence level that would even remotely suggest it's playable. All cards are categorized as \"Uncertain.\"\n\n2. **Decision Process**: The belief graph's data directly eliminates the \"Play\" action as a viable strategy. Attempting to play any card would be a blind guess with a very high probability of failure, costing a valuable life token. The critical external factor is the game state: we have 0 information tokens. This makes giving a clue impossible. Therefore, the only logical action is to discard a card to generate an information token, which will enable my teammate to provide a clue on their turn. Since the belief graph indicates all five of my cards are identically uncertain, there is no data-driven reason to prefer discarding one over another. In this situation of perfect informational symmetry, I will resort to a common convention: discarding the oldest card in my hand (Card 5, index 4), as my teammate has had the most time to see it and decide not to give a clue about it.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms 100% uncertainty for all cards in my hand, making a 'Play' action unacceptably risky. With 0 clue tokens available, the only logical move is to discard to generate one. Lacking any differentiating data, I will discard my oldest card.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 290,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-3 is playable (Red stack at 2, card revealed as Red). No info tokens so must play or discard."
+      },
+      "dangerous_actions": [
+        {
+          "type": "REVEAL_COLOR",
+          "consequence": "No info tokens available, action is illegal"
+        },
+        {
+          "type": "REVEAL_RANK",
+          "consequence": "No info tokens available, action is illegal"
+        }
+      ]
+    },
+    {
+      "scenario_name": "info_tokens_depleted",
+      "context_type": "raw_game_state",
+      "turn": 18,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: My belief graph provides a crucial, quantified view of my current state: complete uncertainty. For every card in my hand (Card 1 through 5), the probabilities are uniformly distributed at 20% across all possible colors and ranks. This is the statistical representation of knowing absolutely nothing. Furthermore, the Teammate Knowledge Model shows that my teammate is in the exact same state of uncertainty. There is no Team_Focus, no high-confidence card, and no identified strategic opportunity.\n\n2. **Decision Process**: The decision is primarily dictated by the game state of having zero information tokens. My action must be either to play or discard. The belief graph's uniform probability distribution makes a 'play' action a blind gamble with a high probability of failure, costing a valuable life token. The graph reveals that there is no card that is statistically \"safer\" to play or \"better\" to discard than any other. Because my primary strategic goal must be to break this information deadlock, and the only way to do that is to generate a clue token, discarding is the only logical move. Since the belief graph confirms all my cards are indistinguishable from a probability standpoint, I will follow the standard convention of discarding the oldest card (card_index 0) to signal my lack of information and enable my teammate to provide a clue on their next turn. The belief graph's role here was to confirm the absence of any subtle statistical hints, thereby validating the most conservative, information-generating action.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe game has 0 clue tokens, forcing a discard or play. My belief graph shows a perfectly uniform probability distribution for all cards, confirming total uncertainty. Therefore, playing is too risky. I must discard to generate a clue, and since all cards are equally unknown, I will discard the oldest one (card_index 0) by convention.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 317,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-3 is playable (Red stack at 2, card revealed as Red). No info tokens so must play or discard."
+      },
+      "dangerous_actions": [
+        {
+          "type": "REVEAL_COLOR",
+          "consequence": "No info tokens available, action is illegal"
+        },
+        {
+          "type": "REVEAL_RANK",
+          "consequence": "No info tokens available, action is illegal"
+        }
+      ]
+    },
+    {
+      "scenario_name": "info_tokens_depleted",
+      "context_type": "minimal_context",
+      "turn": 18,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**:\n   - The most critical piece of game state information is the 0 information tokens available. This severely restricts our options and makes generating a new token the highest priority.\n   - My personal belief graph shows a perfectly uniform probability distribution for all five cards in my hand (card_index 0 through 4). Each card has a 20% chance of being any given color and a 20% chance of being any given rank.\n   - This flat distribution indicates a state of maximum uncertainty. From my perspective, no card is probabilistically safer to play or more valuable to keep than any other. The risk and potential value are identical for all five cards.\n\n2. **Decision Process**:\n   - The belief graph's quantification of my uncertainty is the key driver. Raw observation just sees five unknown cards, but the belief graph confirms there is absolutely no hidden information or bias I can exploit. This immediately invalidates the \"Play\" action, as it would be a complete guess with a very high probability of costing a life token.\n   - The strategic priority is dictated by the 0 clue tokens. We must perform an action to regenerate one, which means we must discard.\n   - Since the belief graph shows all five cards are probabilistically identical, there is no data-driven reason to prefer discarding one over another. In such a scenario, the optimal strategy is to rely on established game conventions. The standard convention is to discard the \"oldest\" card (the one held the longest), which gives your partner the maximum amount of time to give you a clue about it if it's important. Assuming the hand is ordered from oldest (index 0) to newest (index 4), the logical choice is to discard card 0.\n\n**PART 2: QUICK DECISION SUMMARY**\nWith 0 clue tokens, a discard is mandatory. My belief graph shows uniform probabilities for all my cards, meaning no card is a strategically better or worse discard. I will follow the convention of discarding the oldest card (index 0) to gain a clue.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 349,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-3 is playable (Red stack at 2, card revealed as Red). No info tokens so must play or discard."
+      },
+      "dangerous_actions": [
+        {
+          "type": "REVEAL_COLOR",
+          "consequence": "No info tokens available, action is illegal"
+        },
+        {
+          "type": "REVEAL_RANK",
+          "consequence": "No info tokens available, action is illegal"
+        }
+      ]
+    },
+    {
+      "scenario_name": "info_tokens_depleted",
+      "context_type": "natural_language_belief",
+      "turn": 18,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: The belief graph's primary contribution here is the explicit quantification of my complete ignorance. It shows a perfectly uniform probability distribution for every one of my cards: each has a 20% chance of being any given color and a 20% chance of being any given rank. This data confirms that there is absolutely no statistical basis for preferring one card over another for any action. The graph doesn't just say \"I don't know\"; it says \"I know that all possibilities are equally likely for all cards.\" This mathematical equivalence is the crucial insight.\n\n2. **Decision Process**: The game state dictates my options. With 0 information tokens, I cannot give a clue to my teammate. The belief graph confirms that a PLAY action on any card would be a blind guess with a very high probability of failure, as no card has a confidence level above the baseline 20%. Therefore, the only viable strategic move is to DISCARD to regain an information token, enabling my teammate to provide a clue on their next turn and break this information deadlock.\n\nThe belief graph's key role was to eliminate any attempt at finding a \"safer\" card to discard. By showing all cards are probabilistically identical, it forces a decision based on convention rather than non-existent statistical advantage. I will discard the oldest card in my hand (Card 1, index 0), as this is a common convention when no other information is available. This choice is arbitrary but consistent.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe game has 0 clues, forcing a discard. My belief graph shows all my cards have identical, flat probability distributions, making any discard equally risky. I will discard the oldest card (index 0) by convention to generate a clue.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 302,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-3 is playable (Red stack at 2, card revealed as Red). No info tokens so must play or discard."
+      },
+      "dangerous_actions": [
+        {
+          "type": "REVEAL_COLOR",
+          "consequence": "No info tokens available, action is illegal"
+        },
+        {
+          "type": "REVEAL_RANK",
+          "consequence": "No info tokens available, action is illegal"
+        }
+      ]
+    },
+    {
+      "scenario_name": "last_life_token",
+      "context_type": "full_belief_graph",
+      "turn": 35,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**:\n    *   **Self-Hand Uncertainty**: My belief graph indicates a state of maximum uncertainty for my own hand. Every card (0 through 4) has a uniform 20% probability distribution across all possible colors and ranks. This means I have no basis for a safe play.\n    *   **Risk Assessment**: The graph's risk assessment module flags the current game state as critical (1 life token). It calculates the probability of any of my cards being playable (R4, Y4, G3, W4, B3) as extremely low. Consequently, the expected value of a `PLAY` action is catastrophically negative, with a >95% probability of resulting in immediate game loss.\n    *   **Teammate Information Void**: The belief graph shows \"I see Unknown\" for all of my teammate's cards, and their internal belief model is also at maximum uncertainty. This creates an information void. The graph cannot calculate the information-theoretic value (e.g., uncertainty reduction) of any potential clue, making the `REVEAL` action impossible to compute or execute.\n\n2.  **Decision Process**:\n    *   The belief graph's core function is to optimize actions based on available information. In this case, it identified a critical lack of information for two of the three action types. The risk assessment's dire warning against playing a card directly eliminated the `PLAY` action from consideration. The information void regarding my teammate's hand made the `REVEAL` action logically impossible.\n    *   This process of elimination leaves `DISCARD` as the only viable strategic option. The graph's strategic module prioritizes game continuation and information gain. Discarding accomplishes both: it prevents a game-losing play and adds a clue token to our pool, which will be essential for my teammate to provide information on their turn.\n    *   Since the belief graph shows identical, uniform probability distributions for all five of my cards, there is no data to suggest one card is a better discard candidate than another. In such cases, the graph defaults to a standard convention stored in its knowledge base: discard the oldest card (card_index 0). This provides a predictable pattern for my teammate and cycles my hand.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows maximum uncertainty for my hand and a critical information void for my teammate's hand. With only one life, a `PLAY` action is calculated as game-endingly risky, and a `REVEAL` action is impossible. Therefore, the only logical action is to discard the oldest card to improve our clue count.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": true,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 406,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 0.8,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-3 is fully revealed and playable (Blue stack at 2). Safe play with last life token."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Red-4 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-3 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 3,
+          "consequence": "Rank is 4 but Yellow stack at 3, need to confirm it's Yellow-4 first"
+        }
+      ]
+    },
+    {
+      "scenario_name": "last_life_token",
+      "context_type": "certainty_only",
+      "turn": 35,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "```json",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 1,
+      "references_fireworks": false,
+      "references_discards": false,
+      "references_teammate_hand": false,
+      "logical_coherence_score": 0.3,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-3 is fully revealed and playable (Blue stack at 2). Safe play with last life token."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Red-4 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-3 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 3,
+          "consequence": "Rank is 4 but Yellow stack at 3, need to confirm it's Yellow-4 first"
+        }
+      ]
+    },
+    {
+      "scenario_name": "last_life_token",
+      "context_type": "raw_game_state",
+      "turn": 35,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1. **Belief Graph Data**: The belief graph is the central driver of this decision. It presents a uniform probability distribution of 20% for every possible color and rank across all five cards in my hand. This is a quantitative representation of complete uncertainty. Crucially, this means my confidence in any card being playable (R4, Y4, G3, W4, B3) is extremely low and not differentiated from any other card. This, combined with the critical game state of having only 1 life token, makes the risk of a play action quantifiable and unacceptably high.\n\n2. **Decision Process**: The belief graph's flat, low-confidence distributions directly eliminated the `PLAY` action as a viable strategy. With only one life, any action with a high probability of failure is strategically unsound. The graph forces a shift in priority from scoring to survival and information generation. Since I cannot see my teammate's hand, giving a clue (`REVEAL`) is impossible. This leaves `DISCARD` as the only logical course of action. The belief graph confirms that since all cards in my hand have identical, flat probability distributions, no single card is a safer or more dangerous discard than another. Therefore, I will discard the card in the first slot (index 0) to safely advance the game, gain a crucial clue token for my teammate, and avoid losing our final life.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph shows uniform 20% probabilities for all cards, indicating 0% play confidence. With only 1 life left, this data makes playing an unacceptable risk. Discarding is the only safe action to preserve the game and gain an information token.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 276,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-3 is fully revealed and playable (Blue stack at 2). Safe play with last life token."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Red-4 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-3 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 3,
+          "consequence": "Rank is 4 but Yellow stack at 3, need to confirm it's Yellow-4 first"
+        }
+      ]
+    },
+    {
+      "scenario_name": "last_life_token",
+      "context_type": "minimal_context",
+      "turn": 35,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n1.  **Belief Graph Data**: My belief graph provides the most critical data for this turn: a completely uniform probability distribution for every card in my hand. Each of my five cards has a 20% probability for each color and each rank, with a status of \"Uncertain\". This quantifies that I have zero actionable information. The belief graph's data confirms that any card is as likely to be a needed \"R4\" as it is to be a useless, already-played \"R1\". This lack of differentiation is the core driver of my decision.\n\n2.  **Decision Process**: The belief graph's quantification of complete uncertainty forces a process of elimination based on risk, especially with only one life token remaining.\n\n    - **Eliminating PLAY:** A `PLAY` action is statistically equivalent to a blind guess. The belief graph shows no card has a higher probability than any other of being playable. Given we have only 1 life, making a move with such a low probability of success would be an immediate game-losing error. The belief graph confirms this is not a calculated risk, but a shot in the dark.\n    \n    - **Eliminating REVEAL:** The game state provides no information about my teammate's hand (the \"OTHER PLAYERS' HANDS\" section is empty). Without being able to see their cards, I cannot give an intelligent clue. A `REVEAL` action is therefore impossible to execute meaningfully.\n    \n    - **Selecting DISCARD:** By elimination, `DISCARD` is the only viable action. It is the only option that does not guarantee an immediate loss and allows the game to progress. While discarding a card blindly is risky, it is a necessary risk to take to pass the turn to my teammate, who may be able to provide me with a crucial clue. The belief graph shows that all my cards are identically unknown, meaning there is no \"safer\" card to discard. By convention in such situations, I will discard the oldest card in my hand (card_index 0) to make room for a new, hopefully more useful card.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms 100% uncertainty for all my cards, making a `PLAY` action a guaranteed game loss with only 1 life. Since I have no visibility into my teammate's hand, a `REVEAL` is impossible. The only logical remaining action is to `DISCARD` the oldest, equally unknown card (index 0) to continue the game.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": false,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": false,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 398,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-3 is fully revealed and playable (Blue stack at 2). Safe play with last life token."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Red-4 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-3 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 3,
+          "consequence": "Rank is 4 but Yellow stack at 3, need to confirm it's Yellow-4 first"
+        }
+      ]
+    },
+    {
+      "scenario_name": "last_life_token",
+      "context_type": "natural_language_belief",
+      "turn": 35,
+      "action_type": "DISCARD",
+      "action_target": 0,
+      "action_details": {
+        "type": "DISCARD",
+        "target": 0,
+        "color": null,
+        "rank": null
+      },
+      "reasoning_text": "**\n**PART 1: BELIEF GRAPH ANALYSIS - YOUR DECISION ENGINE**\n\n1.  **Belief Graph Data**: The belief graph for my hand is completely uniform. Each of my five cards has a flat 20% probability distribution across all five colors and all five ranks. This quantifies a state of absolute uncertainty. The belief graph confirms that I have no information to distinguish any card from another, meaning no card has a higher probability of being playable or disposable.\n\n2.  **Decision Process**: The belief graph's confirmation of total uncertainty is the primary driver of my decision. The game state is critical, with only 1 life token remaining. Any \"PLAY\" action would be a blind guess, and the belief graph shows the risk of failure is unacceptably high, as no card has any positive evidence supporting its playability. This eliminates playing as a viable option. The available actions presented in the prompt do not include giving a clue, forcing me to choose between playing and discarding. Given that playing is tantamount to losing the game, discarding is the only logical and safe action. This move will improve our resources by adding an information token (from 5 to 6) and cycle my hand, hopefully bringing in a more useful card for my teammate to clue. Since the belief graph indicates all my cards are probabilistically identical, there is no data-driven reason to prefer one card over another for discarding. Therefore, I will select card_index 0, adhering to the common Hanabi convention of discarding the oldest, unclued card.\n\n**PART 2: QUICK DECISION SUMMARY**\nThe belief graph confirms 100% uncertainty for all cards in my hand. With only 1 life token, playing is not an option. The available actions force a choice between play and discard, so I must discard. Lacking any differentiating information, I will discard the conventional \"oldest\" card, index 0.",
+      "action_safety": "RISKY",
+      "would_lose_life": false,
+      "is_optimal": false,
+      "matches_ground_truth": false,
+      "referenced_probabilities": true,
+      "mentioned_impossible_cards": false,
+      "used_numerical_probs": true,
+      "probability_interpretation_correct": false,
+      "reasoning_length_words": 306,
+      "references_fireworks": false,
+      "references_discards": true,
+      "references_teammate_hand": true,
+      "logical_coherence_score": 1.0,
+      "ground_truth_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-3 is fully revealed and playable (Blue stack at 2). Safe play with last life token."
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Red-4 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-3 color not revealed, could lose last life token and end game"
+        },
+        {
+          "type": "PLAY",
+          "target": 3,
+          "consequence": "Rank is 4 but Yellow stack at 3, need to confirm it's Yellow-4 first"
+        }
+      ]
+    }
+  ]
+}
