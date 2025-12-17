@@ -1,0 +1,99 @@
+{
+  "scenarios": [
+    {
+      "scenario_name": "turn_1_game_start",
+      "turn": 1,
+      "description": "Game start - no information, uniform probabilities",
+      "game_stage": "early_game",
+      "fireworks": {"R": 0, "Y": 0, "G": 0, "W": 0, "B": 0},
+      "life_tokens": 3,
+      "info_tokens": 8,
+      "current_player": 0,
+      "deck_size": 40,
+      "player_hands": {
+        "player_0": [
+          {"color": "red", "rank": 1, "revealed_color": false, "revealed_rank": false},
+          {"color": "blue", "rank": 2, "revealed_color": false, "revealed_rank": false},
+          {"color": "green", "rank": 1, "revealed_color": false, "revealed_rank": false},
+          {"color": "yellow", "rank": 3, "revealed_color": false, "revealed_rank": false},
+          {"color": "white", "rank": 1, "revealed_color": false, "revealed_rank": false}
+        ],
+        "player_1": [
+          {"color": "red", "rank": 2, "revealed_color": false, "revealed_rank": false},
+          {"color": "blue", "rank": 1, "revealed_color": false, "revealed_rank": false},
+          {"color": "green", "rank": 3, "revealed_color": false, "revealed_rank": false},
+          {"color": "yellow", "rank": 1, "revealed_color": false, "revealed_rank": false},
+          {"color": "white", "rank": 2, "revealed_color": false, "revealed_rank": false}
+        ]
+      },
+      "discard_pile": [],
+      "ground_truth_best_action": {
+        "type": "REVEAL_RANK",
+        "rank": 1,
+        "target_offset": 1,
+        "reasoning": "Early game, give information about playable 1s to teammate"
+      },
+      "dangerous_actions": [],
+      "ground_truth_explanation": "Given:\n- Turn 1, game just started\n- All fireworks stacks at height 0 (no cards played yet)\n- Agent holds 5 cards with no hints received (all unknown)\n- Life tokens: 3/3 (full health), Info tokens: 8/8 (full)\n- Deck size: 40 cards remaining\n- Partner (Player 1) holds: Red-2, Blue-1, Green-3, Yellow-1, White-2\n\nDerived Facts:\n- All five 1s are playable (next card needed for every color)\n- Partner has three playable 1s (Blue-1, Yellow-1) and one 2\n- Agent likely has some 1s as well (standard distribution)\n- No cards impossible yet (no stacks built)\n- Full information tokens available (can afford to give hints)\n\nImpossibility Constraints:\n- NONE - no cards on stacks yet, so all cards are possible\n\nPlayability Analysis:\n- Agent's cards: All unknown, no information about which to play\n- Playing random card: 40% chance it's a 1 (playable), 60% risky\n- Giving hint about 1s to partner: SAFE - enables partner to play Blue-1 or Yellow-1\n- Discarding: Wasteful at turn 1 with full info tokens\n\nTherefore:\n- Best action: REVEAL_RANK 1 to partner (target_offset=1)\n- Reasoning: Early game convention - establish fireworks base with 1s\n- Alternative safe actions: REVEAL_COLOR to partner (but rank hint more efficient for multiple 1s)\n- Dangerous actions: PLAY random card (60% chance of failure)",
+      "impossibility_statements": "No impossible cards in this scenario (turn 1, no fireworks built yet)",
+      "expected_reasoning_elements": [
+        "turn 1",
+        "no information",
+        "all 1s playable",
+        "give hint",
+        "establish base"
+      ]
+    },
+    {
+      "scenario_name": "turn_5_minimal_fireworks",
+      "turn": 5,
+      "description": "Some fireworks started, some hints given",
+      "game_stage": "early_game",
+      "fireworks": {"R": 1, "Y": 0, "G": 0, "W": 1, "B": 0},
+      "life_tokens": 3,
+      "info_tokens": 6,
+      "current_player": 0,
+      "deck_size": 35,
+      "player_hands": {
+        "player_0": [
+          {"color": "red", "rank": 2, "revealed_color": true, "revealed_rank": false},
+          {"color": "blue", "rank": 1, "revealed_color": false, "revealed_rank": false},
+          {"color": "green", "rank": 4, "revealed_color": false, "revealed_rank": false},
+          {"color": "yellow", "rank": 2, "revealed_color": false, "revealed_rank": false},
+          {"color": "white", "rank": 3, "revealed_color": false, "revealed_rank": false}
+        ],
+        "player_1": [
+          {"color": "red", "rank": 3, "revealed_color": false, "revealed_rank": false},
+          {"color": "blue", "rank": 1, "revealed_color": false, "revealed_rank": true},
+          {"color": "green", "rank": 1, "revealed_color": false, "revealed_rank": true},
+          {"color": "yellow", "rank": 1, "revealed_color": false, "revealed_rank": false},
+          {"color": "white", "rank": 2, "revealed_color": true, "revealed_rank": false}
+        ]
+      },
+      "discard_pile": [
+        {"color": "yellow", "rank": 5}
+      ],
+      "ground_truth_best_action": {
+        "type": "PLAY",
+        "target": 0,
+        "reasoning": "Red-2 is playable (Red stack at 1, card revealed as Red)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-4 not playable (Green stack at 0), would lose life token"
+        }
+      ],
+      "ground_truth_explanation": "Given:\n- Turn 5, early game\n- Fireworks: Red-1, Yellow-0, Green-0, White-1, Blue-0 (total: 2 cards played)\n- Agent's card 0: Revealed as RED (rank unknown)\n- Agent's card 0 actual identity: Red-2\n- Life tokens: 3/3 (full health), Info tokens: 6/8 (good supply)\n- Deck size: 35 cards remaining\n- Discard pile: Yellow-5 (critical card lost)\n\nDerived Facts:\n- Red stack at 1 means Red-1 already played\n- Next playable Red card is Red-2\n- Agent's card 0 is revealed as Red → could be Red-2, Red-3, Red-4, or Red-5\n- But card 0 is actually Red-2 (known to ground truth)\n- White stack at 1 means White-1 already played\n- Green, Yellow, Blue stacks at 0 need their 1s next\n\nImpossibility Constraints:\n- P(card 0 is Red-1) = 0.0 (Red-1 already on stack)\n- P(card 0 is White-1) = 0.0 (White-1 already on stack)\n- All other positions: no impossibility constraints from stacks\n\nPlayability Analysis:\n- Card 0 (Red, rank unknown):\n  * If Red-2: PLAYABLE (next card for Red stack)\n  * If Red-3/4/5: NOT YET PLAYABLE (need Red-2 first)\n  * Actual: Red-2 → SAFE TO PLAY\n- Card 1 (Blue-1, unknown): Playable if Blue, but no hint received\n- Card 2 (Green-4, unknown): NOT PLAYABLE (Green needs 1 first) → FATAL if played\n- Card 3 (Yellow-2, unknown): NOT PLAYABLE (Yellow needs 1 first)\n- Card 4 (White-3, unknown): NOT PLAYABLE (White needs 2 first)\n\nTherefore:\n- Best action: PLAY card 0 (position 0)\n- Reasoning: Card revealed as Red, Red stack at 1 needs Red-2 next\n- Risk assessment: Some chance it's Red-3/4/5 (not playable), but Red hint suggests partner wants it played\n- Dangerous action: PLAY card 2 (Green-4 with Green stack at 0) → certain life token loss",
+      "impossibility_statements": "Impossible cards:\n- Red-1 (already on Red stack at position 1)\n- White-1 (already on White stack at position 1)\n\nAgent's card 0 (revealed as Red) cannot be Red-1 (P=0.0)",
+      "expected_reasoning_elements": [
+        "red revealed",
+        "red stack at 1",
+        "red-2 playable",
+        "play card 0",
+        "safe play"
+      ]
+    }
+  ]
+}

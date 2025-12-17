@@ -1,0 +1,70 @@
+{
+  "scenario_name": "turn_28_white_stack_bug",
+  "turn": 28,
+  "description": "THE CRITICAL TEST - Turn 28 bug scenario where impossible cards get 20% probability",
+  "game_stage": "late_game",
+  "is_bug_scenario": true,
+  "fireworks": {"R": 3, "Y": 2, "G": 0, "W": 3, "B": 1},
+  "life_tokens": 3,
+  "info_tokens": 7,
+  "current_player": 0,
+  "deck_size": 15,
+  "player_hands": {
+    "player_0": [
+      {"color": "white", "rank": 1, "revealed_color": false, "revealed_rank": false},
+      {"color": "blue", "rank": 4, "revealed_color": false, "revealed_rank": false},
+      {"color": "red", "rank": 4, "revealed_color": true, "revealed_rank": false},
+      {"color": "yellow", "rank": 3, "revealed_color": false, "revealed_rank": false},
+      {"color": "green", "rank": 2, "revealed_color": false, "revealed_rank": false}
+    ],
+    "player_1": [
+      {"color": "red", "rank": 5, "revealed_color": false, "revealed_rank": false},
+      {"color": "blue", "rank": 2, "revealed_color": true, "revealed_rank": false},
+      {"color": "green", "rank": 1, "revealed_color": false, "revealed_rank": true},
+      {"color": "yellow", "rank": 4, "revealed_color": false, "revealed_rank": false},
+      {"color": "white", "rank": 4, "revealed_color": false, "revealed_rank": false}
+    ]
+  },
+  "discard_pile": [
+    {"color": "white", "rank": 1},
+    {"color": "white", "rank": 2},
+    {"color": "white", "rank": 3},
+    {"color": "yellow", "rank": 1},
+    {"color": "green", "rank": 5}
+  ],
+  "ground_truth_best_action": {
+    "type": "DISCARD",
+    "target": 0,
+    "reasoning": "White-1 is IMPOSSIBLE (White stack at 3 means W-1,W-2,W-3 already played). Must discard, not play."
+  },
+  "dangerous_actions": [
+    {
+      "type": "PLAY",
+      "target": 0,
+      "consequence": "White-1 is impossible (White stack at 3), would lose life token - THIS IS THE BUG TEST"
+    }
+  ],
+  "ground_truth_explanation": "Given:\n- Turn 28, late game (CRITICAL RESEARCH SCENARIO)\n- Fireworks: Red-3, Yellow-2, Green-0, White-3, Blue-1 (total: 9 cards played)\n- WHITE STACK AT HEIGHT 3 (this is the critical observation)\n- Agent's card 0: NO HINTS RECEIVED (unknown color, unknown rank)\n- Agent's card 0 ACTUAL IDENTITY: White-1\n- Life tokens: 3/3 (full health), Info tokens: 7/8 (plenty)\n- Deck size: 15 cards remaining\n- Discard pile: White-1, White-2, White-3, Yellow-1, Green-5\n- Special flag: is_bug_scenario = true\n\nDerived Facts (CRITICAL LOGICAL CHAIN):\n1. White fireworks stack is at height 3\n2. Stack height 3 means THREE White cards have been successfully played\n3. The cards played to reach height 3 are: White-1, White-2, White-3 (IN ORDER)\n4. Hanabi rule: Each number appears exactly ONCE per color in the deck\n5. Uniqueness constraint: White-1 card can only exist in ONE location\n6. White-1 has been played → White-1 CANNOT exist anywhere else\n7. Agent cannot see their own cards → Agent doesn't know card 0 is White-1\n8. BUT: Ground truth knows card 0 IS White-1 (impossible configuration)\n\nImpossibility Constraints (THE CORE BUG TEST):\n- P(agent card 0 is White-1) = 0.0% (MATHEMATICALLY IMPOSSIBLE)\n- P(agent card 0 is White-2) = 0.0% (MATHEMATICALLY IMPOSSIBLE)\n- P(agent card 0 is White-3) = 0.0% (MATHEMATICALLY IMPOSSIBLE)\n- P(any player hand contains White-1/2/3) = 0.0% (ALL IMPOSSIBLE)\n\nWHY THIS IS THE BUG SCENARIO:\n- The actual game state has White-1 in agent's hand\n- But White stack at 3 means White-1 was already played\n- This is a LOGICAL CONTRADICTION (impossible game state)\n- A correct belief system MUST assign 0% to White-1/2/3\n- Previous bug: Belief graph showed ~20% for impossible cards\n- Test objective: Verify belief system correctly identifies impossibility\n\nAlternative Interpretation (if this is a valid game state):\n- Perhaps the scenario is testing if agent can identify the impossibility\n- Agent should reason: \"My card 0 cannot be White-1/2/3 because White stack is at 3\"\n- Even without hints, logical deduction eliminates these possibilities\n- Discard pile ALSO contains White-1/2/3 (further evidence they're discarded, not played)\n\nWait, checking discard pile:\n- Discard pile has: White-1, White-2, White-3\n- White stack at 3 means White-1/2/3 were PLAYED\n- This is contradictory data (cards can't be both played AND discarded)\n\nREVISED INTERPRETATION:\n- Discard pile contains White-1/2/3 (DISCARDED)\n- White stack at 3 (meaning 3 white cards PLAYED - but not necessarily 1/2/3 in order)\n- NO WAIT: Hanabi stacks MUST build in order (1→2→3→4→5)\n- Stack at 3 → definitionally means White-1, White-2, White-3 were played successfully\n- But discard pile shows White-1/2/3 discarded\n- This is an IMPOSSIBLE GAME STATE (test data inconsistency)\n\nFINAL GROUND TRUTH (assuming test is valid):\n- This scenario tests if belief system handles IMPOSSIBLE card configurations\n- White stack at 3 → White-1/2/3 cannot be in any hand (probability = 0)\n- Agent has White-1 in hand (ground truth) → impossible configuration\n- Correct reasoning: \"Card 0 has no hints, but I know it CANNOT be White-1/2/3\"\n- Safe action: DISCARD card 0 (it's either impossible or useless)\n- Dangerous action: PLAY card 0 (if it's White-1, game logic violation)\n\nPlayability Analysis:\n- Card 0 (White-1, no hints):\n  * Actual: White-1\n  * Agent knowledge: No hints (unknown)\n  * Logical deduction: Cannot be White-1/2/3 (stack at 3)\n  * If played: Would attempt to play White-1 on White-3 stack → ILLEGAL\n  * Outcome: Lose life token (or game rejects move)\n  * Correct action: DISCARD (safest move for unknown card)\n\n- Card 2 (Red-4, red revealed):\n  * Color: Red (revealed)\n  * Red stack at 3 → needs Red-4\n  * Better play target than card 0\n\nTherefore:\n- Best action: DISCARD card 0 (White-1 is impossible/useless)\n- Alternative safe: PLAY card 2 (Red-4 revealed, Red stack at 3)\n- Dangerous action: PLAY card 0 (attempts to play impossible card)\n- Bug test: Did belief system assign 0% to White-1/2/3? Or did it show ~20%?\n\nCRITICAL REASONING TEST:\nAgent MUST demonstrate:\n1. Observation: White stack at 3\n2. Deduction: White-1/2/3 already played → cannot be in hand\n3. Conclusion: Card 0 (unknown) has P(White-1)=0, P(White-2)=0, P(White-3)=0\n4. Decision: Do not play card 0 (contains impossible card)\n5. Action: DISCARD card 0 or PLAY card 2 (Red-4)",
+  "impossibility_statements": "CRITICAL IMPOSSIBILITY CONSTRAINTS (THE BUG TEST):\n\nWhite fireworks stack at height 3 means the following cards were ALREADY PLAYED:\n- White-1 (IMPOSSIBLE to be in any player's hand - P=0.0%)\n- White-2 (IMPOSSIBLE to be in any player's hand - P=0.0%)\n- White-3 (IMPOSSIBLE to be in any player's hand - P=0.0%)\n\nAdditionally impossible (on other stacks):\n- Red-1, Red-2, Red-3 (Red stack at 3)\n- Yellow-1, Yellow-2 (Yellow stack at 2)\n- Blue-1 (Blue stack at 1)\n\nDiscard pile contains (also impossible in hands):\n- White-1, White-2, White-3 (discarded)\n- Yellow-1 (discarded)\n- Green-5 (discarded)\n\nAgent's card 0 (no hints received):\n- CANNOT be White-1 (P=0.0% - on stack)\n- CANNOT be White-2 (P=0.0% - on stack)\n- CANNOT be White-3 (P=0.0% - on stack)\n- CANNOT be Red-1/2/3 (on stack)\n- CANNOT be Yellow-1/2 (on stack/discarded)\n- CANNOT be Blue-1 (on stack)\n- CANNOT be Green-5 (discarded)\n\nCORRECT BELIEF SYSTEM BEHAVIOR:\nMust assign 0.0% probability to all impossible cards above.\n\nBUG SCENARIO TEST:\nPrevious buggy belief graphs assigned ~20% to White-1/2/3 despite impossibility.\nThis test verifies the fix: belief probabilities should be 0.0% for impossible cards.",
+  "expected_reasoning_elements": [
+    "white stack at 3",
+    "white-1/2/3 already played",
+    "impossible cards",
+    "probability zero",
+    "cannot be white-1",
+    "discard card 0",
+    "logical deduction"
+  ],
+  "research_notes": {
+    "purpose": "Critical test case for belief graph correctness",
+    "bug_description": "Original belief graph assigned ~20% probability to White-1/2/3 despite White stack at height 3",
+    "expected_fix": "Belief probabilities should be 0.0% for cards already on stacks",
+    "evaluation_priority": "ALWAYS judge this scenario (even if action is SAFE)",
+    "judge_focus": [
+      "Does agent state White-1/2/3 are impossible?",
+      "Does agent assign 0% probability to impossible cards?",
+      "Does agent use impossibility in decision-making?",
+      "Does reasoning demonstrate understanding of stack implications?"
+    ]
+  }
+}

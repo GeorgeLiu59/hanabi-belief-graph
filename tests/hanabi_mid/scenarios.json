@@ -1,0 +1,63 @@
+{
+  "scenarios": [
+    {
+      "scenario_name": "turn_10_medium_complexity",
+      "turn": 10,
+      "description": "Mid-game with multiple stacks building",
+      "game_stage": "mid_game",
+      "fireworks": {"R": 2, "Y": 1, "G": 1, "W": 2, "B": 1},
+      "life_tokens": 2,
+      "info_tokens": 4,
+      "current_player": 0,
+      "deck_size": 25,
+      "player_hands": {
+        "player_0": [
+          {"color": "red", "rank": 3, "revealed_color": false, "revealed_rank": true},
+          {"color": "blue", "rank": 2, "revealed_color": true, "revealed_rank": false},
+          {"color": "green", "rank": 5, "revealed_color": false, "revealed_rank": false},
+          {"color": "yellow", "rank": 2, "revealed_color": false, "revealed_rank": false},
+          {"color": "white", "rank": 4, "revealed_color": false, "revealed_rank": false}
+        ],
+        "player_1": [
+          {"color": "red", "rank": 4, "revealed_color": true, "revealed_rank": false},
+          {"color": "blue", "rank": 3, "revealed_color": false, "revealed_rank": false},
+          {"color": "green", "rank": 2, "revealed_color": false, "revealed_rank": true},
+          {"color": "yellow", "rank": 3, "revealed_color": false, "revealed_rank": false},
+          {"color": "white", "rank": 3, "revealed_color": true, "revealed_rank": false}
+        ]
+      },
+      "discard_pile": [
+        {"color": "yellow", "rank": 5},
+        {"color": "green", "rank": 4},
+        {"color": "blue", "rank": 5}
+      ],
+      "ground_truth_best_action": {
+        "type": "PLAY",
+        "target": 1,
+        "reasoning": "Blue-2 is playable (Blue stack at 1, card revealed as Blue)"
+      },
+      "dangerous_actions": [
+        {
+          "type": "PLAY",
+          "target": 0,
+          "consequence": "Rank is 3 but color unknown, risky without confirming it's Red-3"
+        },
+        {
+          "type": "PLAY",
+          "target": 2,
+          "consequence": "Green-5 not playable (Green stack at 1), would lose life token"
+        }
+      ],
+      "ground_truth_explanation": "Given:\n- Turn 10, mid-game phase\n- Fireworks: Red-2, Yellow-1, Green-1, White-2, Blue-1 (total: 7 cards played)\n- Agent's card 0: Revealed as RANK 3 (color unknown), actual: Red-3\n- Agent's card 1: Revealed as BLUE (rank unknown), actual: Blue-2\n- Life tokens: 2/3 (one mistake made already), Info tokens: 4/8 (moderate supply)\n- Deck size: 25 cards remaining (halfway through deck)\n- Critical cards discarded: Yellow-5, Green-4, Blue-5\n\nDerived Facts:\n- Red stack at 2 → needs Red-3 next\n- Yellow stack at 1 → needs Yellow-2 next (Yellow-5 discarded, max score reduced)\n- Green stack at 1 → needs Green-2 next (Green-4 discarded limits max to Green-3)\n- White stack at 2 → needs White-3 next\n- Blue stack at 1 → needs Blue-2 next (Blue-5 discarded, max score reduced)\n- Multiple critical cards already lost (3 fives/high cards discarded)\n\nImpossibility Constraints:\n- Red-1, Red-2 (on Red stack)\n- Yellow-1 (on Yellow stack)\n- Green-1 (on Green stack)\n- White-1, White-2 (on White stack)\n- Blue-1 (on Blue stack)\n- Yellow-5, Green-4, Blue-5 (in discard pile)\n\nCard 0 (rank 3, color unknown, actual: Red-3):\n- Could be: Red-3 (playable), Yellow-3, Green-3, White-3, Blue-3\n- Cannot be: Cards already on stacks or discarded\n- If Red-3: PLAYABLE\n- If Yellow/Green/White/Blue-3: NOT YET PLAYABLE\n- Risk: 1/5 colors = 20% success if playing blind\n\nCard 1 (Blue, rank unknown, actual: Blue-2):\n- Could be: Blue-2 (playable), Blue-3, Blue-4 (Blue-5 discarded)\n- Cannot be: Blue-1 (on stack), Blue-5 (discarded)\n- If Blue-2: PLAYABLE (next card for Blue stack)\n- If Blue-3/4: NOT YET PLAYABLE\n- Blue stack at 1 needs Blue-2 → high probability this is Blue-2\n\nPlayability Analysis:\n- Card 0: Risky (20% success, color unknown)\n- Card 1: SAFE (Blue revealed, Blue stack at 1 needs Blue-2)\n- Card 2: FATAL (Green-5 not playable with Green at 1)\n- Playing with 2 life tokens: Must be conservative\n\nTherefore:\n- Best action: PLAY card 1 (Blue-2)\n- Reasoning: Blue revealed, Blue stack at 1, most likely Blue-2\n- Risk level: LOW (Blue hint strongly suggests playability)\n- Dangerous actions:\n  * PLAY card 0 (rank 3 known but color unknown - 80% failure rate)\n  * PLAY card 2 (Green-5 impossible to play now - 100% failure)",
+      "impossibility_statements": "Impossible cards for agent's hand:\n- Red-1, Red-2 (already on Red stack)\n- Yellow-1 (already on Yellow stack)\n- Green-1 (already on Green stack)\n- White-1, White-2 (already on White stack)\n- Blue-1 (already on Blue stack)\n- Yellow-5 (in discard pile)\n- Green-4 (in discard pile)\n- Blue-5 (in discard pile)\n\nAgent's card 1 (revealed as Blue) cannot be:\n- Blue-1 (P=0.0, already on stack)\n- Blue-5 (P=0.0, in discard pile)\n\nMost likely: Blue-2 or Blue-3 (Blue stack at 1)",
+      "expected_reasoning_elements": [
+        "blue revealed",
+        "blue stack at 1",
+        "blue-2 playable",
+        "play card 1",
+        "moderate risk",
+        "2 life tokens"
+      ]
+    }
+  ]
+}
