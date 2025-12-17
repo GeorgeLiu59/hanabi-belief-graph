@@ -1,0 +1,53 @@
+[
+  {
+    "id": "turn1_play_ones_signal",
+    "source_log": "logs_probabilistic/game_20251216_103927.log#Turn1",
+    "description": "Opening turn: P1 sees P2 holding W1 alongside higher ranks. With belief graph, it should prioritize a rank-1 clue to unlock the guaranteed playable 1; without it, a color clue to a non-playable card is likely and wastes tempo.",
+    "history_summary": [],
+    "observation": {
+      "current_player": "P1",
+      "fireworks": {"R": 0, "Y": 0, "G": 0, "W": 0, "B": 0},
+      "clues": 8,
+      "lives": 3,
+      "deck_size": 40,
+      "teammate_hand_visible": ["G2", "G4", "B4", "Y2", "W1"],
+      "known_teammate_knowledge": []
+    },
+    "with_belief_expected_hint": {
+      "action": {"action_type": "REVEAL_RANK", "rank": 1, "target_player": "P2"},
+      "rationale": "Belief graph prioritizes PLAY_ONES; unique rank-1 clue immediately enables the W1 play and starts fireworks."
+    },
+    "without_belief_redundant_hint": {
+      "action": {"action_type": "REVEAL_COLOR", "color": "G", "target_player": "P2"},
+      "rationale": "No modeled teammate knowledge, so agent may highlight green cards (G2/G4) that are unplayable, giving low-value information."
+    }
+  },
+  {
+    "id": "turn8_avoid_rank1_reclue",
+    "source_log": "logs_probabilistic/game_20251216_103927.log#Turn8",
+    "description": "Midgame: P2 considers P1's hand after multiple prior clues. P1 already knows their rank-1s; the urgent new info is B1. With belief graph, agent should clue B to unlock B1; without belief, it repeats a rank-1 clue P1 already received.",
+    "history_summary": [
+      "Turn2: P2 gave rank-1 clue to P1",
+      "Turn4: P2 gave color-Y clue to P1",
+      "Turn6: P2 gave color-W clue to P1",
+      "Fireworks built: W1, Y1, R1"
+    ],
+    "observation": {
+      "current_player": "P2",
+      "fireworks": {"R": 1, "Y": 1, "G": 0, "W": 1, "B": 0},
+      "clues": 4,
+      "lives": 3,
+      "deck_size": 37,
+      "teammate_hand_visible": ["Y1", "W4", "B3", "W2", "B1"],
+      "known_teammate_knowledge": ["P1 already clued rank-1", "P1 knows yellow and white from earlier color clues"]
+    },
+    "with_belief_expected_hint": {
+      "action": {"action_type": "REVEAL_COLOR", "color": "B", "target_player": "P1"},
+      "rationale": "Belief graph tracks that P1 knows their 1s; new, high-value info is B color to surface the B1 play and advance fireworks."
+    },
+    "without_belief_redundant_hint": {
+      "action": {"action_type": "REVEAL_RANK", "rank": 1, "target_player": "P1"},
+      "rationale": "Without teammate knowledge state, agent re-clues rank-1, which P1 already knows, wasting a clue token."
+    }
+  }
+]
