@@ -1,2 +1,40 @@
+# Existing
 .env
 instructions.md
+instructions2.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Ablation study generated results
+tests_anthony/ablation_results.md
+tests_anthony/ablation_results.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build artifacts
+_skbuild/
+build/
+dist/
+*.egg-info/
+
+# macOS
+.DS_Store

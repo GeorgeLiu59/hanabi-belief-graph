@@ -3,7 +3,7 @@
 import os
 import time
 import random
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from dotenv import load_dotenv
 import google.generativeai as genai
 from hanabi_learning_environment.rl_env import Agent
@@ -54,7 +54,10 @@ class GeminiAgent(Agent):
         self.request_times = []
         self.max_requests_per_minute = 30
         self.current_minute = None
-        
+
+        # Store last reasoning for act_with_reasoning() method
+        self.last_reasoning = ""
+
         self.logger.log_error("AGENT_INIT", f"Agent {self.agent_id} initialized successfully")
     
     def _load_api_key(self) -> str:
@@ -166,7 +169,10 @@ class GeminiAgent(Agent):
                 
                 # Extract reasoning and action
                 reasoning, action_json = self.cot_reasoner.extract_reasoning_and_action(response_text)
-                
+
+                # Store reasoning for act_with_reasoning() method
+                self.last_reasoning = reasoning if reasoning else ""
+
                 # Log Chain of Thought reasoning
                 if reasoning:
                     reasoning_quality = self.cot_reasoner.score_reasoning_quality(reasoning)
@@ -248,25 +254,50 @@ class GeminiAgent(Agent):
         # Always observe and learn, regardless of whose turn it is
         # Add observation to history to learn from other players' actions
         self._add_observation_to_history(observation)
-        
+
         # If not our turn, just observe - don't take action but still learn
         if observation['current_player_offset'] != 0:
             return None
-        
+
         # Log decision start
         self.logger.log_decision_start(observation)
-        
+
         try:
             # Get legal action with retry logic
             action = self._get_legal_action_with_retry(observation)
-            
+
             # Add action to history
             self._add_action_to_history(action)
-            
+
             return action
-            
+
         except Exception as e:
             self.logger.log_error("ACT_ERROR", f"Critical error in act method: {e}")
-            
+
             # No emergency fallback - let it fail
             raise
+
+    def act_with_reasoning(self, observation: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], str]:
+        """
+        Act and also return the Chain of Thought reasoning.
+
+        This method is identical to act() but also returns the reasoning text
+        that was generated during the decision-making process. Useful for
+        ablation studies and analysis of agent reasoning patterns.
+
+        Args:
+            observation: Game observation dict
+
+        Returns:
+            (action, reasoning_text) tuple where:
+            - action: Same as act() return value
+            - reasoning_text: Chain of Thought reasoning that led to the action
+        """
+        # Reset reasoning for this decision
+        self.last_reasoning = ""
+
+        # Call act() which will populate self.last_reasoning
+        action = self.act(observation)
+
+        # Return both action and the reasoning that was generated
+        return action, self.last_reasoning
