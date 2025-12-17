@@ -546,20 +546,4 @@ Low judge score (<0.5):  38% safe actions
 → Judge score predicts action safety (validates rubric)
 ```
 
-## 9. References & Version History
 
-**Version**: 1.0
-**Date**: 2025-12-16
-**Authors**: Anthony & Yash
-
-**Related documents**:
-- Game stage classification: `/Users/an/algoverse/hanabi1/tests_anthony/GAME_STAGE_DEFINITION.md`
-- Implementation: `/Users/an/algoverse/hanabi1/tests_anthony/shared/llm_judge.py`
-- Research plan: `/Users/an/.claude/plans/immutable-floating-kahan.md`
-
-**Changelog**:
-- 2025-12-16: Initial specification
-
----
-
-**For questions or clarifications**, see implementation code or consult research plan.
