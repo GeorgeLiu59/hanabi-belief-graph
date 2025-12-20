@@ -13,6 +13,7 @@
       "teammate_hand_visible": ["G2", "G4", "B4", "Y2", "W1"],
       "known_teammate_knowledge": []
     },
+    "belief_graph_summary": "Tracks teammate hand state from the start and prioritizes PLAY_ONES, so it knows surfacing the only rank-1 (W1) is the highest-value clue.",
     "with_belief_expected_hint": {
       "action": {"action_type": "REVEAL_RANK", "rank": 1, "target_player": "P2"},
       "rationale": "Belief graph prioritizes PLAY_ONES; unique rank-1 clue immediately enables the W1 play and starts fireworks."
@@ -41,6 +42,7 @@
       "teammate_hand_visible": ["Y1", "W4", "B3", "W2", "B1"],
       "known_teammate_knowledge": ["P1 already clued rank-1", "P1 knows yellow and white from earlier color clues"]
     },
+    "belief_graph_summary": "Carries forward prior rank/color clues to infer P1 already knows their 1s, so the only new, high-impact info is the blue color to surface B1.",
     "with_belief_expected_hint": {
       "action": {"action_type": "REVEAL_COLOR", "color": "B", "target_player": "P1"},
       "rationale": "Belief graph tracks that P1 knows their 1s; new, high-value info is B color to surface the B1 play and advance fireworks."

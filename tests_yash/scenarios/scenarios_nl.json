@@ -1,0 +1,141 @@
+[
+    {
+        "id": "turn1_play_ones_signal",
+        "source_log": "logs_probabilistic/game_20251216_103927.log#Turn1",
+        "description": "Opening turn: P1 sees P2 holding W1 alongside higher ranks. With belief graph, it should prioritize a rank-1 clue to unlock the guaranteed playable 1; without it, a color clue to a non-playable card is likely and wastes tempo.",
+        "history_summary": [],
+        "observation": {
+          "current_player": "P1",
+          "fireworks": {"R": 0, "Y": 0, "G": 0, "W": 0, "B": 0},
+          "clues": 8,
+          "lives": 3,
+          "deck_size": 40,
+          "teammate_hand_visible": ["G2", "G4", "B4", "Y2", "W1"],
+          "known_teammate_knowledge": []
+        },
+        "belief_graph_summary": "Tracks teammate hand state from the start and prioritizes PLAY_ONES, so it knows surfacing the only rank-1 (W1) is the highest-value clue.",
+        "with_belief_expected_hint": {
+          "action": {"action_type": "REVEAL_RANK", "rank": 1, "target_player": "P2"},
+          "rationale": "Belief graph prioritizes PLAY_ONES; unique rank-1 clue immediately enables the W1 play and starts fireworks."
+        },
+        "without_belief_redundant_hint": {
+          "action": {"action_type": "REVEAL_COLOR", "color": "G", "target_player": "P2"},
+          "rationale": "No modeled teammate knowledge, so agent may highlight green cards (G2/G4) that are unplayable, giving low-value information."
+        }
+      },
+      {
+        "id": "turn8_avoid_rank1_reclue",
+        "source_log": "logs_probabilistic/game_20251216_103927.log#Turn8",
+        "description": "Midgame: P2 considers P1's hand after multiple prior clues. P1 already knows their rank-1s; the urgent new info is B1. With belief graph, agent should clue B to unlock B1; without belief, it repeats a rank-1 clue P1 already received.",
+        "history_summary": [
+          "Turn2: P2 gave rank-1 clue to P1",
+          "Turn4: P2 gave color-Y clue to P1",
+          "Turn6: P2 gave color-W clue to P1",
+          "Fireworks built: W1, Y1, R1"
+        ],
+        "observation": {
+          "current_player": "P2",
+          "fireworks": {"R": 1, "Y": 1, "G": 0, "W": 1, "B": 0},
+          "clues": 4,
+          "lives": 3,
+          "deck_size": 37,
+          "teammate_hand_visible": ["Y1", "W4", "B3", "W2", "B1"],
+          "known_teammate_knowledge": ["P1 already clued rank-1", "P1 knows yellow and white from earlier color clues"]
+        },
+        "belief_graph_summary": "Carries forward prior rank/color clues to infer P1 already knows their 1s, so the only new, high-impact info is the blue color to surface B1.",
+        "with_belief_expected_hint": {
+          "action": {"action_type": "REVEAL_COLOR", "color": "B", "target_player": "P1"},
+          "rationale": "Belief graph tracks that P1 knows their 1s; new, high-value info is B color to surface the B1 play and advance fireworks."
+        },
+        "without_belief_redundant_hint": {
+          "action": {"action_type": "REVEAL_RANK", "rank": 1, "target_player": "P1"},
+          "rationale": "Without teammate knowledge state, agent re-clues rank-1, which P1 already knows, wasting a clue token."
+        }
+      },
+    {
+      "id": "midgame_self_play_y1",
+      "source_log": "logs_probabilistic/2025_12_17_PROB_LOG_AGENT2.log#MidGame_Turn_Y1_Play",
+      "description": "Mid-game situation where P1, using belief graph aggregation from prior hints and negative information, knows with certainty that one of its own cards is Y1 and can safely build the Yellow firework. Without a belief graph, the agent has no access to self-card certainty and would default to a hint or discard.",
+      "history_summary": [
+        "Earlier rank and color hints eliminated all non-Y1 possibilities for P1 card index 2",
+        "Yellow firework is at 0 and awaiting Y1",
+        "No conflicting negative inferences remain"
+      ],
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 0, "Y": 0, "G": 0, "W": 0, "B": 1 },
+        "clues": 6,
+        "lives": 3,
+        "deck_size": 39,
+        "teammate_hand_visible": ["Y2", "W3", "B2", "B4", "Y5"],
+        "known_teammate_knowledge": ["Y5 is known and protected"]
+      },
+      "belief_graph_summary": "Your belief is that your card at index 2 is Yellow about 100% of the time and rank 1 about 100% of the time. You believe this card is not Red, not Blue, not Green, and not White about 80% of the time each, and not ranks 2 through 5 about 80% of the time each. This belief comes from the belief graph collapse shown in the logs where the agent explicitly states 100% certainty that card index 2 is a Yellow 1 after aggregating prior negative rank and color eliminations.",
+      "with_belief_expected_hint": {
+        "action": { "action_type": "PLAY", "card_index": 2 },
+        "rationale": "Belief graph provides absolute certainty this card is Y1, directly advancing the Yellow firework with zero risk."
+      },
+      "without_belief_redundant_hint": {
+        "action": { "action_type": "REVEAL_COLOR", "color": "Y", "target_player": "P2" },
+        "rationale": "Without self-belief certainty, the agent avoids playing and instead gives a low-value color hint that does not immediately advance fireworks."
+      }
+    },
+  
+    {
+      "id": "midgame_teammate_b2_unlock",
+      "source_log": "logs_probabilistic/2025_12_17_PROB_LOG_AGENT2.log#MidGame_B2_Inference",
+      "description": "Mid-game state where P1 can infer that P2 holds the only playable B2 based on prior B1 play and earlier negative hints. A belief graph enables a rank-2 clue that immediately allows P2 to build the Blue firework.",
+      "history_summary": [
+        "Blue firework at 1 after B1 play",
+        "P2 received prior rank-5 hint removing rank 5 from other cards",
+        "Only one Blue rank-2 remains visible in P2 hand"
+      ],
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 0, "Y": 1, "G": 0, "W": 0, "B": 1 },
+        "clues": 5,
+        "lives": 3,
+        "deck_size": 38,
+        "teammate_hand_visible": ["Y2", "W3", "B2", "B4", "Y5"],
+        "known_teammate_knowledge": ["Y5 known", "rank 5 eliminated from other cards"]
+      },
+      "belief_graph_summary": "Your belief is that Player 2’s third card is not rank 5 about 100% of the time, and not ranks 3 or 4 about roughly 75% of the time, leaving rank 2 as the highest-probability remaining option. You also believe this card is Blue about 60–70% of the time because all other Blue candidates have been ruled out by visible cards and prior plays. The logs show this distribution after the rank-5 hint, where non-targeted cards have rank-5 probability reduced to zero and remaining ranks renormalized.",
+      "with_belief_expected_hint": {
+        "action": { "action_type": "REVEAL_RANK", "rank": 2, "target_player": "P2" },
+        "rationale": "Rank-2 hint uniquely identifies B2 as immediately playable, enabling Blue firework advancement."
+      },
+      "without_belief_redundant_hint": {
+        "action": { "action_type": "REVEAL_COLOR", "color": "B", "target_player": "P2" },
+        "rationale": "Without modeling what P2 already knows, the agent gives a broad blue hint that does not disambiguate B2 from B4 and fails to trigger a confident play."
+      }
+    },
+  
+    {
+      "id": "lategame_chain_completion_signal",
+      "source_log": "logs_probabilistic/2025_12_17_PROB_LOG_AGENT2.log#LateGame_Chain_Enable",
+      "description": "Late-game scenario where P1 can see that P2 holds the next required firework card (Y3) and knows from belief tracking that P2 already knows the color but not the rank. Belief graph selects the minimal rank hint to complete a firework chain.",
+      "history_summary": [
+        "Yellow firework at 2",
+        "P2 previously received a Yellow color hint",
+        "Ranks 1 and 2 are already played on Yellow"
+      ],
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 1, "Y": 2, "G": 1, "W": 0, "B": 2 },
+        "clues": 2,
+        "lives": 2,
+        "deck_size": 15,
+        "teammate_hand_visible": ["Y3", "W4", "B4", "R2", "Y5"],
+        "known_teammate_knowledge": ["Yellow color known, rank unknown"]
+      },
+      "belief_graph_summary": "Your belief is that Player 2’s leftmost card is Yellow about 100% of the time due to an earlier color hint, and not rank 1 or rank 2 about roughly 80% of the time each because those ranks are already played on the Yellow firework. Among the remaining possibilities, rank 3 carries the highest posterior probability. The logs reflect this via firework state updates combined with negative rank inference after earlier plays.",
+      "with_belief_expected_hint": {
+        "action": { "action_type": "REVEAL_RANK", "rank": 3, "target_player": "P2" },
+        "rationale": "Rank-3 hint completes P2’s certainty, enabling immediate Y3 play and extending the Yellow firework."
+      },
+      "without_belief_redundant_hint": {
+        "action": { "action_type": "REVEAL_COLOR", "color": "Y", "target_player": "P2" },
+        "rationale": "Agent fails to account for existing color knowledge and repeats a redundant Yellow hint, wasting scarce late-game information tokens."
+      }
+    }
+  ]  
