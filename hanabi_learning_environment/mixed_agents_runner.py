@@ -18,6 +18,7 @@ from hanabi_learning_environment.agents.gemini_agent import GeminiAgent
 from hanabi_learning_environment.agents.certainty_agent import BeliefGraphCertaintyAgent
 from hanabi_learning_environment.agents.probabilistic_agent import BeliefGraphProbabilisticAgent
 from hanabi_learning_environment.agents.tom_agent import BeliefGraphToMAgent
+from hanabi_learning_environment.game_logger import TerminalLogger, GameStateLogger, EventLogger
 
 # Available agent classes
 AGENT_CLASSES = {
@@ -51,10 +52,10 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 class MixedAgentsRunner:
     """Runner for games with different agent types."""
-    
+
     def __init__(self, players: int, episodes: int, agent_configs: List[Dict[str, str]]):
         """Initialize the runner.
-        
+
         Args:
             players: Number of players
             episodes: Number of episodes to run
@@ -66,7 +67,11 @@ class MixedAgentsRunner:
         self.environment = rl_env.make('Hanabi-Full-CardKnowledge', num_players=players)
         self.fireworks_totals: List[int] = []
         self.fireworks_maxima: List[int] = []
-        
+
+        # Initialize comprehensive logging
+        self.game_state_logger = GameStateLogger()
+        self.event_logger = EventLogger()
+
         # Validate we have the right number of agent configs
         if len(agent_configs) != players:
             raise ValueError(f"Need {players} agent configs, got {len(agent_configs)}")
@@ -112,38 +117,47 @@ class MixedAgentsRunner:
         """Run a single episode."""
         observations = self.environment.reset()
         agents = self.create_agents(episode_num)
-        
+
+        # Log episode start
+        self.game_state_logger.log_episode_start(episode_num)
+        self.event_logger.log_episode_start(episode_num)
+
         done = False
         episode_reward = 0
         turn_count = 0
         final_fireworks = self._extract_fireworks_total(observations)
         max_fireworks = final_fireworks
-        
+
         print(f"\n{'='*60}")
         print(f"EPISODE {episode_num + 1} START")
         print(f"{'='*60}")
-        
+
         while not done:
             turn_count += 1
             current_player_action = None
-            
+            current_player_id = None
+
             # Get actions from all agents
             for agent_id, agent in enumerate(agents):
                 observation = observations['player_observations'][agent_id]
-                
+
                 if observation['current_player'] == agent_id:
+                    current_player_id = agent_id
                     print(f"\n--- Turn {turn_count}: Player {agent_id + 1} ({type(agent).__name__}) ---")
                     print(f"Information tokens: {observation['information_tokens']}/8")
                     print(f"Life tokens: {observation['life_tokens']}/3")
                     print(f"Fireworks: {observation['fireworks']}")
-                    
+
+                    # Log state BEFORE action
+                    self.game_state_logger.log_turn_state(observation, turn_count, agent_id, action=None)
+
                     action = agent.act(observation)
                     print(f"Action: {action}")
                     current_player_action = action
                 else:
                     action = agent.act(observation)
                     assert action is None, f"Agent {agent_id} should not act on other's turn"
-            
+
             # Execute the current player's action
             if current_player_action is not None:
                 observations, reward, done, _ = self.environment.step(current_player_action)
@@ -151,15 +165,38 @@ class MixedAgentsRunner:
                 final_fireworks = self._extract_fireworks_total(observations)
                 if final_fireworks > max_fireworks:
                     max_fireworks = final_fireworks
+
+                # Log state AFTER action and check for events
+                new_observation = observations['player_observations'][current_player_id]
+                self.event_logger.check_and_log_changes(new_observation, turn_count, current_player_id, current_player_action)
             else:
                 raise ValueError("No valid action found for current player")
-        
+
+        # Determine end reason
+        final_obs = observations['player_observations'][0]
+        if final_obs.get('life_tokens', 0) == 0:
+            end_reason = "lives_depleted"
+        elif final_fireworks == 25:
+            end_reason = "perfect_score"
+        elif final_obs.get('deck_size', 0) == 0:
+            end_reason = "deck_exhausted"
+        else:
+            end_reason = "max_turns"
+
+        # Log episode end
+        self.game_state_logger.log_episode_end(episode_num, final_fireworks, max_fireworks, turn_count)
+        self.event_logger.log_episode_end(episode_num, end_reason)
+
         print(f"\nEpisode {episode_num + 1} completed with reward: {episode_reward}")
         print(f"Fireworks built this episode: {final_fireworks} (max reached: {max_fireworks})")
+        print(f"End reason: {end_reason}")
+        print(f"Total turns: {turn_count}")
         return {
             'reward': episode_reward,
             'final_fireworks': final_fireworks,
-            'max_fireworks': max_fireworks
+            'max_fireworks': max_fireworks,
+            'end_reason': end_reason,
+            'turns': turn_count
         }
     
     def run(self) -> List[float]:
@@ -226,21 +263,26 @@ def main():
         print("Usage: mixed_agents_runner.py <players> <episodes> <agent_config>")
         print("Example: mixed_agents_runner.py 2 3 'GeminiAgent,BeliefGraphAgent:certainty'")
         sys.exit(1)
-    
+
+    # Start terminal logging
+    terminal_logger = TerminalLogger()
+
     try:
+        terminal_logger.start()
+
         players = int(sys.argv[1])
         episodes = int(sys.argv[2])
         agent_config_string = sys.argv[3]
-        
+
         agent_configs = parse_agent_config(agent_config_string)
-        
+
         if len(agent_configs) != players:
             print(f"Error: Need {players} agent configurations, got {len(agent_configs)}")
             sys.exit(1)
-        
+
         runner = MixedAgentsRunner(players, episodes, agent_configs)
         rewards = runner.run()
-        
+
         # Final summary
         print(f"\n{'='*60}")
         print("FINAL RESULTS")
@@ -254,14 +296,17 @@ def main():
             print(f"Episode fireworks built: {runner.fireworks_totals}")
         if getattr(runner, 'fireworks_maxima', None) is not None:
             print(f"Episode peak fireworks: {runner.fireworks_maxima}")
-        
+
     except KeyboardInterrupt:
         print("\nGame interrupted by user")
         sys.exit(0)
     except Exception as e:
         print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
     finally:
+        terminal_logger.stop()
         cleanup_resources()
 
 if __name__ == "__main__":
