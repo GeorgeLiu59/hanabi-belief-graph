@@ -31,7 +31,7 @@ class BeliefGraphAgentBase(GeminiAgent, ABC):
             agent_id=self.agent_id,
             model_type="BG",
             mode=variant_name,
-            llm_model="2.5_gemini_pro",
+            llm_model="2_5_gemini_pro",
             tag=config.get('tag', ''),
             game_id=config.get('game_id', None)
         )

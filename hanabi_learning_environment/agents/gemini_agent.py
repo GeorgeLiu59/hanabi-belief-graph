@@ -31,7 +31,7 @@ class GeminiAgent(Agent):
             agent_id=self.agent_id,
             model_type="Gemini",
             mode="base",
-            llm_model="2.5_gemini_pro",
+            llm_model="2_5_gemini_pro",
             tag=config.get('tag', ''),
             game_id=config.get('game_id', None)
         )

@@ -1,9 +1,13 @@
 """Quick visualization of life token loss over a Hanabi game log.
 
 Usage:
-    python scripts/visualize_lives.py logs/2025_12_17_PROB_LOG_AGENT2.log
-    python scripts/visualize_lives.py logs --out lives.png
-    python scripts/visualize_lives.py logs_probabilistic
+    # New format (subdirectories)
+    python scripts/visualize_lives.py logs/gemini_base/20260102_123456_2_5_gemini_pro_Gemini_base_game0_1234.log
+    python scripts/visualize_lives.py logs --out output_directory/
+    python scripts/visualize_lives.py logs/bg_probabilistic --out lives.png
+
+    # Old format (backwards compatible)
+    python scripts/visualize_lives.py logs/agent_BG_probabilistic_1785_20251227_165044.log
 """
 
 import argparse
@@ -89,14 +93,35 @@ def plot_episode(ep: int, updates: List[Update], out_path: Path):
 
 
 def find_log_files(root: Path) -> List[Path]:
-    """Find agent log files under a directory."""
+    """Find agent log files under a directory.
+
+    Supports both old format (agent_*.log) and new format:
+    - logs/bg_probabilistic/*.log
+    - logs/gemini_base/*.log
+    - logs/bg_certainty/*.log
+    - logs/bg_theory_of_mind/*.log
+    """
     if root.is_file():
         return [root]
 
-    candidates = sorted(root.glob("agent_*.log"))
-    if candidates:
-        return candidates
+    candidates = []
 
+    # Try old format first (for backwards compatibility)
+    old_format = sorted(root.glob("agent_*.log"))
+    if old_format:
+        candidates.extend(old_format)
+
+    # Try new format with subdirectories
+    subdirs = ["bg_probabilistic", "bg_certainty", "bg_theory_of_mind", "gemini_base"]
+    for subdir in subdirs:
+        subdir_path = root / subdir
+        if subdir_path.exists() and subdir_path.is_dir():
+            candidates.extend(sorted(subdir_path.glob("*.log")))
+
+    if candidates:
+        return sorted(set(candidates))  # Remove duplicates and sort
+
+    # Fallback: any .log files in root
     return sorted(root.glob("*.log"))
 
 
