@@ -134,10 +134,12 @@ class AsyncGameRunner:
         # Initialize logging with new naming format
         # Note: Agent logs (DATE_TIME_MODEL_MODE.log) are created by agents themselves
         self.game_state_logger = GameStateLogger(
-            log_dir=f"logs/game_state/{log_dir_name}"
+            log_dir=f"logs/game_state/{log_dir_name}",
+            game_id=game_id
         )
         self.event_logger = EventLogger(
-            log_dir=f"logs/events/{log_dir_name}"
+            log_dir=f"logs/events/{log_dir_name}",
+            game_id=game_id
         )
 
         # Validate we have the right number of agent configs
@@ -229,7 +231,23 @@ class AsyncGameRunner:
                     # Log state BEFORE action
                     self.game_state_logger.log_turn_state(observation, turn_count, agent_id, action=None)
 
-                    action = agent.act(observation)
+                    # Try to get action from agent with error handling
+                    try:
+                        action = agent.act(observation)
+                    except Exception as e:
+                        print(f"[Game {self.game_id}] ERROR: Agent {agent_id} failed to produce action: {e}")
+                        print(f"[Game {self.game_id}] Using random legal move as emergency fallback")
+                        # Emergency fallback: pick random legal move
+                        import random
+                        legal_moves = observation.get('legal_moves', [])
+                        if legal_moves:
+                            action = random.choice(legal_moves)
+                        else:
+                            # No legal moves available, game should end
+                            print(f"[Game {self.game_id}] CRITICAL: No legal moves available, ending game")
+                            done = True
+                            break
+
                     print(f"  Action: {action}")
                     current_player_action = action
                 else:
@@ -303,22 +321,25 @@ class ParallelGameCoordinator:
         players: int,
         agent_configs: List[Dict[str, str]],
         max_turns: Optional[int] = None,
-        episodes_per_game: int = 1
+        episodes_per_game: int = 1,
+        max_concurrent: int = 10
     ) -> List[Dict[str, Any]]:
-        """Run multiple games in parallel.
+        """Run multiple games in parallel with concurrency control.
 
         Args:
-            num_games: Number of games to run in parallel
+            num_games: Number of games to run total
             players: Number of players per game
             agent_configs: Agent configurations
             max_turns: Maximum turns per game
             episodes_per_game: Episodes to run per game
+            max_concurrent: Maximum concurrent games (default: 10, respects Gemini API limit)
 
         Returns:
             List of result dictionaries from all games
         """
         print(f"\n{'='*80}")
-        print(f"Starting {num_games} parallel games with {players} players each")
+        print(f"Starting {num_games} games with {players} players each")
+        print(f"Max concurrent games: {max_concurrent}")
         print(f"Max turns per game: {max_turns if max_turns else 'unlimited'}")
         print(f"Episodes per game: {episodes_per_game}")
         print(f"{'='*80}\n")
@@ -334,24 +355,47 @@ class ParallelGameCoordinator:
             )
             runners.append(runner)
 
-        # Run all games concurrently
-        tasks = []
-        for runner in runners:
-            for episode in range(episodes_per_game):
-                task = runner.run_game_async(episode)
-                tasks.append(task)
+        # Run games in batches to respect concurrency limit
+        all_results = []
 
-        # Wait for all games to complete
-        print(f"Launching {len(tasks)} game tasks...")
-        results = await asyncio.gather(*tasks, return_exceptions=True)
+        for batch_start in range(0, num_games, max_concurrent):
+            batch_end = min(batch_start + max_concurrent, num_games)
+            batch_runners = runners[batch_start:batch_end]
+
+            print(f"\n{'='*80}")
+            print(f"Launching batch: Games {batch_start} to {batch_end-1} ({len(batch_runners)} games)")
+            print(f"{'='*80}\n")
+
+            # Create tasks for this batch
+            tasks = []
+            for runner in batch_runners:
+                for episode in range(episodes_per_game):
+                    task = runner.run_game_async(episode)
+                    tasks.append(task)
+
+            # Wait for batch to complete
+            print(f"Running {len(tasks)} game tasks in this batch...")
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            all_results.extend(results)
+
+            print(f"\nBatch {batch_start//max_concurrent + 1} complete!")
+
+        results = all_results
 
         # Filter out exceptions and collect results
         self.results = []
-        for result in results:
+        failed_games = 0
+        for i, result in enumerate(results):
             if isinstance(result, Exception):
-                print(f"Error in game: {result}")
+                failed_games += 1
+                print(f"\n[ERROR] Game task {i} failed with exception: {result}")
+                import traceback
+                traceback.print_exception(type(result), result, result.__traceback__)
             else:
                 self.results.append(result)
+
+        if failed_games > 0:
+            print(f"\n[WARNING] {failed_games} out of {len(results)} game tasks failed")
 
         # Cleanup
         for runner in runners:
@@ -465,13 +509,15 @@ async def main_async():
         sys.exit(1)
 
     # Create coordinator and run games
+    # Limit to 10 concurrent games to respect Gemini API concurrent request limits
     coordinator = ParallelGameCoordinator()
     await coordinator.run_games_parallel(
         num_games=num_games,
         players=players,
         agent_configs=agent_configs,
         max_turns=max_turns,
-        episodes_per_game=episodes_per_game
+        episodes_per_game=episodes_per_game,
+        max_concurrent=10  # Gemini API concurrent request limit
     )
 
 

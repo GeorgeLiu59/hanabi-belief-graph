@@ -99,17 +99,23 @@ class TeeOutput:
 class GameStateLogger:
     """Tracks game state changes (fireworks, lives, clues) each turn."""
 
-    def __init__(self, log_dir: str = "logs/game_state"):
+    def __init__(self, log_dir: str = "logs/game_state", game_id: Optional[int] = None):
         """Initialize game state logger.
 
         Args:
             log_dir: Directory to save game state logs
+            game_id: Unique game identifier for parallel games
         """
         self.log_dir = log_dir
         os.makedirs(log_dir, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_file = f"{log_dir}/game_state_{timestamp}.jsonl"
+
+        # Include game_id in filename for parallel game tracking
+        if game_id is not None:
+            self.log_file = f"{log_dir}/game_state_{timestamp}_game{game_id}.jsonl"
+        else:
+            self.log_file = f"{log_dir}/game_state_{timestamp}.jsonl"
 
         self.episode_num = 0
         self.turn_num = 0
@@ -140,6 +146,7 @@ class GameStateLogger:
 
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(json.dumps(state) + '\n')
+            f.flush()  # Ensure immediate write to disk
 
     def log_episode_start(self, episode_num: int):
         """Log the start of a new episode."""
@@ -152,6 +159,7 @@ class GameStateLogger:
                 "event": "EPISODE_START",
                 "episode": episode_num
             }) + '\n')
+            f.flush()  # Ensure immediate write to disk
 
     def log_episode_end(self, episode_num: int, final_score: int, max_fireworks: int, turns: int):
         """Log the end of an episode with final statistics."""
@@ -164,22 +172,29 @@ class GameStateLogger:
                 "max_fireworks_reached": max_fireworks,
                 "total_turns": turns
             }) + '\n')
+            f.flush()  # Ensure immediate write to disk
 
 
 class EventLogger:
     """Tracks specific events (life loss, clue gain/loss)."""
 
-    def __init__(self, log_dir: str = "logs/events"):
+    def __init__(self, log_dir: str = "logs/events", game_id: Optional[int] = None):
         """Initialize event logger.
 
         Args:
             log_dir: Directory to save event logs
+            game_id: Unique game identifier for parallel games
         """
         self.log_dir = log_dir
         os.makedirs(log_dir, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.log_file = f"{log_dir}/events_{timestamp}.jsonl"
+
+        # Include game_id in filename for parallel game tracking
+        if game_id is not None:
+            self.log_file = f"{log_dir}/events_{timestamp}_game{game_id}.jsonl"
+        else:
+            self.log_file = f"{log_dir}/events_{timestamp}.jsonl"
 
         # Track previous state to detect changes
         self.prev_lives = 3
@@ -262,6 +277,7 @@ class EventLogger:
 
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(json.dumps(event_data) + '\n')
+            f.flush()  # Ensure immediate write to disk
 
     def log_episode_start(self, episode_num: int):
         """Reset tracking for new episode."""

@@ -157,9 +157,9 @@ class GeminiAgent(Agent):
         
         # Create Chain of Thought prompt
         cot_prompt = self.cot_reasoner.create_cot_prompt(observation, base_prompt)
-        
-        max_retries = 2
-        
+
+        max_retries = 5  # Increased from 2 to 5 for better reliability
+
         for attempt in range(max_retries + 1):
             try:
                 # Check rate limits
@@ -196,6 +196,9 @@ class GeminiAgent(Agent):
                         error_msg = "Invalid JSON format. Please provide a valid JSON response."
                         cot_prompt = self.prompt_manager.create_retry_prompt(observation, error_msg)
                         self.logger.log_retry_attempt(attempt + 1, error_msg, cot_prompt)
+                        # Add exponential backoff: 1s, 2s, 4s, 8s, 16s
+                        wait_time = min(2 ** attempt, 16)
+                        time.sleep(wait_time)
                         continue
                     else:
                         self.logger.log_error("PARSING_FAILED", f"Failed to parse after {max_retries} retries")
@@ -207,6 +210,9 @@ class GeminiAgent(Agent):
                     if attempt < max_retries:
                         cot_prompt = self.prompt_manager.create_retry_prompt(observation, completeness_msg)
                         self.logger.log_retry_attempt(attempt + 1, completeness_msg, cot_prompt)
+                        # Add exponential backoff: 1s, 2s, 4s, 8s, 16s
+                        wait_time = min(2 ** attempt, 16)
+                        time.sleep(wait_time)
                         continue
                     else:
                         self.logger.log_error("ACTION_INCOMPLETE", completeness_msg)
@@ -238,6 +244,9 @@ class GeminiAgent(Agent):
                     if attempt < max_retries:
                         cot_prompt = self.prompt_manager.create_retry_prompt(observation, f"ILLEGAL MOVE: {illegal_reason}")
                         self.logger.log_retry_attempt(attempt + 1, illegal_reason, cot_prompt)
+                        # Add exponential backoff: 1s, 2s, 4s, 8s, 16s
+                        wait_time = min(2 ** attempt, 16)
+                        time.sleep(wait_time)
                         continue
                     else:
                         self.logger.log_error("ILLEGAL_ACTION_FINAL", f"Action remained illegal after {max_retries} retries")
@@ -246,9 +255,12 @@ class GeminiAgent(Agent):
             except Exception as e:
                 error_msg = f"API error on attempt {attempt + 1}: {e}"
                 self.logger.log_error("API_ERROR", error_msg)
-                
+
                 if attempt < max_retries:
-                    time.sleep(1)
+                    # Exponential backoff for API errors: 2s, 4s, 8s, 16s, 32s
+                    wait_time = min(2 ** (attempt + 1), 32)
+                    self.logger.log_error("API_RETRY_WAIT", f"Waiting {wait_time}s before retry {attempt + 2}")
+                    time.sleep(wait_time)
                     continue
                 else:
                     break
