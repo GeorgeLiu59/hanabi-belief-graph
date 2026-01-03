@@ -26,7 +26,15 @@ class BeliefGraphAgentBase(GeminiAgent, ABC):
         super().__init__(config, *args, **kwargs)
         self.variant = variant_name
         self.agent_id = f"{agent_prefix}_{self.agent_id}"
-        self.logger = AgentLogger(self.agent_id)
+        # Use new naming format: DATE_TIME_LLMMODEL_MODEL_MODE_TAG_gameID_agentID
+        self.logger = AgentLogger(
+            agent_id=self.agent_id,
+            model_type="BG",
+            mode=variant_name,
+            llm_model="2.5_gemini_pro",
+            tag=config.get('tag', ''),
+            game_id=config.get('game_id', None)
+        )
         self.prompt_manager = PromptManager()
         self.belief_graph = {}
         self._seen_move_ids: set[str] = set()

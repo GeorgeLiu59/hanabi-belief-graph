@@ -8,17 +8,56 @@ from typing import Dict, Any, Optional
 
 class AgentLogger:
     """Handles all logging for agent operations with complete visibility."""
-    
-    def __init__(self, agent_id: str, log_dir: str = "logs"):
+
+    def __init__(self, agent_id: str, log_dir: str = "logs", model_type: str = "", mode: str = "", llm_model: str = "", tag: str = "", game_id: int = None):
+        """Initialize agent logger with structured naming.
+
+        Args:
+            agent_id: Agent identifier
+            log_dir: Directory for log files
+            model_type: Model type (e.g., 'BG', 'Gemini')
+            mode: Mode/variant (e.g., 'probabilistic', 'certainty')
+            llm_model: LLM model name (e.g., '2.5_gemini_flash', '2.5_gemini_pro')
+            tag: Optional tag for this run (spaces converted to underscores)
+            game_id: Optional game identifier for parallel games
+        """
         self.agent_id = agent_id
-        self.log_dir = log_dir
+        self.model_type = model_type
+        self.mode = mode
+        self.llm_model = llm_model
+        self.tag = tag.replace(" ", "_") if tag else ""
+        self.game_id = game_id
         self.session_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         self.current_episode = 0
-        
-        os.makedirs(log_dir, exist_ok=True)
-        
-        # Single log file per agent
-        self.log_file = f"{log_dir}/agent_{agent_id}_{self.session_id}.log"
+
+        # Format: date_time_LLMMODEL_model_mode_TAG_gameID_agentID
+        if model_type and mode:
+            # Build filename components
+            parts = [self.session_id]
+            if llm_model:
+                parts.append(llm_model)
+            parts.append(model_type)
+            parts.append(mode)
+            if self.tag:
+                parts.append(self.tag)
+            # Add game_id and agent_id to ensure unique filenames for parallel games
+            if game_id is not None:
+                parts.append(f"game{game_id}")
+            parts.append(agent_id)
+
+            filename = "_".join(parts) + ".log"
+            self.log_dir = f"{log_dir}/{model_type.lower()}_{mode}"
+            os.makedirs(self.log_dir, exist_ok=True)
+            self.log_file = f"{self.log_dir}/{filename}"
+        elif agent_id:
+            # Fallback to old format
+            self.log_dir = log_dir
+            os.makedirs(log_dir, exist_ok=True)
+            self.log_file = f"{log_dir}/agent_{agent_id}_{self.session_id}.log"
+        else:
+            self.log_dir = log_dir
+            os.makedirs(log_dir, exist_ok=True)
+            self.log_file = f"{log_dir}/{self.session_id}_agent.log"
         
     def _timestamp(self) -> str:
         """Get current timestamp."""
@@ -28,6 +67,7 @@ class AgentLogger:
         """Write content to unified log file with timestamp and type."""
         with open(self.log_file, 'a', encoding='utf-8') as f:
             f.write(f"[{self._timestamp()}] [EPISODE_{self.current_episode}] [{log_type}] {content}\n")
+            f.flush()  # Ensure immediate write to disk
     
     def set_episode(self, episode_num: int):
         """Set current episode number for logging."""
@@ -137,3 +177,21 @@ class AgentLogger:
         if context:
             content += f"Context: {context}"
         self._write_to_log("DEBUG", content)
+
+    def log_episode_end(self, episode_num: int, final_score: int, end_reason: str):
+        """Log episode completion."""
+        content = f"EPISODE_END - Agent {self.agent_id}\n"
+        content += f"Episode: {episode_num}\n"
+        content += f"Final Score: {final_score}\n"
+        content += f"End Reason: {end_reason}\n"
+        content += "=" * 80
+        self._write_to_log("INFO", content)
+
+    def close(self):
+        """Explicitly flush and close logger (if needed)."""
+        # Since we're using context manager in _write_to_log, this is just for completeness
+        # But we can add a final flush marker
+        content = f"LOGGER_CLOSED - Agent {self.agent_id}\n"
+        content += f"Session ID: {self.session_id}\n"
+        content += "=" * 80
+        self._write_to_log("INFO", content)

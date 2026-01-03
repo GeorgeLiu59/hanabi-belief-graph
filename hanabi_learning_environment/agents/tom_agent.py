@@ -24,7 +24,15 @@ class BeliefGraphToMAgent(BeliefGraphProbabilisticAgent):
         # Override the agent_id and variant to be TOM-specific
         self.variant = 'theory_of_mind'
         self.agent_id = f"BG_tom_{self.agent_id.split('_')[-1]}"
-        self.logger = AgentLogger(self.agent_id)
+        # Use new naming format: DATE_TIME_LLMMODEL_MODEL_MODE_TAG_gameID_agentID
+        self.logger = AgentLogger(
+            agent_id=self.agent_id,
+            model_type="BG",
+            mode="theory_of_mind",
+            llm_model="2.5_gemini_pro",
+            tag=config.get('tag', ''),
+            game_id=config.get('game_id', None)
+        )
         # Initialize CoT reasoner
         self.cot_reasoner = ChainOfThoughtReasoner()
 

@@ -23,9 +23,18 @@ class GeminiAgent(Agent):
         """Initialize the Gemini agent with modular components."""
         self.config = config
         self.agent_id = str(random.randint(1000, 9999))
-        
+        self.model_name = 'gemini-2.5-pro'  # Will be initialized in set_episode
+
         # Initialize modular components
-        self.logger = AgentLogger(self.agent_id)
+        # Format: date_time_LLMMODEL_model_mode_TAG_gameID_agentID
+        self.logger = AgentLogger(
+            agent_id=self.agent_id,
+            model_type="Gemini",
+            mode="base",
+            llm_model="2.5_gemini_pro",
+            tag=config.get('tag', ''),
+            game_id=config.get('game_id', None)
+        )
         self.prompt_manager = PromptManager()
         self.action_validator = ActionValidator()
         self.cot_reasoner = ChainOfThoughtReasoner()
