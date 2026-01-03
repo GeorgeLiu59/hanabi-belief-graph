@@ -39,6 +39,8 @@ class GameStateTracker:
         self.lives = 3
         self.clues = 8
         self.deck_size = 50
+        self.resource_history = []
+        self.state_update_count = 0
 
     def reset(self, num_players: int):
         """Reset tracker for new game."""
@@ -52,6 +54,8 @@ class GameStateTracker:
         self.lives = 3
         self.clues = 8
         self.deck_size = 50
+        self.resource_history = []
+        self.state_update_count = 0
 
     def update_visible_cards(self, observer_player_id: int, observed_hands: List[List[Dict]]):
         """Agent reports what cards they can see in other players' hands.
@@ -105,7 +109,15 @@ class GameStateTracker:
             for card in card_knowledge
         ]
 
-    def update_game_state(self, fireworks: Dict, lives: int, clues: int, deck_size: int):
+    def update_game_state(
+        self,
+        fireworks: Dict,
+        lives: int,
+        clues: int,
+        deck_size: int,
+        turn_index: Optional[int] = None,
+        last_moves: Optional[List[Dict]] = None
+    ) -> List[Dict[str, Any]]:
         """Update global game state.
 
         Args:
@@ -113,16 +125,27 @@ class GameStateTracker:
             lives: Remaining lives
             clues: Remaining clues
             deck_size: Cards left in deck
+            turn_index: Optional turn/update counter for logging
+            last_moves: Optional list of moves that led to this state
+
+        Returns:
+            List of resource change events detected during this update.
         """
         old_fireworks = self.fireworks.copy()
         old_lives = self.lives
         old_clues = self.clues
         old_deck_size = self.deck_size
 
+        events: List[Dict[str, Any]] = []
+        update_id = self.state_update_count + 1
+
         self.fireworks = fireworks.copy()
         self.lives = lives
         self.clues = clues
         self.deck_size = deck_size
+
+        turn_label = turn_index if turn_index is not None else update_id
+        last_move_summary = self._summarize_last_move(last_moves or [])
 
         # Log detailed changes
         changes = []
@@ -133,12 +156,31 @@ class GameStateTracker:
 
         if old_lives != self.lives:
             changes.append(f"Lives: {old_lives} → {self.lives}")
+            events.append({
+                'turn': turn_label,
+                'type': 'life',
+                'before': old_lives,
+                'after': self.lives,
+                'change': self.lives - old_lives,
+                'last_move': last_move_summary
+            })
 
         if old_clues != self.clues:
             changes.append(f"Clues: {old_clues} → {self.clues}")
+            events.append({
+                'turn': turn_label,
+                'type': 'clue',
+                'before': old_clues,
+                'after': self.clues,
+                'change': self.clues - old_clues,
+                'last_move': last_move_summary
+            })
 
         if old_deck_size != self.deck_size:
             changes.append(f"Deck: {old_deck_size} → {self.deck_size}")
+
+        if events:
+            self.resource_history.extend(events)
 
         if changes:
             print(f"[GAME_STATE_TRACKER] 🎮 Game state updated:")
@@ -148,6 +190,9 @@ class GameStateTracker:
             # Summary state
             fireworks_total = sum(self.fireworks.values())
             print(f"[GAME_STATE_TRACKER] 📈 Current state: {fireworks_total} fireworks built, {self.lives} lives, {self.clues} clues, {self.deck_size} cards in deck")
+
+        self.state_update_count = update_id
+        return events
 
     def register_hint(
         self,
@@ -276,6 +321,37 @@ class GameStateTracker:
             'clues': self.clues,
             'deck_size': self.deck_size
         }
+
+    def get_resource_history(self) -> List[Dict[str, Any]]:
+        """Get history of life/clue token changes."""
+        return list(self.resource_history)
+
+    def _summarize_last_move(self, last_moves: List[Dict[str, Any]]) -> str:
+        """Create a readable summary of the most recent move."""
+        if not last_moves:
+            return "No move context"
+
+        most_recent = last_moves[0]
+        player = most_recent.get('player')
+        move = most_recent.get('move', {})
+        action_type = move.get('action_type', 'UNKNOWN')
+        player_display = f"P{player + 1}" if player is not None and player >= 0 else "P?"
+
+        if action_type in ('REVEAL_COLOR', 'REVEAL_RANK'):
+            target = move.get('target_offset')
+            target_display = f"P{(player + target + 1) if player is not None and target is not None else '?'}"
+            detail_key = 'color' if action_type == 'REVEAL_COLOR' else 'rank'
+            detail_val = move.get(detail_key, '?')
+            return f"{player_display} {action_type} {detail_val} → {target_display}"
+
+        if action_type in ('PLAY', 'DISCARD'):
+            card_idx = move.get('card_index', '?')
+            color = most_recent.get('color', '?')
+            rank = most_recent.get('rank', '?')
+            outcome = "scored" if most_recent.get('scored') else "no score"
+            return f"{player_display} {action_type} card {card_idx} ({color} {rank + 1 if isinstance(rank, int) else '?'}) {outcome}"
+
+        return f"{player_display} {action_type}"
 
     def find_matching_cards_for_hint(
         self,

@@ -112,12 +112,26 @@ class BeliefGraphAgentBase(GeminiAgent, ABC):
                 observation['card_knowledge'][0]
             )
 
-        tracker.update_game_state(
+        resource_events = tracker.update_game_state(
             observation.get('fireworks', {}),
             observation.get('life_tokens', 3),
             observation.get('information_tokens', 8),
-            observation.get('deck_size', 50)
+            observation.get('deck_size', 50),
+            turn_index=len(self.observation_history) + 1,
+            last_moves=observation.get('last_moves', [])
         )
+
+        if resource_events:
+            for event in resource_events:
+                delta = event['change']
+                token = 'life' if event['type'] == 'life' else 'clue'
+                direction = "spent" if delta < 0 else "gained"
+                message = (
+                    f"Turn {event['turn']}: {token} {direction} "
+                    f"{abs(delta)} ({event['before']} → {event['after']}). "
+                    f"Context: {event['last_move']}"
+                )
+                self.logger.log_info("RESOURCE_USAGE", message)
 
         tracker_state = tracker.get_state_summary()
         self.logger.log_info("EARLY_UPDATE_COMPLETE", f"✅ Game state tracker updated: {tracker_state}")
