@@ -39,3 +39,6 @@ dist/
 
 # macOS
 .DS_Store
+
+CLAUDE.md
+PREPROMPT.md
