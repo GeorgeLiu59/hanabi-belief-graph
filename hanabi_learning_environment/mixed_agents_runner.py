@@ -172,8 +172,12 @@ class MixedAgentsRunner:
             else:
                 raise ValueError("No valid action found for current player")
 
-        # Determine end reason
+        # Log final state after game ends (captures 0-life states)
         final_obs = observations['player_observations'][0]
+        self.game_state_logger.log_turn_state(final_obs, turn_count, 0, action=None)
+        self.event_logger.check_and_log_changes(final_obs, turn_count, 0, action=None)
+
+        # Determine end reason
         if final_obs.get('life_tokens', 0) == 0:
             end_reason = "lives_depleted"
         elif final_fireworks == 25:
