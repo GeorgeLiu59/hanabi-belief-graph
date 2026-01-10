@@ -14,23 +14,29 @@ from google import genai
 
 from hanabi_learning_environment.agents.prompt_manager import PromptManager
 
-
-MODEL_NAME = "gemini-2.5-flash"
-
 # Mapping of scenario files to their corresponding output files
 RUNS = [
+    {
+        "scenarios_path": Path(__file__).parent / "scenarios" / "jump_to_conclusions.json",
+        "output_filename": "jump_to_conclusions.json",
+    },
+    # {
+    #     "scenarios_path": Path(__file__).parent / "scenarios" / "scenarios_my_hand.json",
+    #     "output_filename": "cot_outputs_my_hand.json",
+    # },
+    # {
+    #     "scenarios_path": Path(__file__).parent / "scenarios" / "scenarios_full_beliefs.json",
+    #     "output_filename": "cot_outputs_full_beliefs.json",
+    # },
     # {
     #     "scenarios_path": Path(__file__).parent / "scenarios" / "scenarios_nl.json",
-    #     "output_path": Path(__file__).parent /"cot_outputs"/ "cot_outputs_nl.json",
+    #     "output_filename": "cot_outputs_nl.json",
     # },
-    {
-        "scenarios_path": Path(__file__).parent / "scenarios" / "scenarios_my_hand.json",
-        "output_path": Path(__file__).parent / "cot_outputs"/ "cot_outputs_my_hand.json",
-    },
-    {
-        "scenarios_path": Path(__file__).parent / "scenarios" / "scenarios_full_beliefs.json",
-        "output_path": Path(__file__).parent / "cot_outputs" / "cot_outputs_full_beliefs.json",
-    },
+]
+
+MODEL_RUNS = [
+    {"model_name": "gemini-2.5-flash", "output_dir": Path(__file__).parent / "cot_outputs_model_2-5"},
+    #{"model_name": "gemini-2.0-flash", "output_dir": Path(__file__).parent / "cot_outputs_model_2"},
 ]
 
 
@@ -107,30 +113,36 @@ def main():
     if not api_key:
         raise SystemExit("GEMINI_API_KEY not set. Please export it or add to .env.")
 
-    client = genai.Client(api_key=api_key)
     pm = PromptManager()
     rules = pm.get_hanabi_game_rules()
-    for run in RUNS:
-        scenarios_path = run["scenarios_path"]
-        output_path = run["output_path"]
 
-        if not scenarios_path.exists():
-            print(f"Skipping missing scenarios file: {scenarios_path}")
-            continue
+    for model_cfg in MODEL_RUNS:
+        model_name = model_cfg["model_name"]
+        output_dir = model_cfg["output_dir"]
+        client = genai.Client(api_key=api_key)
 
-        scenarios = load_scenarios(scenarios_path)
-        outputs = {}
+        for run in RUNS:
+            scenarios_path = run["scenarios_path"]
+            output_path = output_dir / run["output_filename"]
 
-        for scenario in scenarios:
-            prompt = format_prompt(rules, scenario)
-            print(f"[{scenarios_path.name}] Querying model for scenario: {scenario['id']}")
-            response = client.models.generate_content(model=MODEL_NAME, contents=prompt)
-            outputs[scenario["id"]] = {
-                "prompt": prompt,
-                "response_text": response.text,
-            }
+            if not scenarios_path.exists():
+                print(f"Skipping missing scenarios file: {scenarios_path}")
+                continue
 
-        save_outputs(outputs, output_path)
+            scenarios = load_scenarios(scenarios_path)
+            outputs = {}
+
+            for scenario in scenarios:
+                prompt = format_prompt(rules, scenario)
+                print(f"[{model_name}][{scenarios_path.name}] Querying model for scenario: {scenario['id']}")
+                response = client.models.generate_content(model=model_name, contents=prompt)
+                outputs[scenario["id"]] = {
+                    "prompt": prompt,
+                    "response_text": response.text,
+                    "model": model_name,
+                }
+
+            save_outputs(outputs, output_path)
 
 
 if __name__ == "__main__":

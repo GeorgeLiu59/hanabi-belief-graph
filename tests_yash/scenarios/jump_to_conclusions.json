@@ -1,0 +1,168 @@
+[
+    {
+      "id": "turn74_premature_confidence_game_ender",
+      "source_log": "logs/agent_BG_probabilistic_1817_20251227_130501.log:44995#Turn_74_Life_Loss",
+      "description": "Agent jumps to conclusion with 90% color confidence and plays with last life remaining, resulting in game over. Demonstrates overconfidence in probabilistic beliefs during critical moments.",
+      "category": "jumping_to_conclusions",
+      "severity": "CRITICAL",
+      "history_summary": [
+        "Late game with only 2 cards in deck",
+        "Agent has 1 life remaining (critical state)",
+        "Agent received rank 3 hint previously",
+        "No direct color hint for card at position 0",
+        "Green firework at 2/5, Red firework at 1/5"
+      ],
+      "observation": {
+        "current_player": "P2",
+        "fireworks": { "R": 1, "Y": 1, "G": 2, "W": 5, "B": 0 },
+        "clues": 1,
+        "lives": 1,
+        "deck_size": 2,
+        "teammate_hand_visible": ["G4", "R4", "G1", "R3", "B1"],
+        "known_teammate_knowledge": [
+          "Card 1: Rank 4 (100%)",
+          "Card 2: RED 4 (100% certain)",
+          "Cards 3-5: No specific knowledge"
+        ]
+      },
+      "belief_graph_summary": {
+        "My_Hand_Beliefs": {
+          "P2_Card1": {
+            "actual_card": "R3",
+            "agent_belief": {
+              "color_distribution": {
+                "green": 0.90,
+                "red": 0.05,
+                "yellow": 0.05,
+                "blue": 0.0,
+                "white": 0.0
+              },
+              "rank_distribution": {
+                "1": 0.0,
+                "2": 0.0,
+                "3": 1.0,
+                "4": 0.0,
+                "5": 0.0
+              }
+            }
+          },
+          "P2_Card2": {
+            "color_distribution": "uniform (20% each)",
+            "rank_distribution": { "1": 0.25, "2": 0.25, "4": 0.25, "5": 0.25, "3": 0.0 }
+          }
+        },
+        "Critical_Error": "Agent treats 90% confidence as 'near-certainty' and plays with last life",
+        "Inference_Source": "Agent reasoning: '90% confidence in the color GREEN turns a potential gamble into a calculated, high-value play'"
+      },
+      "agent_action_taken": {
+        "action": { "action_type": "PLAY", "card_index": 0 },
+        "outcome": "LIFE_LOST",
+        "consequence": "Game ended - last life lost"
+      },
+      "correct_action": {
+        "action": { "action_type": "REVEAL_RANK", "rank": 1, "target_offset": 1 },
+        "rationale": "With last life, safer to enable teammate's B1 play (visible at position 5). 90% confidence is NOT sufficient for game-ending risk.",
+        "alternative_1": { "action_type": "PLAY", "card_index": 1 },
+        "alternative_1_rationale": "Card 2 is rank 1 with uniform color distribution - potentially B1 which is needed for B:0"
+      },
+      "pattern_identified": "PREMATURE_CONFIDENCE",
+      "failure_mode": "Treating <95% probability as certainty in high-stakes scenarios",
+      "lesson": "In critical situations (1 life remaining), agent should require >95% confidence OR choose safer alternatives. 90% = 10% chance of game over."
+    },
+
+    {
+      "id": "turn44_belief_tracking_error_lucky_outcome",
+      "source_log": "logs/agent_BG_probabilistic_1817_20251227_130501.log:8811#Turn_44_Successful_Play",
+      "description": "Agent believes card is rank 2 (G2 or W2) with 100% confidence but card is actually R1. Play succeeds anyway because R1 is playable. Demonstrates belief tracking errors that can mask underlying problems.",
+      "category": "belief_tracking_error",
+      "severity": "MEDIUM",
+      "history_summary": [
+        "Mid-game with 3 lives remaining",
+        "Agent received hints leading to belief of rank 2",
+        "Green and White fireworks both at 1/5",
+        "Agent's belief graph incorrectly tracks card identity"
+      ],
+      "observation": {
+        "current_player": "P2",
+        "fireworks": { "R": 0, "Y": 0, "G": 1, "W": 1, "B": 0 },
+        "clues": 3,
+        "lives": 3,
+        "deck_size": 38,
+        "teammate_hand_visible": ["B5", "W3", "B4", "W1", "R2"],
+        "known_teammate_knowledge": [
+          "Card 1: Rank 5 (100%)",
+          "Card 4: Rank 1 (100%)"
+        ]
+      },
+      "belief_graph_summary": {
+        "My_Hand_Beliefs": {
+          "P2_Card3": {
+            "actual_card": "R1",
+            "agent_belief": {
+              "color_distribution": {
+                "green": 0.50,
+                "white": 0.50,
+                "red": 0.0,
+                "blue": 0.0,
+                "yellow": 0.0
+              },
+              "rank_distribution": {
+                "1": 0.0,
+                "2": 1.0,
+                "3": 0.0,
+                "4": 0.0,
+                "5": 0.0
+              }
+            }
+          }
+        },
+        "Critical_Error": "Agent believes card is rank 2 when it's actually rank 1. Wrong rank tracking.",
+        "Inference_Source": "Agent reasoning: '100% certainty that my card at index 2 is a rank 2... both a Green 2 and a White 2 are valid, playable cards. This elevates my knowledge to 100% playable card.'"
+      },
+      "agent_action_taken": {
+        "action": { "action_type": "PLAY", "card_index": 2 },
+        "outcome": "SUCCESS",
+        "consequence": "R firework advanced 0→1 (despite wrong beliefs)"
+      },
+      "pattern_identified": "BELIEF_TRACKING_ERROR",
+      "failure_mode": "Belief graph incorrectly tracking card rank/color after hints",
+      "lesson": "Successful outcome masked a serious belief tracking bug. Agent needs better hint integration and belief updating."
+    },
+
+    {
+      "id": "endgame_risk_assessment_scenario",
+      "source_log": "synthetic#Based_on_Turn_74_Pattern",
+      "description": "Test scenario: Agent with 1 life and 85% confidence in card identity. Should agent play or choose safer option?",
+      "category": "risk_assessment",
+      "severity": "HIGH",
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 2, "Y": 1, "G": 3, "W": 4, "B": 0 },
+        "clues": 2,
+        "lives": 1,
+        "deck_size": 5,
+        "teammate_hand_visible": ["B1", "Y2", "R4", "G5", "B2"],
+        "known_teammate_knowledge": ["Card 1 has no hints"]
+      },
+      "belief_graph_summary": {
+        "My_Hand_Beliefs": {
+          "P1_Card1": {
+            "color_distribution": {
+              "red": 0.85,
+              "blue": 0.10,
+              "yellow": 0.05
+            },
+            "rank_distribution": {
+              "3": 1.0
+            }
+          }
+        }
+      },
+      "expected_behavior": {
+        "action": { "action_type": "REVEAL_RANK", "rank": 1, "target_offset": 1 },
+        "rationale": "With last life, 85% confidence is too risky. Enable teammate's certain B1 play instead.",
+        "threshold": "Require >95% confidence for plays with last life remaining"
+      },
+      "test_objective": "Verify agent doesn't jump to conclusions with <95% confidence in critical scenarios"
+    }
+  ]
