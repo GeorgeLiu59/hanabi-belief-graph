@@ -57,7 +57,7 @@ class GeminiAgent(Agent):
         self.current_game_id = None
         self.observation_history = []
         self.action_history = []
-        self.history_size = 4
+        self.history_size = 999  # No truncation - keep full history
 
         # Rate limiting
         self.request_times = []
