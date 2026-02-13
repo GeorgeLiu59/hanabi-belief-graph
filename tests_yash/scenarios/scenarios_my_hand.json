@@ -1,0 +1,151 @@
+[
+    {
+      "id": "midgame_self_play_y1",
+      "source_log": "logs_probabilistic/2025_12_17_PROB_LOG_AGENT2.log#Turn_Y1_Collapse",
+      "description": "Mid-game situation where belief aggregation allows P1 to play a guaranteed Y1 from its own hand.",
+      "history_summary": [
+        "Initial uniform priors over all colors and ranks",
+        "Negative rank eliminations from earlier hints",
+        "Yellow firework still at 0"
+      ],
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 0, "Y": 0, "G": 0, "W": 0, "B": 1 },
+        "clues": 6,
+        "lives": 3,
+        "deck_size": 39,
+        "teammate_hand_visible": ["Y2", "W3", "B2", "B4", "Y5"],
+        "known_teammate_knowledge": ["Y5 protected"]
+      },
+      "belief_graph_summary": {
+        "My_Hand_Beliefs": {
+          "P1_Card3": {
+            "color_distribution": {
+              "red": 0.0,
+              "blue": 0.0,
+              "green": 0.0,
+              "white": 0.0,
+              "yellow": 1.0
+            },
+            "rank_distribution": {
+              "1": 1.0,
+              "2": 0.0,
+              "3": 0.0,
+              "4": 0.0,
+              "5": 0.0
+            }
+          }
+        },
+        "Inference_Source": "Belief graph collapse explicitly stated in reasoning: '100% confidence that my card at index 2 is a YELLOW 1'"
+      },
+      "with_belief_expected_hint": {
+        "action": { "action_type": "PLAY", "card_index": 2 },
+        "rationale": "Belief graph certifies a zero-risk self-play."
+      },
+      "without_belief_redundant_hint": {
+        "action": { "action_type": "REVEAL_COLOR", "color": "Y", "target_player": "P2" },
+        "rationale": "Without self-belief certainty, the agent avoids playing."
+      }
+    },
+  
+    {
+      "id": "midgame_teammate_b2_unlock",
+      "source_log": "logs_probabilistic/2025_12_17_PROB_LOG_AGENT2.log#Rank5_Negative_Inference",
+      "description": "Belief graph tracks teammate rank elimination after a rank-5 clue, isolating B2 as playable.",
+      "history_summary": [
+        "Rank-5 clue given to P2",
+        "Negative inference removes rank 5 from all other cards",
+        "Blue firework at 1"
+      ],
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 0, "Y": 1, "G": 0, "W": 0, "B": 1 },
+        "clues": 5,
+        "lives": 3,
+        "deck_size": 38,
+        "teammate_hand_visible": ["Y2", "W3", "B2", "B4", "Y5"],
+        "known_teammate_knowledge": ["Card 5 is known rank-5"]
+      },
+      "belief_graph_summary": {
+        "Teammate_Hand_Beliefs": {
+          "P2_Card3": {
+            "actual_card_I_see": "B2",
+            "p1_belief": {
+              "color_distribution": {
+                "red": 0.0,
+                "blue": 0.7,
+                "green": 0.0,
+                "white": 0.0,
+                "yellow": 0.3
+              },
+              "rank_distribution": {
+                "1": 0.25,
+                "2": 0.25,
+                "3": 0.25,
+                "4": 0.25,
+                "5": 0.0
+              }
+            }
+          }
+        },
+        "Inference_Source": "Rank-5 negative inference shown in belief update: non-target cards have rank 5 probability set to 0.0 and renormalized"
+      },
+      "with_belief_expected_hint": {
+        "action": { "action_type": "REVEAL_RANK", "rank": 2, "target_player": "P2" },
+        "rationale": "Rank-2 hint resolves remaining uncertainty and enables a safe play."
+      },
+      "without_belief_redundant_hint": {
+        "action": { "action_type": "REVEAL_COLOR", "color": "B", "target_player": "P2" },
+        "rationale": "Color-only hint leaves ambiguity between B2 and B4."
+      }
+    },
+  
+    {
+      "id": "lategame_chain_completion_signal",
+      "source_log": "logs_probabilistic/2025_12_17_PROB_LOG_AGENT2.log#Firework_Negative_Rank",
+      "description": "Late-game scenario where belief graph uses firework state to eliminate lower ranks.",
+      "history_summary": [
+        "Yellow firework advanced to rank 2",
+        "Earlier Yellow color clue given",
+        "Ranks 1 and 2 eliminated by firework state"
+      ],
+      "observation": {
+        "current_player": "P1",
+        "fireworks": { "R": 1, "Y": 2, "G": 1, "W": 0, "B": 2 },
+        "clues": 2,
+        "lives": 2,
+        "deck_size": 15,
+        "teammate_hand_visible": ["Y3", "W4", "B4", "R2", "Y5"],
+        "known_teammate_knowledge": ["Yellow color known"]
+      },
+      "belief_graph_summary": {
+        "Teammate_Hand_Beliefs": {
+          "P2_Card1": {
+            "actual_card_I_see": "Y3",
+            "p1_belief": {
+              "color_distribution": {
+                "yellow": 1.0
+              },
+              "rank_distribution": {
+                "1": 0.0,
+                "2": 0.0,
+                "3": 0.6,
+                "4": 0.25,
+                "5": 0.15
+              }
+            }
+          }
+        },
+        "Inference_Source": "Firework state (Y=2) removes ranks 1–2; remaining probability mass shifts to rank 3 as next playable"
+      },
+      "with_belief_expected_hint": {
+        "action": { "action_type": "REVEAL_RANK", "rank": 3, "target_player": "P2" },
+        "rationale": "Rank hint completes certainty and enables immediate firework extension."
+      },
+      "without_belief_redundant_hint": {
+        "action": { "action_type": "REVEAL_COLOR", "color": "Y", "target_player": "P2" },
+        "rationale": "Repeats known information and fails to unlock play."
+      }
+    }
+  ]
+  

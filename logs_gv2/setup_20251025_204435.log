@@ -1,0 +1,41 @@
+[2025-10-25 20:44:36] SETUP: Starting Interactive Hanabi Launch (Players: 2, Episodes: 1, Config: BeliefGraphAgent:probabilistic,BeliefGraphAgent:probabilistic)
+[2025-10-25 20:44:36] SETUP: Activating virtual environment...
+[2025-10-25 20:44:36] SETUP: Upgrading pip...
+Requirement already satisfied: pip in ./venv/lib/python3.9/site-packages (25.3)
+[2025-10-25 20:44:37] SETUP: Installing build dependencies...
+Requirement already satisfied: setuptools in ./venv/lib/python3.9/site-packages (56.0.0)
+Requirement already satisfied: wheel in ./venv/lib/python3.9/site-packages (0.45.1)
+Requirement already satisfied: scikit-build in ./venv/lib/python3.9/site-packages (0.18.1)
+Requirement already satisfied: cmake in ./venv/lib/python3.9/site-packages (4.1.2)
+Requirement already satisfied: ninja in ./venv/lib/python3.9/site-packages (1.13.0)
+Requirement already satisfied: distro in ./venv/lib/python3.9/site-packages (from scikit-build) (1.9.0)
+Requirement already satisfied: packaging in ./venv/lib/python3.9/site-packages (from scikit-build) (25.0)
+Requirement already satisfied: tomli in ./venv/lib/python3.9/site-packages (from scikit-build) (2.3.0)
+[2025-10-25 20:44:37] SETUP: Cleaning previous builds...
+[2025-10-25 20:44:37] SETUP: Installing hanabi_learning_environment package...
+Processing /Users/tianqinmeng/Desktop/Projects/hanabi-belief-graph
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: cffi in ./venv/lib/python3.9/site-packages (from hanabi_learning_environment==0.0.1) (2.0.0)
+Requirement already satisfied: pycparser in ./venv/lib/python3.9/site-packages (from cffi->hanabi_learning_environment==0.0.1) (2.23)
+Building wheels for collected packages: hanabi_learning_environment
+  Building wheel for hanabi_learning_environment (pyproject.toml): started
+  Building wheel for hanabi_learning_environment (pyproject.toml): finished with status 'done'
+  Created wheel for hanabi_learning_environment: filename=hanabi_learning_environment-0.0.1-cp39-cp39-macosx_15_0_arm64.whl size=107704 sha256=0c0d887860bde44e9f8dd181316a0a9590786fe9e982fdc5760a1519eb159b62
+  Stored in directory: /Users/tianqinmeng/Library/Caches/pip/wheels/85/9a/54/78fd075c80dadcfb98b891cef28aad0c30c4f2bc5c118474d3
+Successfully built hanabi_learning_environment
+Installing collected packages: hanabi_learning_environment
+  Attempting uninstall: hanabi_learning_environment
+    Found existing installation: hanabi_learning_environment 0.0.1
+    Uninstalling hanabi_learning_environment-0.0.1:
+      Successfully uninstalled hanabi_learning_environment-0.0.1
+Successfully installed hanabi_learning_environment-0.0.1
+[2025-10-25 20:44:43] SETUP: Installing runtime dependencies...
+Requirement already satisfied: numpy in ./venv/lib/python3.9/site-packages (2.0.2)
+[2025-10-25 20:44:43] SETUP: Dependencies installed successfully
+[2025-10-25 20:44:43] SETUP: Running mixed agents game (Players: 2, Episodes: 1, Config: BeliefGraphAgent:probabilistic,BeliefGraphAgent:probabilistic)
+[2025-10-25 21:43:44] SETUP: Game completed successfully
